@@ -1,0 +1,10 @@
+# 仅把实际需要的源码放进构建上下文。
+**
+!CMakeLists.txt
+!Dockerfile
+!src/
+!src/**
+!static/
+!static/**
+!data/
+!data/**

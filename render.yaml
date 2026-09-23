@@ -1,0 +1,14 @@
+# 在 Render 选择 New > Blueprint，并连接包含此文件的仓库。
+services:
+  - type: web
+    name: boring-lab
+    runtime: docker
+    plan: free
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    healthCheckPath: /healthz
+    envVars:
+      - key: HOST
+        value: 0.0.0.0
+      - key: PORT
+        value: "10000"

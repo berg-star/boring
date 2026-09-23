@@ -1,0 +1,30 @@
+cmake_minimum_required(VERSION 3.20)
+project(boring_lab LANGUAGES CXX)
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+include(FetchContent)
+# 固定版本；首次配置需要连接 GitHub，之后使用 build/_deps 缓存。
+FetchContent_Declare(asio GIT_REPOSITORY https://github.com/chriskohlhoff/asio.git GIT_TAG asio-1-30-2 GIT_SHALLOW TRUE)
+FetchContent_MakeAvailable(asio)
+set(ASIO_INCLUDE_DIR "${asio_SOURCE_DIR}/asio/include" CACHE PATH "Standalone Asio headers" FORCE)
+set(CROW_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
+set(CROW_BUILD_TESTS OFF CACHE BOOL "" FORCE)
+set(CROW_ENABLE_SSL OFF CACHE BOOL "" FORCE)
+set(CROW_ENABLE_COMPRESSION OFF CACHE BOOL "" FORCE)
+FetchContent_Declare(crow GIT_REPOSITORY https://github.com/CrowCpp/Crow.git GIT_TAG v1.2.1 GIT_SHALLOW TRUE)
+FetchContent_MakeAvailable(crow)
+add_executable(boring_lab src/main.cpp)
+target_link_libraries(boring_lab PRIVATE Crow::Crow)
+target_compile_definitions(boring_lab PRIVATE CROW_DISABLE_STATIC_DIR)
+if(MSVC)
+  target_compile_options(boring_lab PRIVATE /utf-8)
+endif()
+if(WIN32)
+  target_compile_definitions(boring_lab PRIVATE _WIN32_WINNT=0x0601)
+  target_link_libraries(boring_lab PRIVATE ws2_32 mswsock)
+endif()
+# 资源随程序复制，运行时不依赖终端所在目录。
+add_custom_target(copy_resources ALL
+  COMMAND ${CMAKE_COMMAND} -E copy_directory "${CMAKE_SOURCE_DIR}/static" "$<TARGET_FILE_DIR:boring_lab>/static"
+  COMMAND ${CMAKE_COMMAND} -E copy_directory "${CMAKE_SOURCE_DIR}/data" "$<TARGET_FILE_DIR:boring_lab>/data"
+  DEPENDS boring_lab)

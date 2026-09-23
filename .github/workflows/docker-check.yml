@@ -1,0 +1,29 @@
+name: Check Docker build
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  docker-check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build Linux image
+        run: docker build -t boring-lab:check .
+      - name: Check container with a non-default PORT
+        shell: bash
+        run: |
+          set -euo pipefail
+          docker run -d --name boring-lab-check -e PORT=18081 -p 127.0.0.1:18081:18081 boring-lab:check
+          curl --fail --retry 20 --retry-connrefused --retry-delay 1 http://127.0.0.1:18081/healthz
+          python3 tools/check-http.py http://127.0.0.1:18081
+          test "$(docker exec boring-lab-check id -u)" = "10001"
+      - name: Container logs and cleanup
+        if: always()
+        run: |
+          docker logs boring-lab-check || true
+          docker rm -f boring-lab-check || true

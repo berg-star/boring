@@ -1,0 +1,8 @@
+{
+  "name": "boring-lab-optional-checks",
+  "private": true,
+  "description": "Optional browser checks only; the website runs on C++ Crow.",
+  "devDependencies": {
+    "playwright": "1.63.0"
+  }
+}

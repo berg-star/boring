@@ -1,0 +1,39 @@
+"""检查真实服务，支持本地地址或 Docker 映射地址；只用 Python 标准库。"""
+import json
+import sys
+from urllib.error import HTTPError
+from urllib.request import urlopen
+
+base = (sys.argv[1] if len(sys.argv) > 1 else "http://127.0.0.1:18080").rstrip("/")
+
+
+def get(path, content_type):
+    with urlopen(base + path, timeout=10) as response:
+        assert response.status == 200, path
+        assert response.headers.get_content_type() == content_type, path
+        body = response.read().decode("utf-8")
+        assert body, path
+        return body
+
+
+assert json.loads(get("/healthz", "application/json")) == {"status": "ok"}
+assert json.loads(get("/api/hello", "application/json")) == {"message": "Hello from C++"}
+for page in ("/", "/reaction.html", "/wheel.html", "/card.html", "/question.html", "/fun.html"):
+    assert "无聊研究所" in get(page, "text/html")
+get("/static/style.css", "text/css")
+for script in ("main.js", "reaction.js", "wheel.js", "random.js"):
+    get("/static/" + script, "text/javascript")
+for endpoint, fields in (
+    ("random-card", ("keyword", "lazyIndex", "luck", "message")),
+    ("random-question", ("question",)),
+    ("random-fun", ("mood", "energy", "workIndex", "sentence")),
+):
+    data = json.loads(get("/api/" + endpoint, "application/json"))
+    assert all(field in data for field in fields), endpoint
+for path in ("/missing", "/data/cards.json", "/static/main.cpp"):
+    try:
+        urlopen(base + path, timeout=10)
+        raise AssertionError("Expected 404: " + path)
+    except HTTPError as error:
+        assert error.code == 404, path
+print("PASS: health, pages, assets, JSON APIs and 404 responses at " + base)
