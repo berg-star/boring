@@ -1,5 +1,5 @@
 "use strict";
-const gamePages = ["reaction.html", "wheel.html", "card.html", "question.html", "fun.html", "truth.html", "pet.html"];
+const gamePages = ["reaction.html", "wheel.html", "card.html", "question.html", "fun.html", "truth.html", "pet.html", "planet.html"];
 function randomGame() { location.href = "/" + gamePages[Math.floor(Math.random() * gamePages.length)]; }
 document.querySelectorAll(".surprise").forEach(button => button.addEventListener("click", randomGame));
 document.querySelectorAll("[data-filter]").forEach(button => button.addEventListener("click", () => {
@@ -18,7 +18,7 @@ if (document.modelContext?.registerTool) {
   try {
     Promise.resolve(document.modelContext.registerTool({
       name: "navigate_to_game", description: "打开无聊研究所中指定的玩法页面。",
-      inputSchema: {type:"object", properties:{game:{type:"string",enum:["reaction","wheel","card","question","fun","truth","pet"]}}, required:["game"], additionalProperties:false},
+      inputSchema: {type:"object", properties:{game:{type:"string",enum:["reaction","wheel","card","question","fun","truth","pet","planet"]}}, required:["game"], additionalProperties:false},
       annotations:{readOnlyHint:false},
       execute(input) {
         if (!input || Object.keys(input).length !== 1 || !gamePages.includes(input.game + ".html")) throw new Error("未知玩法");

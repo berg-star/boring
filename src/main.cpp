@@ -133,8 +133,8 @@ int main(int argc, char* argv[]) try {
         return response;
     });
     // 只公开列出的网页和资源，不把任意用户路径拼到磁盘路径里。
-    const std::set<std::string> pages = {"index.html", "reaction.html", "wheel.html", "card.html", "question.html", "fun.html", "truth.html", "pet.html"};
-    const std::set<std::string> assets = {"style.css", "main.js", "reaction.js", "wheel.js", "random.js", "truth.js", "pet.js", "pet.css"};
+    const std::set<std::string> pages = {"index.html", "reaction.html", "wheel.html", "card.html", "question.html", "fun.html", "truth.html", "pet.html", "planet.html"};
+    const std::set<std::string> assets = {"style.css", "main.js", "reaction.js", "wheel.js", "random.js", "truth.js", "pet.js", "pet.css", "planet.js", "planet.css"};
     CROW_ROUTE(app, "/")([&] { return serve_file(root / "static/index.html"); });
     CROW_ROUTE(app, "/<string>")([&](const std::string& name) {
         if (!pages.count(name)) return crow::response(404, "Page not found");

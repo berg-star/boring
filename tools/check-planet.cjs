@@ -1,0 +1,16 @@
+const {chromium}=require('playwright');const assert=require('node:assert/strict');
+const base=process.env.TEST_BASE||'http://127.0.0.1:18080';
+(async()=>{const b=await chromium.launch({channel:'chrome',headless:true});try{
+const p=await b.newPage({viewport:{width:1200,height:1100}});const errors=[];p.on('pageerror',e=>errors.push(e.message));await p.goto(base+'/planet.html');const c=p.locator('#planet');
+await p.locator('[data-tool=tree]').click();await c.focus();await p.keyboard.press('Enter');assert.equal(await c.getAttribute('data-last-event'),'tree');const count=Number(await c.getAttribute('data-tree-count'));
+const before=await c.evaluate(el=>el.toDataURL());const rect=await c.boundingBox();await p.mouse.move(rect.x+rect.width/2,rect.y+rect.height/2);await p.mouse.down();await p.mouse.move(rect.x+rect.width/2+85,rect.y+rect.height/2+35,{steps:12});await p.mouse.up();assert.equal(Number(await c.getAttribute('data-tree-count')),count);assert.notEqual(await c.evaluate(el=>el.toDataURL()),before);
+for(const kind of ['rain','volcano']){await p.locator('[data-tool='+kind+']').click();await c.focus();await p.keyboard.press('Enter');assert.equal(await c.getAttribute('data-last-event'),kind);}
+await p.locator('#night').click();assert.equal(await p.locator('#night').getAttribute('aria-pressed'),'true');await p.locator('#night').click();
+await p.waitForTimeout(2700);await p.screenshot({path:'.qa/planet-desktop.png',fullPage:true});
+await c.focus();await p.keyboard.press('ArrowLeft');await p.keyboard.press('ArrowUp');await p.locator('#surprise-event').click();assert.ok(await c.getAttribute('data-last-event'));
+await p.emulateMedia({reducedMotion:'reduce'});await p.locator('[data-tool=rain]').click();await c.focus();await p.keyboard.press('Enter');assert.equal(await c.getAttribute('data-last-event'),'rain');
+for(const width of [320,390,768]){await p.setViewportSize({width,height:844});assert.ok(await p.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));if(width===390)await p.screenshot({path:'.qa/planet-mobile.png',fullPage:true});}
+const mobile=await b.newContext({viewport:{width:390,height:844},hasTouch:true,isMobile:true});const m=await mobile.newPage();m.on('pageerror',e=>errors.push(e.message));await m.goto(base+'/planet.html');await m.locator('[data-tool=tree]').tap();const mc=m.locator('#planet');const box=await mc.boundingBox();await m.touchscreen.tap(box.x+box.width/2,box.y+box.height/2);assert.equal(await mc.getAttribute('data-last-event'),'tree');
+const touchCount=await mc.getAttribute('data-tree-count');const touch=await mobile.newCDPSession(m);await touch.send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[{x:box.x+100,y:box.y+100}]});await touch.send('Input.dispatchTouchEvent',{type:'touchMove',touchPoints:[{x:box.x+155,y:box.y+125}]});await touch.send('Input.dispatchTouchEvent',{type:'touchCancel',touchPoints:[]});assert.equal(await mc.getAttribute('data-tree-count'),touchCount);
+await mobile.close();assert.deepEqual(errors,[]);console.log('PASS planet: drag vs click, events, night mode, keyboard, reduced motion, touch and responsive layouts');
+}finally{await b.close();}})().catch(e=>{console.error(e);process.exit(1)});
