@@ -18,13 +18,14 @@ def get(path, content_type):
 
 assert json.loads(get("/healthz", "application/json")) == {"status": "ok"}
 assert json.loads(get("/api/hello", "application/json")) == {"message": "Hello from C++"}
-for page in ("/", "/reaction.html", "/wheel.html", "/card.html", "/question.html", "/fun.html", "/truth.html", "/pet.html", "/planet.html"):
+for page in ("/", "/reaction.html", "/wheel.html", "/card.html", "/question.html", "/fun.html", "/truth.html", "/pet.html", "/planet.html", "/book.html"):
     assert "无聊研究所" in get(page, "text/html")
 get("/static/style.css", "text/css")
 get("/static/pet.css", "text/css")
 get("/static/planet.css", "text/css")
 get("/static/fun.css", "text/css")
-for script in ("main.js", "reaction.js", "wheel.js", "random.js", "truth.js", "pet.js", "planet.js", "fun.js"):
+get("/static/book.css", "text/css")
+for script in ("main.js", "reaction.js", "wheel.js", "random.js", "truth.js", "pet.js", "planet.js", "fun.js", "book.js"):
     get("/static/" + script, "text/javascript")
 for endpoint, fields in (
     ("random-card", ("keyword", "lazyIndex", "luck", "message")),
@@ -33,6 +34,9 @@ for endpoint, fields in (
 ):
     data = json.loads(get("/api/" + endpoint, "application/json"))
     assert all(field in data for field in fields), endpoint
+answers = json.loads(get("/api/book-answers", "application/json"))
+assert len(answers) == 200 and len({row["answer"] for row in answers}) == 200
+assert all(isinstance(row["answer"], str) and row["answer"].strip() for row in answers)
 truths = json.loads(get("/api/truth-questions", "application/json"))
 assert {row["category"] for row in truths} == {"light", "deep"}
 assert len(truths) == 40 and all(isinstance(row["question"], str) and row["question"] for row in truths)
