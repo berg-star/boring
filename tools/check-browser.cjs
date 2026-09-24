@@ -26,17 +26,17 @@ async function main() {
       assert.ok(new Set(records).size>1,endpoint+' must return varied records');
     }
     for (const route of ['/missing.html','/static/main.cpp','/static/cards.json','/api/missing','/data/cards.json','/static/../CMakeLists.txt']) assert.equal((await api.get(base+route)).status(),404,route);
-    const pages = ['','reaction.html','wheel.html','card.html','question.html','fun.html'];
+    const pages = ['','reaction.html','wheel.html','card.html','question.html','fun.html','truth.html'];
     for (const route of pages) {
       const response = await page.goto(base+'/'+route);assert.equal(response.status(),200);
       const assets = await page.locator('script[src],link[rel="stylesheet"]').evaluateAll(nodes=>nodes.map(n=>n.src||n.href));
       for (const asset of assets) assert.equal((await api.get(asset)).status(),200,asset);
     }
-    await page.goto(base);assert.equal(await page.locator('.game-card').count(),5);
+    await page.goto(base);assert.equal(await page.locator('.game-card').count(),6);
     await page.screenshot({path:'.qa/home-desktop.png',fullPage:true});
     await page.getByRole('button',{name:'🧠 测试',exact:true}).click();assert.equal(await page.locator('.game-card:visible').count(),1);
     await page.getByRole('button',{name:'全部玩法',exact:true}).click();
-    await page.getByRole('button',{name:/随便给我来一个/}).click();await page.waitForURL(/\/(reaction|wheel|card|question|fun)\.html$/);
+    await page.getByRole('button',{name:/随便给我来一个/}).click();await page.waitForURL(/\/(reaction|wheel|card|question|fun|truth)\.html$/);
     await page.goto(base+'/reaction.html');
     await page.locator('#reaction-pad').click();assert.match(await page.locator('#reaction-title').textContent(),/等它/);
     await page.locator('#reaction-pad').click();assert.equal(await page.locator('#reaction-title').textContent(),'太早了！');
@@ -65,6 +65,28 @@ async function main() {
     await page.locator('#draw').click();await page.waitForFunction(()=>document.querySelector('#draw').textContent.includes('重试'));assert.match(await page.locator('#api-error').textContent(),/暂时/);
     await page.unroute('**/api/random-card');await page.locator('#draw').click();await page.waitForFunction(()=>document.querySelector('#draw').textContent.includes('再抽'));assert.equal(await page.locator('#api-error').textContent(),'');
     for(const route of ['question','fun']) {await page.goto(base+'/'+route+'.html');await page.waitForFunction(()=>!document.querySelector('#draw').disabled);assert.equal(await page.locator('#api-error').textContent(),'');await page.locator('#draw').click();await page.waitForFunction(()=>!document.querySelector('#draw').disabled);}
+    await page.goto(base+'/truth.html');
+    await page.waitForFunction(()=>!document.querySelector('#skip').disabled);
+    const seen = new Set();
+    for(let i=0;i<20;i++) {
+      const text = await page.locator('#question').textContent();
+      assert.ok(!seen.has(text),'truth repeats within a round');seen.add(text);
+      await page.locator(i%2 ? '#skip' : '#draw').click();
+    }
+    assert.match(await page.locator('#truth-progress').textContent(),/2.*1 \/ 20/);
+    await page.locator('[data-level="deep"]').click();
+    assert.ok(!seen.has(await page.locator('#question').textContent()));
+    const deepQuestion = await page.locator('#question').textContent();
+    await page.locator('[data-level="light"]').click();
+    await page.locator('[data-level="deep"]').click();
+    assert.equal(await page.locator('#question').textContent(),deepQuestion);
+    await page.screenshot({path:'.qa/truth-desktop.png',fullPage:true});
+    await page.route('**/api/truth-questions',route=>route.fulfill({status:503,body:'unavailable'}));
+    await page.reload();await page.waitForFunction(()=>!document.querySelector('#draw').disabled);
+    assert.equal(await page.locator('#skip').isDisabled(),true);
+    await page.unroute('**/api/truth-questions');await page.locator('#draw').click();
+    await page.waitForFunction(()=>!document.querySelector('#skip').disabled);
+    assert.equal(await page.locator('#api-error').textContent(),'');
     for (const width of [390,320,768]) {
       await page.setViewportSize({width,height:844});
       for (const route of pages) {
@@ -84,7 +106,7 @@ async function main() {
       }
       const missing = spawnSync(executable,[path.resolve('.qa/missing-root')],{encoding:'utf8',timeout:5000});assert.equal(missing.status,1);
     }
-    console.log('PASS: APIs, random variety, missing routes, resources, all five games, keyboard, wheel pointer, retry, 320/390/768px layouts, invalid data.');
+    console.log('PASS: APIs, random variety, missing routes, resources, all six games, keyboard, wheel pointer, retry, 320/390/768px layouts, invalid data.');
   } finally {await browser.close();}
 }
 main().catch(error=>{console.error(error);process.exit(1);});

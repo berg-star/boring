@@ -109,6 +109,18 @@ int main(int argc, char* argv[]) try {
     const auto cards = load_records(root / "data/cards.json", {"keyword", "message"}, {"lazyIndex", "luck"});
     const auto questions = load_records(root / "data/questions.json", {"question"});
     const auto activities = load_records(root / "data/activities.json", {"mood", "sentence"}, {"energy", "workIndex"});
+    const auto truths = load_records(root / "data/truths.json", {"category", "question"});
+    crow::json::wvalue truth_list = crow::json::wvalue::list();
+    std::set<std::string> truth_categories;
+    for (std::size_t i = 0; i < truths.size(); ++i) {
+        const auto row = crow::json::load(truths[i]);
+        const std::string category = row["category"].s();
+        if (category != "light" && category != "deep") throw std::runtime_error("Invalid truth category");
+        truth_categories.insert(category);
+        truth_list[i] = crow::json::wvalue(row);
+    }
+    if (truth_categories.size() != 2) throw std::runtime_error("Both truth categories are required");
+    const auto truth_json = truth_list.dump();
     if (!fs::is_regular_file(root / "static/index.html")) throw std::runtime_error("static/index.html is missing");
     crow::SimpleApp app;
     // 固定路径先注册，避免被下面的通用 /<string> 页面路由匹配。
@@ -121,8 +133,8 @@ int main(int argc, char* argv[]) try {
         return response;
     });
     // 只公开列出的网页和资源，不把任意用户路径拼到磁盘路径里。
-    const std::set<std::string> pages = {"index.html", "reaction.html", "wheel.html", "card.html", "question.html", "fun.html"};
-    const std::set<std::string> assets = {"style.css", "main.js", "reaction.js", "wheel.js", "random.js"};
+    const std::set<std::string> pages = {"index.html", "reaction.html", "wheel.html", "card.html", "question.html", "fun.html", "truth.html"};
+    const std::set<std::string> assets = {"style.css", "main.js", "reaction.js", "wheel.js", "random.js", "truth.js"};
     CROW_ROUTE(app, "/")([&] { return serve_file(root / "static/index.html"); });
     CROW_ROUTE(app, "/<string>")([&](const std::string& name) {
         if (!pages.count(name)) return crow::response(404, "Page not found");
@@ -131,6 +143,12 @@ int main(int argc, char* argv[]) try {
     CROW_ROUTE(app, "/static/<string>")([&](const std::string& name) {
         if (!assets.count(name) && !pages.count(name)) return crow::response(404, "File not found");
         return serve_file(root / "static" / name);
+    });
+    CROW_ROUTE(app, "/api/truth-questions")([&] {
+        crow::response response(truth_json);
+        response.set_header("Content-Type", "application/json; charset=utf-8");
+        response.set_header("Cache-Control", "no-store");
+        return response;
     });
     CROW_ROUTE(app, "/api/hello")([] {
         crow::json::wvalue result;

@@ -1,6 +1,6 @@
 # 无聊研究所
 
-一个打开就能玩几分钟的娱乐小站：反应速度测试、命运转盘、今日抽卡、奇怪问题、随机整活。深色背景，少量霓虹配色，支持电脑和手机。
+一个打开就能玩几分钟的娱乐小站：反应速度测试、命运转盘、今日抽卡、奇怪问题、随机整活、真心话。深色背景，少量霓虹配色，支持电脑和手机。
 
 技术栈：**C++17 + Crow 1.2.1 + CMake + JSON**；前端为原生 HTML / CSS / JavaScript。没有数据库，没有前端框架，没有 Node.js 后端。
 
@@ -66,7 +66,7 @@ cmake --build build --parallel
 ./build/boring_lab
 ```
 
-浏览器同样访问 **http://localhost:18080**。要求支持 C++17 的编译器，例如 GCC 9+。Linux 命令已提供，本次实际编译验收环境为 Windows / MSVC。
+浏览器同样访问 **http://localhost:18080**。要求支持 C++17 的编译器，例如 GCC 9+。本地使用 Windows / MSVC 验收，Linux Docker 构建由 GitHub Actions 验证。
 
 ## Crow 如何配置
 
@@ -138,16 +138,20 @@ node tools/check-browser.cjs
 
 本地默认监听 `127.0.0.1:18080`，无需设置环境变量。部署到 Render 时，Docker 配置设置 `HOST=0.0.0.0`、`PORT=10000`；运行时可更改 PORT，程序不会写死平台端口。PORT 必须是 1～65535 的整数；HOST 只接受 `127.0.0.1` 或 `0.0.0.0`。错误配置会明确报错并退出。
 
-Render 会从源码构建 Linux 容器，不运行 Windows `.exe`。具体操作见 [Render 上线说明](DEPLOY_RENDER.md)。线上 HTTPS 由 Render 提供，不需要自行配置证书。当前只准备了部署文件，没有登录账号、创建远程资源或发布网站。
+Render 会从源码构建 Linux 容器，不运行 Windows `.exe`。具体操作见 [Render 上线说明](DEPLOY_RENDER.md)。线上 HTTPS 由 Render 提供，不需要自行配置证书。目前网站已部署到 Railway：https://boring-lab-production.up.railway.app/ 。Railway 同样从 Dockerfile 构建，使用 `/healthz` 检查健康状态。
 
 浏览器支持 WebMCP 时，首页共用脚本还会注册“打开指定玩法”的可选导航动作；普通浏览器无此能力时自动跳过，不影响游戏。
 
 ## 本次验收结果
 
 - Windows / Visual Studio 2022 Release 构建成功，真实 Crow 服务响应正常。
-- Render 适配已在 Windows 验证默认地址、自定义监听地址与端口、`/healthz` 和错误配置；Docker Linux 构建须由 GitHub Actions 或 Render 实际执行，尚未部署到公网。
-- 四个 API、六个页面及其资源、未知路径 404、随机结果变化已验证。
-- 浏览器交互已验证：分类和随机跳转、反应测试抢跑 / 计时 / 键盘 / 最佳成绩、转盘增删选项 / 模板 / 指针结果一致 / 减少动画、抽卡和其他随机页面、网络失败后重试。
+- Render 适配已在 Windows 验证默认地址、自定义监听地址与端口、`/healthz` 和错误配置；Linux Docker 构建已由 GitHub Actions 验证，网站已部署到 Railway。
+- 健康检查、五个 API、七个页面及其资源、未知路径 404、随机结果变化已验证。
+- 浏览器交互已验证：分类和随机跳转、反应测试抢跑 / 计时 / 键盘 / 最佳成绩、转盘增删选项 / 模板 / 指针结果一致 / 减少动画、抽卡和其他随机页面、真心话分类 / 同轮不重复 / 跳过 / 切换保留进度、网络失败后重试。
 - 320 / 390 / 768 像素宽度无水平溢出；已人工查看桌面首页、手机首页和手机转盘截图。
 - 缺失数据、错误 JSON、空数组和越界指数均能清楚报错并退出。
 - 当前 Chrome 无原生 WebMCP 上下文，此可选能力未做真实代理调用验证；常规浏览器功能已通过。Linux 尚未在本机实际编译。
+
+## 真心话
+
+入口 `/truth.html`，轻松和走心各 20 题。每类独立洗牌，同一轮不重复；切换分类保留当前进度，刷新页面重新开始。支持直接跳过，不收集答案。题库位于 `data/truths.json`，接口为 `/api/truth-questions`。
