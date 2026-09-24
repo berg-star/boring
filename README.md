@@ -26,11 +26,11 @@ boring-lab/
 │   ├── card.html
 │   ├── question.html
 │   ├── fun.html
-│   └── random.js          # 三个随机页面共用请求、展示及错误处理
+│   └── random.js          # 抽卡和奇怪问题共用请求、展示及错误处理
 ├── data/
 │   ├── cards.json         # 12 张娱乐卡片
 │   ├── questions.json     # 18 个奇怪问题
-│   └── activities.json    # 10 份随机状态
+│   └── activities.json    # 24 份整活小节目
 └── tools/                 # 可选验收工具，不参与网站运行
     ├── package.json
     └── check-browser.cjs
@@ -89,7 +89,7 @@ Asio 路径应指向含 `asio/include/asio.hpp` 的仓库根目录。参考：[C
 | `/wheel.html` | 两种模板、添加 / 删除选项、真实旋转和结果 |
 | `/card.html` | 点击抽卡，由 C++ 接口返回数据 |
 | `/question.html` | 随机问题，再来一个 |
-| `/fun.html` | 随机状态、行动力、工作欲望和玩笑 |
+| `/fun.html` | 六类随机小节目及复制分享 |
 
 静态网页也可以通过 `/static/页面名.html` 访问。所有资源从本站加载，不依赖外部字体或 CDN。不要直接双击 HTML：三个随机玩法需要从 Crow 服务访问。
 
@@ -101,7 +101,7 @@ Asio 路径应指向含 `asio/include/asio.hpp` 的仓库根目录。参考：[C
 | `/healthz` | `status: "ok"`，供平台检查服务健康状态 |
 | `/api/random-card` | `keyword`, `lazyIndex`, `luck`, `message` |
 | `/api/random-question` | `question` |
-| `/api/random-fun` | `mood`, `energy`, `workIndex`, `sentence` |
+| `/api/random-fun` | `kind`, `title`, `intro`, `label1..3`, `value1..3`, `footer` |
 
 JSON 文件最外层是非空数组；字符串字段不能为空，指数必须为 0～100 的数字。启动时读取并校验数据：文件丢失、格式错误、字段错误会打印原因并退出，而不是悄悄生成错误结果。启动后每次请求等概率抽一条；允许重复，点击“今日抽卡”也不限于每天一次，所有内容仅供娱乐。
 
@@ -171,3 +171,5 @@ Render 会从源码构建 Linux 容器，不运行 Windows `.exe`。具体操作
 专项验收：`node tools/check-planet.cjs`，覆盖拖动与点击区分、事件、昼夜、键盘、触摸及手机布局。
 
 星球音效由浏览器 Web Audio 实时合成：种树、下雨、火山喷嚏、海面和小树回应各有短音效，无外部音频文件。第一次互动后播放，声音开关会记住选择，切到后台或关闭声音会停止当前音效；浏览器不支持时可继续无声游玩。
+
+随机整活现有六种节目，每种四份：胡闹报告、脑内公告、离谱通缉令、人生补丁、小广告、无用发明。C++ 随机返回一份完整节目，前端按类型展示，避免无关联拼接。复制失败时显示可手动复制的文字。专项验收：`node tools/check-fun.cjs`。

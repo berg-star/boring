@@ -23,12 +23,13 @@ for page in ("/", "/reaction.html", "/wheel.html", "/card.html", "/question.html
 get("/static/style.css", "text/css")
 get("/static/pet.css", "text/css")
 get("/static/planet.css", "text/css")
-for script in ("main.js", "reaction.js", "wheel.js", "random.js", "truth.js", "pet.js", "planet.js"):
+get("/static/fun.css", "text/css")
+for script in ("main.js", "reaction.js", "wheel.js", "random.js", "truth.js", "pet.js", "planet.js", "fun.js"):
     get("/static/" + script, "text/javascript")
 for endpoint, fields in (
     ("random-card", ("keyword", "lazyIndex", "luck", "message")),
     ("random-question", ("question",)),
-    ("random-fun", ("mood", "energy", "workIndex", "sentence")),
+    ("random-fun", ("kind", "title", "intro", "label1", "value1", "label2", "value2", "label3", "value3", "footer")),
 ):
     data = json.loads(get("/api/" + endpoint, "application/json"))
     assert all(field in data for field in fields), endpoint

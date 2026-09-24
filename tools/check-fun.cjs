@@ -1,0 +1,16 @@
+const {chromium}=require('playwright');const assert=require('node:assert/strict');const fs=require('node:fs');
+const base=process.env.TEST_BASE||'http://127.0.0.1:18080';const records=JSON.parse(fs.readFileSync('data/activities.json','utf8'));
+(async()=>{const b=await chromium.launch({channel:'chrome',headless:true});try{
+ const context=await b.newContext({permissions:['clipboard-read','clipboard-write'],viewport:{width:1200,height:1100}});const p=await context.newPage();const errors=[];p.on('pageerror',e=>errors.push(e.message));
+ const response=await p.request.get(base+'/api/random-fun');assert.equal(response.status(),200);const real=await response.json();assert.ok(records.some(r=>r.title===real.title));
+ let row=records[0];await p.route('**/api/random-fun',r=>r.fulfill({json:row}));await p.goto(base+'/fun.html');
+ for(const data of records){row=data;await p.locator('#draw').click();await p.waitForFunction(title=>document.querySelector('#show-title').textContent===title,data.title);assert.equal(await p.locator('#result').getAttribute('data-kind'),data.kind);assert.equal(await p.locator('#show-details dt').count(),3);assert.ok((await p.locator('#show-details').textContent()).includes(data.value3));}
+ await p.locator('#copy-show').click();await p.waitForFunction(()=>document.querySelector('#copy-status').textContent.includes('已复制'));const copied=await p.evaluate(()=>navigator.clipboard.readText());assert.ok(copied.includes(row.title)&&copied.includes(row.value3));
+ await p.evaluate(()=>{navigator.clipboard.writeText=()=>Promise.reject(new Error('denied'));});await p.locator('#copy-show').click();await p.locator('#copy-fallback').waitFor({state:'visible'});assert.ok((await p.locator('#copy-fallback').inputValue()).includes(row.title));
+ await p.unroute('**/api/random-fun');await p.route('**/api/random-fun',r=>r.fulfill({status:503,body:'unavailable'}));await p.locator('#draw').click();await p.waitForFunction(()=>document.querySelector('#draw').textContent.includes('重试'));assert.equal(await p.locator('#show-title').textContent(),row.title);
+ await p.unroute('**/api/random-fun');await p.route('**/api/random-fun',r=>r.fulfill({json:{...row,kind:'unknown'}}));await p.locator('#draw').click();await p.waitForFunction(()=>!document.querySelector('#draw').disabled);assert.ok(await p.locator('#api-error').textContent());
+ await p.unroute('**/api/random-fun');await p.locator('#draw').click();await p.waitForFunction(()=>!document.querySelector('#draw').disabled);assert.equal(await p.locator('#api-error').textContent(),'');
+ await p.route('**/api/random-fun',r=>r.fulfill({json:row}));
+ for(const width of [320,390,768]){await p.setViewportSize({width,height:1000});for(const kind of [...new Set(records.map(r=>r.kind))]){row=records.find(r=>r.kind===kind);await p.locator('#draw').click();await p.waitForFunction(k=>document.querySelector('#result').dataset.kind===k,kind);assert.ok(await p.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));if(width===390)await p.screenshot({path:'.qa/fun-'+kind+'-mobile.png',fullPage:true,animations:'disabled'});}}
+ assert.deepEqual(errors,[]);console.log('PASS fun: real API, all 24 programs/6 themes, copy/fallback, HTTP/schema failures and retry, 320/390/768px layouts');
+}finally{await b.close();}})().catch(e=>{console.error(e);process.exit(1)});
