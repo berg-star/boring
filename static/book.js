@@ -38,7 +38,7 @@
    state='busy';$('book-status').textContent='把这句话留一会儿，再想一个问题。';$('book').classList.remove('is-open');$('book').querySelector('.book-page').setAttribute('aria-hidden','true');flipSound();await delay(800);current='';$('book-answer').textContent='';state='closed';$('open-book').textContent='翻开答案 ✧';$('open-book').disabled=false;return;
   }
   state='busy';$('book-status').textContent='正在为你翻开一页……';$('book').setAttribute('aria-busy','true');
-  try{await load();const choice=take();current=choice.answer;$('book-answer').textContent=current;$('book-page-number').textContent='— '+String(choice.page).padStart(3,'0')+' —';$('book').classList.add('is-open');flipSound();await delay(800);$('book').querySelector('.book-page').setAttribute('aria-hidden','false');state='open';$('book-status').textContent='这一页留给你：'+current;$('open-book').textContent='合上再问 ↻';$('copy-answer').disabled=false;}
+  try{await load();const choice=take();current=choice.answer;$('book-answer').textContent=current;$('book-page-number').textContent='— '+String(choice.page).padStart(3,'0')+' —';$('book').classList.add('is-open');flipSound();await delay(800);$('book').querySelector('.book-page').setAttribute('aria-hidden','false');state='open';window.BoringAchievements?.record('book');$('book-status').textContent='这一页留给你：'+current;$('open-book').textContent='合上再问 ↻';$('copy-answer').disabled=false;}
   catch(_){state='closed';current='';$('book-status').textContent='问题可以先留在心里。';$('book-error').textContent='答案暂时没有送到，请检查网络后重试。';$('open-book').textContent='再试一次 ✧';}
   finally{$('open-book').disabled=false;$('book').setAttribute('aria-busy','false');}
  });

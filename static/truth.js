@@ -62,7 +62,7 @@
     }
   }
   draw.addEventListener('click', () => records ? next() : load());
-  skip.addEventListener('click', next);
+  skip.addEventListener('click', () => { if (!records) return; next(); window.BoringAchievements?.record('skip'); });
   levels.forEach(button => button.addEventListener('click', () => {
     if (category === button.dataset.level) return;
     category = button.dataset.level;

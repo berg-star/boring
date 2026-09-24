@@ -70,6 +70,7 @@ spin.addEventListener("click", () => {
     if (!spinning) return;
     clearTimeout(fallback);
     canvas.removeEventListener("transitionend", finish);
+    window.BoringAchievements?.record("wheel");
     spinning = false;result.textContent = "命运替你决定了：" + options[index];
     document.querySelectorAll(".wheel-controls input,.wheel-controls button,.wheel-controls select,#spin").forEach(item => {item.disabled = false;});
   };

@@ -8,6 +8,7 @@
   if(!data||fields.some(key=>typeof data[key]!=='string'||!data[key].trim()||data[key].length>300)||!Object.hasOwn(types,data.kind))throw new Error('Invalid show');
  }
  function show(data){
+  window.BoringAchievements?.record("fun",data.kind);
   current=data;const [label,icon,kicker]=types[data.kind];$('result').dataset.kind=data.kind;
   $('show-type').textContent=label;$('show-icon').textContent=icon;$('show-kicker').textContent=kicker;
   $('show-title').textContent=data.title;$('show-intro').textContent=data.intro;$('show-footer').textContent=data.footer;

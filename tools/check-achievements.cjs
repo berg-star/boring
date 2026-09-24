@@ -1,0 +1,40 @@
+const {chromium}=require('playwright');const assert=require('node:assert/strict');const fs=require('node:fs');
+const base=process.env.TEST_BASE||'http://127.0.0.1:18080',KEY='boring-lab-achievements-v1';
+(async()=>{const b=await chromium.launch({channel:'chrome',headless:true});try{
+ const context=await b.newContext({viewport:{width:1200,height:1100},reducedMotion:'reduce'});const p=await context.newPage();const errors=[];p.on('pageerror',e=>errors.push(e.message));
+ const read=()=>p.evaluate(k=>JSON.parse(localStorage.getItem(k)),KEY);
+ const wait=id=>p.waitForFunction(({k,id})=>!!JSON.parse(localStorage.getItem(k)).unlocked[id],{k:KEY,id});
+ const goto=page=>p.goto(base+'/'+page+'.html');
+ await goto('achievements');assert.equal(await p.locator('.achievement-card').count(),12);assert.equal(await p.locator('.unlocked').count(),0);
+ await goto('card');await p.waitForFunction(k=>JSON.parse(localStorage.getItem(k)).visits.includes('card'),KEY);
+ await p.evaluate(k=>{const s=JSON.parse(localStorage.getItem(k));s.cards=9;localStorage.setItem(k,JSON.stringify(s));},KEY);
+ await p.route('**/api/random-card',r=>r.fulfill({status:503,body:'no'}));await p.locator('#draw').click();await p.waitForFunction(()=>!document.querySelector('#draw').disabled);assert.equal((await read()).cards,9);
+ await p.unroute('**/api/random-card');await p.locator('#draw').click();await wait('cards');const cardDate=(await read()).unlocked.cards;
+ await p.reload();assert.equal(await p.locator('.achievement-toast').count(),0);await p.locator('#draw').click();await p.waitForFunction(()=>!document.querySelector('#draw').disabled);assert.equal((await read()).unlocked.cards,cardDate);
+ await goto('reaction');for(let i=0;i<6;i++)await p.locator('#reaction-pad').click();await wait('early');
+ await p.evaluate(()=>new Promise(resolve=>{const pad=document.querySelector('#reaction-pad');const observer=new MutationObserver(()=>{if(pad.classList.contains('ready')){observer.disconnect();pad.click();resolve();}});observer.observe(pad,{attributes:true,attributeFilter:['class']});pad.click();}));await wait('fast');
+ await goto('truth');await p.waitForFunction(()=>!document.querySelector('#skip').disabled);for(let i=0;i<5;i++)await p.locator('#skip').click();await wait('secret');await wait('explorer');
+ await goto('pet');await p.locator('#name-input').fill('成就团子');await p.locator('#name-form button').click();await wait('keeper');
+ await goto('planet');await p.locator('[data-tool=tree]').click();await p.locator('#planet').focus();for(let i=0;i<10;i++)await p.keyboard.press('Enter');await wait('forest');
+ let row;const rows=JSON.parse(fs.readFileSync('data/activities.json','utf8'));await p.route('**/api/random-fun',r=>r.fulfill({json:row||rows[0]}));await goto('fun');
+ for(const kind of ['report','notice','wanted','patch','ad','invention']){row=rows.find(x=>x.kind===kind);await p.locator('#draw').click();await p.waitForFunction(k=>document.querySelector('#result').dataset.kind===k,kind);}await wait('critic');
+ await goto('book');for(let i=0;i<10;i++){await p.locator('#open-book').click();await p.waitForFunction(()=>!document.querySelector('#open-book').disabled);if(i<9){await p.locator('#open-book').click();await p.waitForFunction(()=>!document.querySelector('#open-book').disabled);}}await wait('reader');
+ await goto('wheel');for(let i=0;i<10;i++){await p.locator('#spin').click();await p.waitForFunction(()=>!document.querySelector('#spin').disabled);}await wait('destiny');
+ await p.clock.install();await p.evaluate(k=>{const s=JSON.parse(localStorage.getItem(k));s.wheelMs=0;localStorage.setItem(k,JSON.stringify(s));},KEY);await p.reload();
+ await p.clock.runFor(60000);let elapsed=(await read()).wheelMs;assert.ok(elapsed>=55000&&elapsed<=62000,elapsed);
+ await p.evaluate(()=>{Object.defineProperty(document,'hidden',{configurable:true,value:true});document.dispatchEvent(new Event('visibilitychange'));});const hiddenTime=(await read()).wheelMs;await p.clock.runFor(180000);assert.equal((await read()).wheelMs,hiddenTime,'hidden time must not count');
+ await p.evaluate(()=>{Object.defineProperty(document,'hidden',{configurable:true,value:false});document.dispatchEvent(new Event('visibilitychange'));});await p.clock.runFor(125000);await wait('hesitate');await p.clock.resume();
+ await goto('question');await wait('resident');await goto('achievements');assert.equal(await p.locator('.unlocked').count(),12);
+ for(const width of [320,390,768]){await p.setViewportSize({width,height:950});assert.ok(await p.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));if(width===390)await p.screenshot({path:'.qa/achievements-mobile.png',fullPage:false});}
+ // Two tabs increment concurrently under the shared storage lock.
+ await p.evaluate(k=>{const s=JSON.parse(localStorage.getItem(k));s.books=0;localStorage.setItem(k,JSON.stringify(s));},KEY);const other=await context.newPage();await other.goto(base+'/achievements.html');await Promise.all([p.evaluate(()=>Promise.all(Array.from({length:5},()=>BoringAchievements.record('book')))),other.evaluate(()=>Promise.all(Array.from({length:5},()=>BoringAchievements.record('book'))))]);assert.equal((await read()).books,10);await other.close();
+ await p.evaluate(k=>localStorage.setItem(k,'broken'),KEY);await p.reload();assert.ok((await p.locator('#achievement-save').textContent()).includes('未覆盖'));assert.equal(await p.evaluate(k=>localStorage.getItem(k),KEY),'broken');
+ const blocked=await b.newContext();await blocked.addInitScript(()=>{Storage.prototype.setItem=()=>{throw Error('blocked')};});const q=await blocked.newPage();await q.goto(base+'/achievements.html');await q.evaluate(()=>BoringAchievements.record('name'));assert.equal(await q.locator('.unlocked').count(),1);assert.ok((await q.locator('#achievement-save').textContent()).includes('无法保存'));await blocked.close();
+ const streakContext=await b.newContext();const streakPage=await streakContext.newPage();await streakPage.goto(base+'/reaction.html');
+ for(let i=0;i<4;i++)await streakPage.locator('#reaction-pad').click();await streakPage.waitForTimeout(50);await streakPage.reload();
+ for(let i=0;i<4;i++)await streakPage.locator('#reaction-pad').click();await streakPage.waitForTimeout(50);
+ assert.ok(!(await streakPage.evaluate(k=>JSON.parse(localStorage.getItem(k)),KEY)).unlocked.early,'leaving page resets early streak');
+ await streakPage.evaluate(()=>BoringAchievements.record('reaction',500));await streakPage.evaluate(()=>BoringAchievements.record('early'));assert.ok(!(await streakPage.evaluate(k=>JSON.parse(localStorage.getItem(k)),KEY)).unlocked.early,'successful result resets streak');
+ await streakContext.close();
+ assert.deepEqual(errors,[]);console.log('PASS achievements: all 12 via game events, no failed-action credit, no repeat toast, persistent dates, visible-only timer, 2-tab locking, corrupted/blocked storage, responsive gallery');
+}finally{await b.close();}})().catch(e=>{console.error(e);process.exit(1)});

@@ -26,7 +26,7 @@ async function main() {
       assert.ok(new Set(records).size>1,endpoint+' must return varied records');
     }
     for (const route of ['/missing.html','/static/main.cpp','/static/cards.json','/api/missing','/data/cards.json','/static/../CMakeLists.txt']) assert.equal((await api.get(base+route)).status(),404,route);
-    const pages = ['','reaction.html','wheel.html','card.html','question.html','fun.html','truth.html','pet.html','planet.html','book.html'];
+    const pages = ['','reaction.html','wheel.html','card.html','question.html','fun.html','truth.html','pet.html','planet.html','book.html','achievements.html'];
     for (const route of pages) {
       const response = await page.goto(base+'/'+route);assert.equal(response.status(),200);
       const assets = await page.locator('script[src],link[rel="stylesheet"]').evaluateAll(nodes=>nodes.map(n=>n.src||n.href));

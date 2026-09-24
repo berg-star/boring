@@ -78,7 +78,7 @@
   $('name-form').addEventListener('submit',event=>{
     event.preventDefault();const name=$('name-input').value.trim();
     if(!name || name.length>12) {say('名字要有 1 到 12 个字哦。');return;}
-    advance();state.name=name;say('记住啦！以后我就叫'+name+'。');render();save();
+    advance();state.name=name;window.BoringAchievements?.record('name');say('记住啦！以后我就叫'+name+'。');render();save();
   });
   document.addEventListener('pointermove',event=>{
     const rect=$('pet').getBoundingClientRect();

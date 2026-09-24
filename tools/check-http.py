@@ -18,14 +18,15 @@ def get(path, content_type):
 
 assert json.loads(get("/healthz", "application/json")) == {"status": "ok"}
 assert json.loads(get("/api/hello", "application/json")) == {"message": "Hello from C++"}
-for page in ("/", "/reaction.html", "/wheel.html", "/card.html", "/question.html", "/fun.html", "/truth.html", "/pet.html", "/planet.html", "/book.html"):
+for page in ("/", "/reaction.html", "/wheel.html", "/card.html", "/question.html", "/fun.html", "/truth.html", "/pet.html", "/planet.html", "/book.html", "/achievements.html"):
     assert "无聊研究所" in get(page, "text/html")
 get("/static/style.css", "text/css")
 get("/static/pet.css", "text/css")
 get("/static/planet.css", "text/css")
 get("/static/fun.css", "text/css")
 get("/static/book.css", "text/css")
-for script in ("main.js", "reaction.js", "wheel.js", "random.js", "truth.js", "pet.js", "planet.js", "fun.js", "book.js"):
+get("/static/achievements.css", "text/css")
+for script in ("main.js", "reaction.js", "wheel.js", "random.js", "truth.js", "pet.js", "planet.js", "fun.js", "book.js", "achievements.js"):
     get("/static/" + script, "text/javascript")
 for endpoint, fields in (
     ("random-card", ("keyword", "lazyIndex", "luck", "message")),

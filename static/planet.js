@@ -101,7 +101,7 @@
    kind=near(p,volcano)<.24?'volcano':trees.some(t=>near(t,p)<.11)?'hello':land(p)?'tree':'water';
   }
   if(kind==='volcano'){yaw=-Math.atan2(volcano.x,volcano.z);pitch=Math.asin(volcano.y);p=volcano;message.textContent='阿——嚏！今天喷出来的是快乐，不是熔岩。';}
-  else if(kind==='tree'){if(trees.length>=100){message.textContent='森林够热闹啦。给小树下一场雨吧。';return;}trees.push(p);message.textContent=land(p)?'一棵小树决定在这里定居。':'海上长出了一棵勇敢的漂浮树。';}
+  else if(kind==='tree'){if(trees.length>=100){message.textContent='森林够热闹啦。给小树下一场雨吧。';return;}trees.push(p);window.BoringAchievements?.record('tree');message.textContent=land(p)?'一棵小树决定在这里定居。':'海上长出了一棵勇敢的漂浮树。';}
   else if(kind==='rain')message.textContent='给这一小块世界，下了一场刚刚好的雨。';
   else if(kind==='water')message.textContent='海里传来一声咕噜。可能有条鱼在唱歌。';
   else message.textContent='小树晃了晃叶子：你好呀。';

@@ -25,6 +25,7 @@ async function draw() {
     if (!response.ok) throw new Error("http-error");
     const data = await response.json();validate(data);
     if (mode === "card") {
+      window.BoringAchievements?.record("card");
       text("keyword",data.keyword);metric("lazy",data.lazyIndex);metric("luck",data.luck);text("message",data.message);
     } else if (mode === "question") text("question",data.question);
     resultPanel.classList.remove("pop");void resultPanel.offsetWidth;resultPanel.classList.add("pop");

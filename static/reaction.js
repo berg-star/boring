@@ -20,9 +20,11 @@ function cancelWait() { clearTimeout(timer); cancelAnimationFrame(readyFrame); }
 function play() {
   if (state === "waiting") {
     cancelWait();
+    window.BoringAchievements?.record("early");
     setPad("early", "太早了！", "还没变绿呢。点击这里，再试一次。");
   } else if (state === "ready") {
     const score = Math.max(1, Math.round(performance.now() - startedAt));
+    window.BoringAchievements?.record("reaction",score);
     const comment = score < 180 ? "你是不是提前知道了？" : score < 250 ? "反应很快" : score < 350 ? "正常发挥" : "刚睡醒？";
     setPad("result", score + " ms", comment + " · 点击再试一次");
     document.querySelector("#last-score").textContent = score + " ms";
