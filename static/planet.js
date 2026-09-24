@@ -3,6 +3,56 @@
  const canvas=document.getElementById('planet'), ctx=canvas.getContext('2d');
  const message=document.getElementById('planet-message');
  if(!ctx){message.textContent='暂时无法绘制星球，请换个浏览器试试。';return;}
+ // 音效在用户互动后用 Web Audio 合成，无需下载音频或访问外部服务。
+ const soundButton=document.getElementById('sound');
+ let soundOn=true,audioContext=null,master=null,noiseBuffer=null,audioToken=0;
+ const voices=new Set();
+ try{soundOn=localStorage.getItem('boring-lab-planet-sound')!=='off';}catch(_){}
+ function soundLabel(){soundButton.textContent=soundOn?'声音：开 ♫':'声音：关';soundButton.setAttribute('aria-pressed',String(soundOn));}
+ function stopSound(){audioToken++;for(const source of voices){try{source.stop();}catch(_){}}voices.clear();}
+ function unavailable(){stopSound();soundOn=false;soundButton.textContent='音效暂不可用';soundButton.setAttribute('aria-pressed','false');soundButton.disabled=true;}
+ function envelope(source,filter,when,duration,volume){
+  const gain=audioContext.createGain();gain.gain.setValueAtTime(0,when);
+  gain.gain.linearRampToValueAtTime(volume,when+Math.min(.025,duration/5));
+  gain.gain.exponentialRampToValueAtTime(.0001,when+duration);
+  if(filter){source.connect(filter);filter.connect(gain);}else source.connect(gain);
+  gain.connect(master);voices.add(source);
+  source.onended=()=>{voices.delete(source);source.disconnect();if(filter)filter.disconnect();gain.disconnect();};
+  source.start(when);source.stop(when+duration+.02);
+ }
+ function tone(at,duration,from,to,volume=.2,type='sine'){
+  const oscillator=audioContext.createOscillator();oscillator.type=type;
+  oscillator.frequency.setValueAtTime(from,at);oscillator.frequency.exponentialRampToValueAtTime(to,at+duration);
+  envelope(oscillator,null,at,duration,volume);
+ }
+ function noise(at,duration,frequency,volume){
+  const source=audioContext.createBufferSource();source.buffer=noiseBuffer;
+  const filter=audioContext.createBiquadFilter();filter.type='bandpass';filter.frequency.value=frequency;filter.Q.value=.6;
+  envelope(source,filter,at,duration,volume);
+ }
+ async function playSound(kind){
+  if(!soundOn||document.hidden)return;
+  stopSound();const token=audioToken;
+  try{
+   if(!audioContext){
+    const Audio=window.AudioContext||window.webkitAudioContext;if(!Audio){unavailable();return;}
+    audioContext=new Audio();master=audioContext.createGain();master.gain.value=.38;master.connect(audioContext.destination);
+    noiseBuffer=audioContext.createBuffer(1,Math.ceil(audioContext.sampleRate*2.5),audioContext.sampleRate);
+    const samples=noiseBuffer.getChannelData(0);for(let i=0;i<samples.length;i++)samples[i]=Math.random()*2-1;
+   }
+   if(audioContext.state!=='running')await audioContext.resume();
+   if(token!==audioToken||!soundOn||document.hidden||audioContext.state!=='running')return;
+   const t=audioContext.currentTime+.01;
+   if(kind==='tree'){tone(t,.18,360,110,.45);tone(t+.09,.25,620,950,.15);}
+   else if(kind==='rain'){noise(t,2.2,2300,.5);for(let i=0;i<7;i++)tone(t+i*.22,.08,1200+i*75,650,.07);}
+   else if(kind==='volcano'){noise(t,.22,700,.22);tone(t,.2,150,260,.2);noise(t+.24,.65,1800,.65);tone(t+.25,.38,420,85,.28,'triangle');}
+   else if(kind==='water'){for(let i=0;i<3;i++)tone(t+i*.15,.19,180+i*65,620+i*90,.3);}
+   else{tone(t,.22,660,660,.18);tone(t+.12,.3,880,880,.16);}
+  }catch(_){unavailable();}
+ }
+ soundButton.addEventListener('click',()=>{soundOn=!soundOn;stopSound();soundLabel();try{localStorage.setItem('boring-lab-planet-sound',soundOn?'on':'off');}catch(_){}if(soundOn)playSound('hello');});
+ document.addEventListener('visibilitychange',()=>{if(document.hidden){stopSound();if(audioContext)audioContext.suspend().catch(()=>{});}});
+ addEventListener('pagehide',stopSound);soundLabel();
  const reduced=matchMedia('(prefers-reduced-motion: reduce)');
  let yaw=0,pitch=-.08,night=false,tool='explore',drag=null,frame=0;
  const R=168,CX=300,CY=253;
@@ -55,7 +105,7 @@
   else if(kind==='rain')message.textContent='给这一小块世界，下了一场刚刚好的雨。';
   else if(kind==='water')message.textContent='海里传来一声咕噜。可能有条鱼在唱歌。';
   else message.textContent='小树晃了晃叶子：你好呀。';
-  canvas.dataset.lastEvent=kind;canvas.dataset.treeCount=trees.length;addEffect(kind,p);
+  playSound(kind);canvas.dataset.lastEvent=kind;canvas.dataset.treeCount=trees.length;addEffect(kind,p);
  }
  function coords(event){const r=canvas.getBoundingClientRect();return{x:(event.clientX-r.left)*600/r.width,y:(event.clientY-r.top)*510/r.height};}
  canvas.addEventListener('pointerdown',e=>{if(!e.isPrimary||e.button!==0)return;const p=coords(e);drag={id:e.pointerId,x:p.x,y:p.y,startX:p.x,startY:p.y,moved:false};canvas.setPointerCapture(e.pointerId);});
