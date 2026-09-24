@@ -28,7 +28,7 @@ boring-lab/
 │   ├── fun.html
 │   └── random.js          # 抽卡和奇怪问题共用请求、展示及错误处理
 ├── data/
-│   ├── cards.json         # 12 张娱乐卡片
+│   ├── cards.json         # 36 张六系列主题卡片
 │   ├── questions.json     # 18 个奇怪问题
 │   └── activities.json    # 24 份整活小节目
 └── tools/                 # 可选验收工具，不参与网站运行
@@ -87,7 +87,7 @@ Asio 路径应指向含 `asio/include/asio.hpp` 的仓库根目录。参考：[C
 | `/` | 首页，分类筛选，“随便给我来一个” |
 | `/reaction.html` | 反应速度，抢跑提示，当前浏览器会话最佳成绩 |
 | `/wheel.html` | 两种模板、添加 / 删除选项、真实旋转和结果 |
-| `/card.html` | 点击抽卡，由 C++ 接口返回数据 |
+| `/card.html` | 抽取后翻面揭晓、收藏册、生成分享图 |
 | `/question.html` | 随机问题，再来一个 |
 | `/fun.html` | 六类随机小节目及复制分享 |
 
@@ -99,7 +99,7 @@ Asio 路径应指向含 `asio/include/asio.hpp` 的仓库根目录。参考：[C
 | --- | --- |
 | `/api/hello` | `message: "Hello from C++"` |
 | `/healthz` | `status: "ok"`，供平台检查服务健康状态 |
-| `/api/random-card` | `keyword`, `lazyIndex`, `luck`, `message` |
+| `/api/random-card` | `id`, `series`, `rarity`, `keyword`, `tagline`, `message`, `skill`, `skillText`, `good`, `avoid`, `luckyItem`, `bonusLabel`, `bonus`, `luck` |
 | `/api/random-question` | `question` |
 | `/api/random-fun` | `kind`, `title`, `intro`, `label1..3`, `value1..3`, `footer` |
 
@@ -189,3 +189,11 @@ Render 会从源码构建 Linux 容器，不运行 Windows `.exe`。具体操作
 记录从功能上线后开始，保存在 `localStorage` 的 `boring-lab-achievements-v1`。累计次数和解锁日期跨刷新保留，连续抢跑在成功测试或离开页面后清零。转盘只累计页面可见时间，定期记录，浏览器突然关闭可能丢失最后几秒。现代浏览器使用 Web Locks 串行写入，跨标签页同步；不支持锁的旧浏览器建议只开一个标签页。损坏存档不自动覆盖，无法保存时成就册明确提示；无数据库、账号或用户回答收集。
 
 专项验收：`node tools/check-achievements.cjs`，验证全部触发条件、失败不计数、刷新去重、前台计时、多标签页同时写入、异常存储与手机布局。
+
+## 六系列主题卡片
+
+今日抽卡升级为 36 张原创主题卡，松弛、勇气、灵感、好运、陪伴、搞怪各六张。每张卡包含寄语、专属技能、宜忌、幸运物和主题彩蛋。去掉摸鱼指数，幸运值仅作娱乐装饰；R / SR / SSR 是趣味标记，36 张卡等概率抽取。
+
+`/api/random-card` 返回随机一张，`/api/cards` 提供完整卡册。点击抽取后需翻面，成功翻面才计入收集与抽卡成就。重复卡不重复计数；收藏册支持系列、已收集、爱心收藏筛选和旧卡查看，查看旧卡不计入成就。收藏键为 `boring-lab-cards-v1`，与宠物和成就记录独立；清理网站数据会丢失。不支持跨设备同步，不使用数据库。
+
+分享图由本地 Canvas 生成完整 PNG，可下载或在手机上长按保存，不依赖外部图像服务。专项测试 `node tools/check-cards.cjs` 覆盖全部卡片与图片导出、翻面统计、收藏恢复、筛选、失败重试、手机布局和异常存储。旧版 12 张卡没有收藏存档需要迁移，已有抽卡成就计数继续保留。

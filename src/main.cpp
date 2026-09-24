@@ -106,7 +106,18 @@ int main(int argc, char* argv[]) try {
     if (host != "127.0.0.1" && host != "0.0.0.0")
         throw std::runtime_error("HOST must be 127.0.0.1 or 0.0.0.0");
     const fs::path root = argc > 1 ? fs::absolute(argv[1]) : executable_directory(argv[0]);
-    const auto cards = load_records(root / "data/cards.json", {"keyword", "message"}, {"lazyIndex", "luck"});
+    const auto cards = load_records(root / "data/cards.json", {"id", "series", "rarity", "keyword", "tagline", "message", "skill", "skillText", "good", "avoid", "luckyItem", "bonusLabel", "bonus"}, {"luck"});
+    crow::json::wvalue card_list = crow::json::wvalue::list();
+    std::set<std::string> card_ids;
+    const std::set<std::string> card_series = {"relax", "courage", "idea", "luck", "company", "funny"};
+    for (std::size_t i = 0; i < cards.size(); ++i) {
+        const auto row = crow::json::load(cards[i]);
+        const std::string id = row["id"].s(), series = row["series"].s(), rarity = row["rarity"].s();
+        if (!card_ids.insert(id).second || !card_series.count(series) || (rarity != "R" && rarity != "SR" && rarity != "SSR"))
+            throw std::runtime_error("Invalid card identity or series");
+        card_list[i] = crow::json::wvalue(row);
+    }
+    const auto card_json = card_list.dump();
     const auto questions = load_records(root / "data/questions.json", {"question"});
     const auto activities = load_records(root / "data/activities.json", {"kind", "title", "intro", "label1", "value1", "label2", "value2", "label3", "value3", "footer"});
     const auto answers = load_records(root / "data/answers.json", {"answer"});
@@ -139,7 +150,7 @@ int main(int argc, char* argv[]) try {
     });
     // 只公开列出的网页和资源，不把任意用户路径拼到磁盘路径里。
     const std::set<std::string> pages = {"index.html", "reaction.html", "wheel.html", "card.html", "question.html", "fun.html", "truth.html", "pet.html", "planet.html", "book.html", "achievements.html"};
-    const std::set<std::string> assets = {"style.css", "main.js", "reaction.js", "wheel.js", "random.js", "truth.js", "pet.js", "pet.css", "planet.js", "planet.css", "fun.js", "fun.css", "book.js", "book.css", "achievements.js", "achievements.css"};
+    const std::set<std::string> assets = {"style.css", "main.js", "reaction.js", "wheel.js", "random.js", "truth.js", "pet.js", "pet.css", "planet.js", "planet.css", "fun.js", "fun.css", "book.js", "book.css", "achievements.js", "achievements.css", "cards.js", "cards.css"};
     CROW_ROUTE(app, "/")([&] { return serve_file(root / "static/index.html"); });
     CROW_ROUTE(app, "/<string>")([&](const std::string& name) {
         if (!pages.count(name)) return crow::response(404, "Page not found");
@@ -159,6 +170,12 @@ int main(int argc, char* argv[]) try {
         crow::json::wvalue result;
         result["message"] = "Hello from C++";
         return result;
+    });
+    CROW_ROUTE(app, "/api/cards")([&] {
+        crow::response response(card_json);
+        response.set_header("Content-Type", "application/json; charset=utf-8");
+        response.set_header("Cache-Control", "no-store");
+        return response;
     });
     CROW_ROUTE(app, "/api/random-card")([&] { return random_record(cards); });
     CROW_ROUTE(app, "/api/random-question")([&] { return random_record(questions); });

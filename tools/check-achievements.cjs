@@ -9,8 +9,8 @@ const base=process.env.TEST_BASE||'http://127.0.0.1:18080',KEY='boring-lab-achie
  await goto('card');await p.waitForFunction(k=>JSON.parse(localStorage.getItem(k)).visits.includes('card'),KEY);
  await p.evaluate(k=>{const s=JSON.parse(localStorage.getItem(k));s.cards=9;localStorage.setItem(k,JSON.stringify(s));},KEY);
  await p.route('**/api/random-card',r=>r.fulfill({status:503,body:'no'}));await p.locator('#draw').click();await p.waitForFunction(()=>!document.querySelector('#draw').disabled);assert.equal((await read()).cards,9);
- await p.unroute('**/api/random-card');await p.locator('#draw').click();await wait('cards');const cardDate=(await read()).unlocked.cards;
- await p.reload();assert.equal(await p.locator('.achievement-toast').count(),0);await p.locator('#draw').click();await p.waitForFunction(()=>!document.querySelector('#draw').disabled);assert.equal((await read()).unlocked.cards,cardDate);
+ await p.unroute('**/api/random-card');await p.locator('#draw').click();await p.locator('#card-back').click();await wait('cards');const cardDate=(await read()).unlocked.cards;
+ await p.reload();assert.equal(await p.locator('.achievement-toast').count(),0);await p.locator('#draw').click();await p.locator('#card-back').click();await p.waitForFunction(()=>!document.querySelector('#draw').disabled);assert.equal((await read()).unlocked.cards,cardDate);
  await goto('reaction');for(let i=0;i<6;i++)await p.locator('#reaction-pad').click();await wait('early');
  await p.evaluate(()=>new Promise(resolve=>{const pad=document.querySelector('#reaction-pad');const observer=new MutationObserver(()=>{if(pad.classList.contains('ready')){observer.disconnect();pad.click();resolve();}});observer.observe(pad,{attributes:true,attributeFilter:['class']});pad.click();}));await wait('fast');
  await goto('truth');await p.waitForFunction(()=>!document.querySelector('#skip').disabled);for(let i=0;i<5;i++)await p.locator('#skip').click();await wait('secret');await wait('explorer');

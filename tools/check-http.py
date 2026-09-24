@@ -26,15 +26,20 @@ get("/static/planet.css", "text/css")
 get("/static/fun.css", "text/css")
 get("/static/book.css", "text/css")
 get("/static/achievements.css", "text/css")
-for script in ("main.js", "reaction.js", "wheel.js", "random.js", "truth.js", "pet.js", "planet.js", "fun.js", "book.js", "achievements.js"):
+get("/static/cards.css", "text/css")
+for script in ("main.js", "reaction.js", "wheel.js", "random.js", "truth.js", "pet.js", "planet.js", "fun.js", "book.js", "achievements.js", "cards.js"):
     get("/static/" + script, "text/javascript")
 for endpoint, fields in (
-    ("random-card", ("keyword", "lazyIndex", "luck", "message")),
+    ("random-card", ("id", "series", "rarity", "keyword", "tagline", "message", "skill", "skillText", "good", "avoid", "luckyItem", "bonusLabel", "bonus", "luck")),
     ("random-question", ("question",)),
     ("random-fun", ("kind", "title", "intro", "label1", "value1", "label2", "value2", "label3", "value3", "footer")),
 ):
     data = json.loads(get("/api/" + endpoint, "application/json"))
     assert all(field in data for field in fields), endpoint
+cards = json.loads(get("/api/cards", "application/json"))
+assert len(cards) == 36 and len({row["id"] for row in cards}) == 36
+for series in ("relax", "courage", "idea", "luck", "company", "funny"):
+    assert sum(row["series"] == series for row in cards) == 6
 answers = json.loads(get("/api/book-answers", "application/json"))
 assert len(answers) == 200 and len({row["answer"] for row in answers}) == 200
 assert all(isinstance(row["answer"], str) and row["answer"].strip() for row in answers)

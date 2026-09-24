@@ -58,12 +58,12 @@ async function main() {
     await page.emulateMedia({reducedMotion:'reduce'});await page.locator('#spin').click();await page.waitForTimeout(180);assert.equal(await page.locator('#spin').isDisabled(),false);
     for(let i=0;i<4;i++) await page.locator('.option-chip button').first().click();
     await page.locator('.option-chip button').first().click();assert.equal(await page.locator('.option-chip').count(),2);assert.match(await page.locator('#wheel-error').textContent(),/至少/);
-    await page.goto(base+'/card.html');await page.locator('#draw').click();await page.waitForFunction(()=>document.querySelector('#keyword').textContent!=='等待揭晓');
-    assert.match(await page.locator('#lazy').textContent(),/\d+%/);
+    await page.goto(base+'/card.html');await page.locator('#draw').click();await page.locator('#card-back').click();await page.waitForFunction(()=>document.querySelector('#keyword').textContent.length>0);
+    assert.match(await page.locator('#luck').textContent(),/\d+ \/ 100/);
     await page.screenshot({path:'.qa/card-desktop.png',fullPage:true});
     await page.route('**/api/random-card',route=>route.fulfill({status:503,body:'unavailable'}));
     await page.locator('#draw').click();await page.waitForFunction(()=>document.querySelector('#draw').textContent.includes('重试'));assert.match(await page.locator('#api-error').textContent(),/暂时/);
-    await page.unroute('**/api/random-card');await page.locator('#draw').click();await page.waitForFunction(()=>document.querySelector('#draw').textContent.includes('再抽'));assert.equal(await page.locator('#api-error').textContent(),'');
+    await page.unroute('**/api/random-card');await page.locator('#draw').click();await page.locator('#card-back').click();await page.waitForFunction(()=>document.querySelector('#draw').textContent.includes('再抽'));assert.equal(await page.locator('#api-error').textContent(),'');
     for(const route of ['question','fun']) {await page.goto(base+'/'+route+'.html');await page.waitForFunction(()=>!document.querySelector('#draw').disabled);assert.equal(await page.locator('#api-error').textContent(),'');await page.locator('#draw').click();await page.waitForFunction(()=>!document.querySelector('#draw').disabled);}
     await page.goto(base+'/truth.html');
     await page.waitForFunction(()=>!document.querySelector('#skip').disabled);
