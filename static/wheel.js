@@ -63,8 +63,6 @@ function reset() {
   $("choose-drink").hidden=true;$("exclude-last").hidden=true;fail("");render();save();
 }
 function render() {
-  $("drink-icon").toggleAttribute("hidden",state.scene!=="drink");
-  $("scene-select").classList.toggle("has-drink-icon",state.scene==="drink");
   const items=list(), shops=scope()==="shops";
   $("options-caption").textContent=`已勾选 ${items.filter(x=>x.on).length} / ${items.length} 项 · 每项最多 12 个字`;
   $("options-list").replaceChildren();
