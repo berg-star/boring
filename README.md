@@ -197,3 +197,18 @@ Render 会从源码构建 Linux 容器，不运行 Windows `.exe`。具体操作
 `/api/random-card` 返回随机一张，`/api/cards` 提供完整卡册。点击抽取后需翻面，成功翻面才计入收集与抽卡成就。重复卡不重复计数；收藏册支持系列、已收集、爱心收藏筛选和旧卡查看，查看旧卡不计入成就。收藏键为 `boring-lab-cards-v1`，与宠物和成就记录独立；清理网站数据会丢失。不支持跨设备同步，不使用数据库。
 
 分享图由本地 Canvas 生成完整 PNG，可下载或在手机上长按保存，不依赖外部图像服务。专项测试 `node tools/check-cards.cjs` 覆盖全部卡片与图片导出、翻面统计、收藏恢复、筛选、失败重试、手机布局和异常存储。旧版 12 张卡没有收藏存档需要迁移，已有抽卡成就计数继续保留。
+
+
+### 命运转盘：生活分类与饮品店
+
+九类场景：早餐、午饭、晚饭、饮品、夜宵、零食甜点、休闲活动、周末去哪、动一动。饮品可先抽店铺再抽饮品，也可直接指定店铺或抽通用品类。内置四家品牌，支持另外添加最多八家自定义店。
+
+每组独立维护 2–12 个选项，每项最多 12 个字；勾选参与抽取，至少保留两个。支持排除刚抽中的结果、恢复当前默认、自定义店删除。当前选择和菜单保存到本浏览器 `boring-lab-wheel-v1`，不需要数据库，也不跨设备同步；清除网站数据会重置。多标签页同时编辑时以最后保存为准。存储不可用或记录损坏时可以继续玩，但不覆盖原记录。
+
+预设数据位于 `static/wheel-presets.js`。品牌菜单为参考示例，不包含实时供应、价格或推荐糖冰。2026-09-26 参考官方资料：
+- 霸王茶姬（香港菜单，实际地区供应可能不同）：https://chagee.com.hk/product/fresh-milk-tea-series
+- 蜜雪冰城：https://www.mxbc.com/product_strength.html
+- 瑞幸咖啡：https://www.lkcoffee.com/products/44
+- 星巴克：https://www.starbucks.com.cn/menu/beverages/espresso/caramel-macchiato/
+
+专项检查：`node tools/check-wheel.cjs`；可设置 `BASE_URL` 验证已部署网站。
