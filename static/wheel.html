@@ -1,3 +1,124 @@
 <!doctype html>
-<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="description" content="纠结到此为止。把选项放上来，剩下的交给命运。"><title>命运转盘 · 无聊研究所</title><link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40'%3E%3Crect width='40' height='40' rx='12' fill='%23b9f879'/%3E%3Ctext x='7' y='29' font-size='28'%3E✳%3C/text%3E%3C/svg%3E"><link rel="stylesheet" href="/static/style.css"><link rel="stylesheet" href="/static/achievements.css"><script defer src="/static/achievements.js"></script><script defer src="/static/main.js"></script><link rel="stylesheet" href="/static/wheel.css"><script defer src="/static/wheel-presets.js"></script><script defer src="/static/wheel.js"></script></head>
-<body data-mode="wheel"><div class="site-shell"><header class="header"><a class="brand" href="/"><span class="brand-mark">✳</span><span>无聊研究所<small>BORING LAB.</small></span></a><span class="header-note">不务正业，正在营业</span><a class="header-link" href="/#playground">全部玩法 ↗</a></header><main class="game-main"><a class="back" href="/#playground">← 回游乐场</a><div class="game-heading"><p class="eyebrow">EXPERIMENT / 02</p><h1>命运转盘</h1><p>纠结到此为止。把选项放上来，剩下的交给命运。</p></div><div class="panel wheel-layout"><div><div class="wheel-wrap"><span class="wheel-pointer" aria-hidden="true">▼</span><canvas id="wheel" class="wheel" width="600" height="600" role="img" aria-label="命运转盘">转盘选项见右侧列表。</canvas></div><div id="wheel-result" class="wheel-result" aria-live="polite">准备好了吗？让命运转一圈。</div><div class="game-actions"><button id="spin" class="primary" type="button">开始旋转 ↻</button><button id="choose-drink" class="secondary" type="button" hidden>去抽这家的饮品 →</button><button id="exclude-last" class="secondary" type="button" hidden>下次先排除它</button></div></div><div class="wheel-controls"><label for="template">今天纠结什么？</label><select id="template"></select><div id="brand-controls" hidden><label for="brand">喝哪一家？</label><select id="brand"></select><p class="help">选「先抽一家店」，把选店也交给命运。</p></div><p id="options-caption" class="help"></p><div id="options-list" class="options-list"></div><form id="add-option"><label for="option-input">再加一个自己的选项</label><div class="add-option"><input id="option-input" maxlength="12" placeholder="比如：螺蛳粉" autocomplete="off"><button class="secondary" type="submit">添加 +</button></div></form><div class="wheel-tools"><button id="restore" class="secondary" type="button">恢复当前默认</button><button id="delete-brand" class="secondary" type="button" hidden>删除这家自定义店</button></div><details id="custom-store" hidden><summary>＋ 添加自己的饮品店</summary><form id="add-brand"><label for="brand-input">店铺名称（最多 12 个字）</label><div class="add-option"><input id="brand-input" maxlength="12" placeholder="比如：学校门口的奶茶店"><button class="secondary" type="submit">添加店铺</button></div></form></details><p id="wheel-error" class="error" role="status"></p><p id="save-status" class="help" role="status"></p><p class="help">勾选的选项机会相同，至少保留两项。<br>菜单仅作灵感参考，实际供应以门店为准。</p></div></div></main><footer><span>✳ 无聊研究所 <span class="footer-divider">/</span> 快乐不必有意义。</span><span>JUST FOR FUN. © 2026</span></footer></div></body></html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description" content="纠结到此为止。把选项放上来，剩下的交给命运。" />
+    <title>命运转盘 · 无聊研究所</title>
+    <link
+      rel="icon"
+      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40'%3E%3Crect width='40' height='40' rx='12' fill='%23b9f879'/%3E%3Ctext x='7' y='29' font-size='28'%3E✳%3C/text%3E%3C/svg%3E"
+    />
+    <link rel="stylesheet" href="/static/style.css" />
+    <link rel="stylesheet" href="/static/achievements.css" />
+    <script defer src="/static/achievements.js"></script>
+    <script defer src="/static/main.js"></script>
+    <link rel="stylesheet" href="/static/wheel.css" />
+    <script defer src="/static/wheel-presets.js"></script>
+    <script defer src="/static/wheel.js"></script>
+  </head>
+  <body data-mode="wheel">
+    <div class="site-shell">
+      <header class="header">
+        <a class="brand" href="/">
+          <span class="brand-mark">✳</span>
+          <span>
+            无聊研究所
+            <small>BORING LAB.</small>
+          </span>
+        </a>
+        <span class="header-note">不务正业，正在营业</span>
+        <a class="header-link" href="/#playground">全部玩法 ↗</a>
+      </header>
+      <main class="game-main">
+        <a class="back" href="/#playground">← 回游乐场</a>
+        <div class="game-heading">
+          <p class="eyebrow">EXPERIMENT / 02</p>
+          <h1>命运转盘</h1>
+          <p>纠结到此为止。把选项放上来，剩下的交给命运。</p>
+        </div>
+        <div class="panel wheel-layout">
+          <div>
+            <div class="wheel-wrap">
+              <span class="wheel-pointer" aria-hidden="true">▼</span>
+              <canvas
+                id="wheel"
+                class="wheel"
+                width="600"
+                height="600"
+                role="img"
+                aria-label="命运转盘"
+              >
+                转盘选项见右侧列表。
+              </canvas>
+            </div>
+            <div id="wheel-result" class="wheel-result" aria-live="polite">
+              准备好了吗？让命运转一圈。
+            </div>
+            <div class="game-actions">
+              <button id="spin" class="primary" type="button">开始旋转 ↻</button>
+              <button id="choose-drink" class="secondary" type="button" hidden>
+                去抽这家的饮品 →
+              </button>
+              <button id="exclude-last" class="secondary" type="button" hidden>下次先排除它</button>
+            </div>
+          </div>
+          <div class="wheel-controls">
+            <label for="template">今天纠结什么？</label>
+            <select id="template"></select>
+            <div id="brand-controls" hidden>
+              <label for="brand">喝哪一家？</label>
+              <select id="brand"></select>
+              <p class="help">选「先抽一家店」，把选店也交给命运。</p>
+            </div>
+            <p id="options-caption" class="help"></p>
+            <div id="options-list" class="options-list"></div>
+            <form id="add-option">
+              <label for="option-input">再加一个自己的选项</label>
+              <div class="add-option">
+                <input
+                  id="option-input"
+                  maxlength="12"
+                  placeholder="比如：螺蛳粉"
+                  autocomplete="off"
+                />
+                <button class="secondary" type="submit">添加 +</button>
+              </div>
+            </form>
+            <div class="wheel-tools">
+              <button id="restore" class="secondary" type="button">恢复当前默认</button>
+              <button id="delete-brand" class="secondary" type="button" hidden>
+                删除这家自定义店
+              </button>
+            </div>
+            <details id="custom-store" hidden>
+              <summary>＋ 添加自己的饮品店</summary>
+              <form id="add-brand">
+                <label for="brand-input">店铺名称（最多 12 个字）</label>
+                <div class="add-option">
+                  <input id="brand-input" maxlength="12" placeholder="比如：学校门口的奶茶店" />
+                  <button class="secondary" type="submit">添加店铺</button>
+                </div>
+              </form>
+            </details>
+            <p id="wheel-error" class="error" role="status"></p>
+            <p id="save-status" class="help" role="status"></p>
+            <p class="help">
+              勾选的选项机会相同，至少保留两项。
+              <br />
+              菜单仅作灵感参考，实际供应以门店为准。
+            </p>
+          </div>
+        </div>
+      </main>
+      <footer>
+        <span>
+          ✳ 无聊研究所
+          <span class="footer-divider">/</span>
+          快乐不必有意义。
+        </span>
+        <span>JUST FOR FUN. © 2026</span>
+      </footer>
+    </div>
+  </body>
+</html>

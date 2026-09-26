@@ -1,3 +1,159 @@
 <!doctype html>
-<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="description" content="今天是什么画风？抽一张，收下这一点随机的快乐。"><title>今日抽卡 · 无聊研究所</title><link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40'%3E%3Crect width='40' height='40' rx='12' fill='%23b9f879'/%3E%3Ctext x='7' y='29' font-size='28'%3E✳%3C/text%3E%3C/svg%3E"><link rel="stylesheet" href="/static/style.css"><link rel="stylesheet" href="/static/achievements.css"><script defer src="/static/achievements.js"></script><script defer src="/static/main.js"></script><script defer src="/static/cards.js"></script><link rel="stylesheet" href="/static/cards.css"></head>
-<body data-mode="card"><div class="site-shell"><header class="header"><a class="brand" href="/"><span class="brand-mark">✳</span><span>无聊研究所<small>BORING LAB.</small></span></a><span class="header-note">不务正业，正在营业</span><a class="header-link" href="/#playground">全部玩法 ↗</a></header><main class="game-main"><a class="back" href="/#playground">← 回游乐场</a><div class="game-heading"><p class="eyebrow">EXPERIMENT / 03</p><h1>今日抽卡</h1><p>今天是什么画风？抽一张，收下这一点随机的快乐。</p></div><div class="card-collection-link"><span>六个系列 · 36 张原创卡片</span><a href="#collection" id="open-collection">我的收藏册 ↗</a></div><div class="daily-stage"><button id="card-back" type="button" disabled aria-label="翻开卡片"><span>无聊研究所 · DAILY CARD</span><b>✧</b><strong>今天的你<br>值得一点惊喜。</strong><small id="back-hint">点下方按钮，抽一张卡</small></button><article id="result" class="daily-card" hidden aria-label="抽到的卡片"><div class="daily-top"><span id="card-series"></span><span id="card-rarity"></span></div><div id="card-symbol" aria-hidden="true"></div><p id="card-id"></p><h2 id="keyword"></h2><p id="card-tagline"></p><p id="message"></p><div class="daily-skill"><small>专属技能</small><h3 id="card-skill"></h3><p id="card-skill-text"></p></div><dl class="daily-details"><div><dt>今日宜</dt><dd id="card-good"></dd></div><div><dt>今日忌</dt><dd id="card-avoid"></dd></div><div><dt>幸运物</dt><dd id="card-item"></dd></div></dl><div class="daily-bonus"><strong id="card-bonus-label"></strong><p id="card-bonus"></p></div><p class="daily-luck">娱乐幸运值 <span id="luck"></span> · 快乐不必有意义</p></article></div><p id="card-status" class="help" role="status">抽一张，收下这一点随机的快乐。</p><div class="game-actions"><button class="primary" id="draw" type="button">抽一张 ✧</button><button class="secondary" id="favorite" type="button" disabled aria-pressed="false">♡ 收藏这张</button><button class="secondary" id="share-card" type="button" disabled>生成分享图 ↓</button></div><p id="api-error" class="error" role="status"></p><div id="card-image" hidden><img id="share-preview" alt="可保存分享的完整卡片"><a id="download-card" class="secondary">下载图片 ↓</a><p class="help">手机也可以长按图片保存。</p></div><details id="collection" class="collection"><summary>我的收藏册 <span id="collection-count">已收集 0 / 36</span></summary><p class="help">抽到即收集，喜欢的卡可以再点亮爱心。查看旧卡不会增加抽卡次数。</p><div class="collection-controls"><label>系列 <select id="collection-series"><option value="all">全部系列</option><option value="relax">松弛</option><option value="courage">勇气</option><option value="idea">灵感</option><option value="luck">好运</option><option value="company">陪伴</option><option value="funny">搞怪</option></select></label><label>显示 <select id="collection-filter"><option value="all">全部卡片</option><option value="owned">已收集</option><option value="favorite">已收藏 ♡</option></select></label></div><p id="collection-error" class="error" role="status"></p><button id="collection-retry" class="secondary" type="button" hidden>重试加载收藏册</button><div id="collection-grid"></div><p id="collection-storage" class="help" role="status"></p></details><p class="help">每张卡等概率抽取，R / SR / SSR 是趣味标记，不影响抽取概率。<br>纯属娱乐，不是占卜。收藏只保存在当前浏览器，清除网站数据会丢失。</p></main><footer><span>✳ 无聊研究所 <span class="footer-divider">/</span> 快乐不必有意义。</span><span>JUST FOR FUN. © 2026</span></footer></div></body></html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description" content="今天是什么画风？抽一张，收下这一点随机的快乐。" />
+    <title>今日抽卡 · 无聊研究所</title>
+    <link
+      rel="icon"
+      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40'%3E%3Crect width='40' height='40' rx='12' fill='%23b9f879'/%3E%3Ctext x='7' y='29' font-size='28'%3E✳%3C/text%3E%3C/svg%3E"
+    />
+    <link rel="stylesheet" href="/static/style.css" />
+    <link rel="stylesheet" href="/static/achievements.css" />
+    <script defer src="/static/achievements.js"></script>
+    <script defer src="/static/main.js"></script>
+    <script defer src="/static/cards.js"></script>
+    <link rel="stylesheet" href="/static/cards.css" />
+  </head>
+  <body data-mode="card">
+    <div class="site-shell">
+      <header class="header">
+        <a class="brand" href="/">
+          <span class="brand-mark">✳</span>
+          <span>
+            无聊研究所
+            <small>BORING LAB.</small>
+          </span>
+        </a>
+        <span class="header-note">不务正业，正在营业</span>
+        <a class="header-link" href="/#playground">全部玩法 ↗</a>
+      </header>
+      <main class="game-main">
+        <a class="back" href="/#playground">← 回游乐场</a>
+        <div class="game-heading">
+          <p class="eyebrow">EXPERIMENT / 03</p>
+          <h1>今日抽卡</h1>
+          <p>今天是什么画风？抽一张，收下这一点随机的快乐。</p>
+        </div>
+        <div class="card-collection-link">
+          <span>六个系列 · 36 张原创卡片</span>
+          <a href="#collection" id="open-collection">我的收藏册 ↗</a>
+        </div>
+        <div class="daily-stage">
+          <button id="card-back" type="button" disabled aria-label="翻开卡片">
+            <span>无聊研究所 · DAILY CARD</span>
+            <b>✧</b>
+            <strong>
+              今天的你
+              <br />
+              值得一点惊喜。
+            </strong>
+            <small id="back-hint">点下方按钮，抽一张卡</small>
+          </button>
+          <article id="result" class="daily-card" hidden aria-label="抽到的卡片">
+            <div class="daily-top">
+              <span id="card-series"></span>
+              <span id="card-rarity"></span>
+            </div>
+            <div id="card-symbol" aria-hidden="true"></div>
+            <p id="card-id"></p>
+            <h2 id="keyword"></h2>
+            <p id="card-tagline"></p>
+            <p id="message"></p>
+            <div class="daily-skill">
+              <small>专属技能</small>
+              <h3 id="card-skill"></h3>
+              <p id="card-skill-text"></p>
+            </div>
+            <dl class="daily-details">
+              <div>
+                <dt>今日宜</dt>
+                <dd id="card-good"></dd>
+              </div>
+              <div>
+                <dt>今日忌</dt>
+                <dd id="card-avoid"></dd>
+              </div>
+              <div>
+                <dt>幸运物</dt>
+                <dd id="card-item"></dd>
+              </div>
+            </dl>
+            <div class="daily-bonus">
+              <strong id="card-bonus-label"></strong>
+              <p id="card-bonus"></p>
+            </div>
+            <p class="daily-luck">
+              娱乐幸运值
+              <span id="luck"></span>
+              · 快乐不必有意义
+            </p>
+          </article>
+        </div>
+        <p id="card-status" class="help" role="status">抽一张，收下这一点随机的快乐。</p>
+        <div class="game-actions">
+          <button class="primary" id="draw" type="button">抽一张 ✧</button>
+          <button class="secondary" id="favorite" type="button" disabled aria-pressed="false">
+            ♡ 收藏这张
+          </button>
+          <button class="secondary" id="share-card" type="button" disabled>生成分享图 ↓</button>
+        </div>
+        <p id="api-error" class="error" role="status"></p>
+        <div id="card-image" hidden>
+          <img id="share-preview" alt="可保存分享的完整卡片" />
+          <a id="download-card" class="secondary">下载图片 ↓</a>
+          <p class="help">手机也可以长按图片保存。</p>
+        </div>
+        <details id="collection" class="collection">
+          <summary>
+            我的收藏册
+            <span id="collection-count">已收集 0 / 36</span>
+          </summary>
+          <p class="help">抽到即收集，喜欢的卡可以再点亮爱心。查看旧卡不会增加抽卡次数。</p>
+          <div class="collection-controls">
+            <label>
+              系列
+              <select id="collection-series">
+                <option value="all">全部系列</option>
+                <option value="relax">松弛</option>
+                <option value="courage">勇气</option>
+                <option value="idea">灵感</option>
+                <option value="luck">好运</option>
+                <option value="company">陪伴</option>
+                <option value="funny">搞怪</option>
+              </select>
+            </label>
+            <label>
+              显示
+              <select id="collection-filter">
+                <option value="all">全部卡片</option>
+                <option value="owned">已收集</option>
+                <option value="favorite">已收藏 ♡</option>
+              </select>
+            </label>
+          </div>
+          <p id="collection-error" class="error" role="status"></p>
+          <button id="collection-retry" class="secondary" type="button" hidden>
+            重试加载收藏册
+          </button>
+          <div id="collection-grid"></div>
+          <p id="collection-storage" class="help" role="status"></p>
+        </details>
+        <p class="help">
+          每张卡等概率抽取，R / SR / SSR 是趣味标记，不影响抽取概率。
+          <br />
+          纯属娱乐，不是占卜。收藏只保存在当前浏览器，清除网站数据会丢失。
+        </p>
+      </main>
+      <footer>
+        <span>
+          ✳ 无聊研究所
+          <span class="footer-divider">/</span>
+          快乐不必有意义。
+        </span>
+        <span>JUST FOR FUN. © 2026</span>
+      </footer>
+    </div>
+  </body>
+</html>

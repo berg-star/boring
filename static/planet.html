@@ -1,3 +1,92 @@
 <!doctype html>
-<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="description" content="转一转星球，随便制造一点小快乐。"><title>无聊星球 · 无聊研究所</title><link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40'%3E%3Crect width='40' height='40' rx='12' fill='%23b9f879'/%3E%3Ctext x='7' y='29' font-size='28'%3E✳%3C/text%3E%3C/svg%3E"><link rel="stylesheet" href="/static/style.css"><link rel="stylesheet" href="/static/achievements.css"><script defer src="/static/achievements.js"></script><script defer src="/static/main.js"></script><script defer src="/static/planet.js"></script><link rel="stylesheet" href="/static/planet.css"></head>
-<body><div class="site-shell"><header class="header"><a class="brand" href="/"><span class="brand-mark">✳</span><span>无聊研究所<small>BORING LAB.</small></span></a><a class="header-link" href="/#playground">全部玩法 ↗</a></header><main class="game-main planet-main"><a class="back" href="/#playground">← 回游乐场</a><div class="game-heading"><p class="eyebrow">EXPERIMENT / 08</p><h1>这颗星球，今天归你。</h1><p>没有任务。转一转，让小事发生。</p></div><section class="planet-room"><div class="planet-top"><span class="pill">随便探索中</span><div class="planet-switches"><button id="sound" class="secondary" type="button" aria-pressed="true" aria-label="星球音效">声音：开 ♫</button><button id="night" class="secondary" type="button" aria-pressed="false">切到夜晚 ☾</button></div></div><canvas id="planet" width="600" height="560" tabindex="0" role="img" aria-label="可互动的小星球。拖动旋转，点击探索；键盘方向键旋转，回车在中心触发所选事件。">你的浏览器暂不支持画布，请使用新版浏览器。</canvas><p class="planet-hint">拖动转一转 · 轻点有惊喜</p><p id="planet-message" role="status">这座火山看起来有点鼻子痒。</p></section><div class="filters planet-tools" role="group" aria-label="探索方式"><button class="active" data-tool="explore" aria-pressed="true">✧ 随便点点</button><button data-tool="tree" aria-pressed="false">♧ 种棵树</button><button data-tool="rain" aria-pressed="false">☂ 下场雨</button><button data-tool="volcano" aria-pressed="false">△ 火山喷嚏</button></div><div class="game-actions"><button id="surprise-event" class="primary" type="button">星球，整点活 ↗</button></div><p class="help">海里藏着小动静，树也喜欢被打招呼。<br>键盘也能玩：方向键旋转，回车触发事件。<br>这是一场随手探索，刷新后星球重新开始。</p></main><footer><span>✳ 无聊研究所 / 快乐不必有意义。</span><span>JUST FOR FUN. © 2026</span></footer></div></body></html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description" content="转一转星球，随便制造一点小快乐。" />
+    <title>无聊星球 · 无聊研究所</title>
+    <link
+      rel="icon"
+      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40'%3E%3Crect width='40' height='40' rx='12' fill='%23b9f879'/%3E%3Ctext x='7' y='29' font-size='28'%3E✳%3C/text%3E%3C/svg%3E"
+    />
+    <link rel="stylesheet" href="/static/style.css" />
+    <link rel="stylesheet" href="/static/achievements.css" />
+    <script defer src="/static/achievements.js"></script>
+    <script defer src="/static/main.js"></script>
+    <script defer src="/static/planet.js"></script>
+    <link rel="stylesheet" href="/static/planet.css" />
+  </head>
+  <body>
+    <div class="site-shell">
+      <header class="header">
+        <a class="brand" href="/">
+          <span class="brand-mark">✳</span>
+          <span>
+            无聊研究所
+            <small>BORING LAB.</small>
+          </span>
+        </a>
+        <a class="header-link" href="/#playground">全部玩法 ↗</a>
+      </header>
+      <main class="game-main planet-main">
+        <a class="back" href="/#playground">← 回游乐场</a>
+        <div class="game-heading">
+          <p class="eyebrow">EXPERIMENT / 08</p>
+          <h1>这颗星球，今天归你。</h1>
+          <p>没有任务。转一转，让小事发生。</p>
+        </div>
+        <section class="planet-room">
+          <div class="planet-top">
+            <span class="pill">随便探索中</span>
+            <div class="planet-switches">
+              <button
+                id="sound"
+                class="secondary"
+                type="button"
+                aria-pressed="true"
+                aria-label="星球音效"
+              >
+                声音：开 ♫
+              </button>
+              <button id="night" class="secondary" type="button" aria-pressed="false">
+                切到夜晚 ☾
+              </button>
+            </div>
+          </div>
+          <canvas
+            id="planet"
+            width="600"
+            height="560"
+            tabindex="0"
+            role="img"
+            aria-label="可互动的小星球。拖动旋转，点击探索；键盘方向键旋转，回车在中心触发所选事件。"
+          >
+            你的浏览器暂不支持画布，请使用新版浏览器。
+          </canvas>
+          <p class="planet-hint">拖动转一转 · 轻点有惊喜</p>
+          <p id="planet-message" role="status">这座火山看起来有点鼻子痒。</p>
+        </section>
+        <div class="filters planet-tools" role="group" aria-label="探索方式">
+          <button class="active" data-tool="explore" aria-pressed="true">✧ 随便点点</button>
+          <button data-tool="tree" aria-pressed="false">♧ 种棵树</button>
+          <button data-tool="rain" aria-pressed="false">☂ 下场雨</button>
+          <button data-tool="volcano" aria-pressed="false">△ 火山喷嚏</button>
+        </div>
+        <div class="game-actions">
+          <button id="surprise-event" class="primary" type="button">星球，整点活 ↗</button>
+        </div>
+        <p class="help">
+          海里藏着小动静，树也喜欢被打招呼。
+          <br />
+          键盘也能玩：方向键旋转，回车触发事件。
+          <br />
+          这是一场随手探索，刷新后星球重新开始。
+        </p>
+      </main>
+      <footer>
+        <span>✳ 无聊研究所 / 快乐不必有意义。</span>
+        <span>JUST FOR FUN. © 2026</span>
+      </footer>
+    </div>
+  </body>
+</html>
