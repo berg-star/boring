@@ -1,0 +1,158 @@
+.doodle-main {
+  max-width: 980px;
+}
+.doodle-room {
+  padding: 24px;
+}
+.doodle-top {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: center;
+  margin-bottom: 20px;
+}
+.doodle-stamp {
+  font-size: 12px;
+  color: #a4b5a6;
+}
+.doodle-tools {
+  display: flex;
+  align-items: end;
+  flex-wrap: wrap;
+  gap: 14px;
+  margin-bottom: 18px;
+}
+.doodle-tools fieldset {
+  border: 0;
+  margin: 0;
+  padding: 0;
+}
+.doodle-tools legend,
+.doodle-tools label {
+  font-size: 12px;
+  color: #b0bcb3;
+}
+.doodle-tools select {
+  display: block;
+  padding: 7px;
+  margin-top: 7px;
+  width: 100px;
+}
+.doodle-tools button {
+  font-size: 13px;
+  padding: 10px 13px;
+}
+.doodle-tools #palette {
+  display: flex;
+  gap: 7px;
+  margin-top: 8px;
+}
+#palette button {
+  width: 29px;
+  height: 29px;
+  padding: 0;
+  border-radius: 50%;
+  border: 3px solid transparent;
+  background: var(--ink);
+  box-shadow: 0 0 0 1px #677168;
+}
+#palette button[aria-pressed="true"] {
+  border-color: #fff;
+  box-shadow: 0 0 0 2px #b9f879;
+}
+.doodle-paper {
+  position: relative;
+  background: #f3efde;
+  border-radius: 18px;
+  overflow: hidden;
+  background-image: radial-gradient(#d6d0bb 1px, transparent 1px);
+  background-size: 20px 20px;
+}
+#drawing {
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 16/11;
+  touch-action: none;
+  cursor: crosshair;
+}
+#drawing.is-live {
+  cursor: pointer;
+  touch-action: pan-y;
+}
+#paper-hint {
+  position: absolute;
+  top: 48%;
+  left: 0;
+  width: 100%;
+  text-align: center;
+  color: #8b8a7a;
+  font-size: 16px;
+  pointer-events: none;
+}
+#doodle-speech {
+  text-align: center;
+  font-size: 18px;
+  min-height: 28px;
+  margin: 23px 0;
+}
+.doodle-motions {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin: 18px 0;
+}
+.doodle-motions button[aria-pressed="true"] {
+  background: #b9f879;
+  color: #20291c;
+  border-color: #b9f879;
+}
+.doodle-room .game-actions {
+  flex-wrap: wrap;
+}
+button:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+[hidden] {
+  display: none !important;
+}
+@media (max-width: 600px) {
+  .doodle-room {
+    padding: 14px;
+  }
+  .doodle-stamp {
+    display: none;
+  }
+  .doodle-tools {
+    gap: 12px;
+  }
+  .doodle-tools label {
+    flex: 1;
+  }
+  .doodle-tools select {
+    width: 100%;
+  }
+  .doodle-tools > button {
+    flex: 1;
+  }
+  #doodle-speech {
+    font-size: 16px;
+  }
+  .doodle-motions button {
+    flex: 1 1 40%;
+    font-size: 13px;
+  }
+  .doodle-room .game-actions button {
+    font-size: 13px;
+  }
+}
+
+@media (max-width: 600px) {
+  .doodle-tools { display: grid; grid-template-columns: 1fr 1fr; align-items: center; }
+  .doodle-tools fieldset, .doodle-tools label { grid-column: 1 / -1; }
+  .doodle-tools label { display: flex; align-items: center; justify-content: space-between; }
+  .doodle-tools select { width: 140px; margin: 0; }
+  .doodle-tools > button { white-space: nowrap; }
+}

@@ -1,0 +1,107 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description" content="画一条线，给它一点生命。" />
+    <title>涂鸦活了 · 无聊研究所</title>
+    <link
+      rel="icon"
+      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40'%3E%3Crect width='40' height='40' rx='12' fill='%23b9f879'/%3E%3Ctext x='7' y='29' font-size='28'%3E✳%3C/text%3E%3C/svg%3E"
+    />
+    <link rel="stylesheet" href="/static/style.css" />
+    <link rel="stylesheet" href="/static/achievements.css" />
+    <script defer src="/static/achievements.js"></script>
+    <script defer src="/static/main.js"></script>
+    <script defer src="/static/doodle.js"></script>
+    <link rel="stylesheet" href="/static/doodle.css" />
+  </head>
+  <body>
+    <div class="site-shell">
+      <header class="header">
+        <a class="brand" href="/">
+          <span class="brand-mark">✳</span>
+          <span>
+            无聊研究所
+            <small>BORING LAB.</small>
+          </span>
+        </a>
+        <a class="header-link" href="/#playground">全部玩法 ↗</a>
+      </header>
+      <main class="game-main doodle-main">
+        <a class="back" href="/#playground">← 回游乐场</a>
+        <div class="game-heading">
+          <p class="eyebrow">EXPERIMENT / 10</p>
+          <h1>涂鸦活了。</h1>
+          <p>随便画点什么，我们负责让它不太正常。</p>
+        </div>
+        <section class="panel doodle-room" aria-label="涂鸦实验台">
+          <div class="doodle-top">
+            <span id="mode-label" class="pill">01 / 画一个小东西</span>
+            <span class="doodle-stamp">生命力，随手制造。</span>
+          </div>
+          <div id="paint-tools" class="doodle-tools">
+            <fieldset>
+              <legend>画笔颜色</legend>
+              <div id="palette"></div>
+            </fieldset>
+            <label for="brush">
+              笔尖粗细
+              <select id="brush">
+                <option value="4">细 · 4</option>
+                <option value="9" selected>中 · 9</option>
+                <option value="16">粗 · 16</option>
+              </select>
+            </label>
+            <button id="undo" class="secondary" type="button">撤销一笔</button>
+            <button id="clear" class="secondary" type="button">清空画纸</button>
+          </div>
+          <div class="doodle-paper">
+            <canvas
+              id="drawing"
+              width="640"
+              height="440"
+              tabindex="0"
+              role="img"
+              aria-label="涂鸦画纸，可用鼠标或手指绘画。不会画也可以用下方示例。"
+            >
+              请使用支持 Canvas 的浏览器，或换个浏览器再试。
+            </canvas>
+            <span id="paper-hint">画条线，也算一个新物种。</span>
+          </div>
+          <p id="doodle-speech" role="status">它还没出生，已经有点好奇了。</p>
+          <div id="edit-actions" class="game-actions">
+            <button id="alive" class="primary" type="button">让它活过来 ✳</button>
+            <button id="sample" class="secondary" type="button">没灵感？借一只小怪物</button>
+          </div>
+          <div id="live-actions" hidden>
+            <div class="doodle-motions" role="group" aria-label="选择动作">
+              <button data-motion="jelly" class="secondary" aria-pressed="true">果冻扭动</button>
+              <button data-motion="jump" class="secondary" aria-pressed="false">原地蹦跶</button>
+              <button data-motion="flop" class="secondary" aria-pressed="false">软趴趴倒下</button>
+              <button data-motion="random" class="secondary" aria-pressed="false">随机发疯</button>
+            </div>
+            <div class="game-actions">
+              <button id="poke" class="primary" type="button">戳它一下 ☞</button>
+              <button id="pause" class="secondary" type="button" aria-pressed="false">
+                暂停动作
+              </button>
+              <button id="edit" class="secondary" type="button">回去补几笔</button>
+            </div>
+          </div>
+          <p id="doodle-error" class="error" role="status"></p>
+          <p id="doodle-save" class="help" role="status"></p>
+        </section>
+        <p class="help">
+          鼠标或手指随手画，整幅涂鸦一起活动。
+          <br />
+          不上传画作，保存在当前浏览器；清除网站数据会丢失。
+        </p>
+      </main>
+      <footer>
+        <span>✳ 无聊研究所 / 快乐不必有意义。</span>
+        <span>JUST FOR FUN. © 2026</span>
+      </footer>
+    </div>
+  </body>
+</html>

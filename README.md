@@ -214,3 +214,12 @@ Render 会从源码构建 Linux 容器，不运行 Windows `.exe`。具体操作
 - 星巴克：https://www.starbucks.com.cn/menu/beverages/espresso/caramel-macchiato/
 
 专项检查：`node tools/check-wheel.cjs`；可设置 `BASE_URL` 验证已部署网站。
+
+
+## 涂鸦活了
+
+`doodle.html` / `doodle.js` / `doodle.css` 提供鼠标与触屏绘画、五种颜色、三档笔尖、撤销、清空和示例小怪物。完成后将整幅画裁出并缩放到舞台，通过 Canvas 变换实现果冻、蹦跳、倒下及随机动作；支持戳一下、暂停和返回编辑。不会识别肢体，不使用 AI 或上传画作。
+
+笔画以坐标保存于 `boring-lab-doodle-v1`，最多 100 笔、16000 个点；读取时校验存档，损坏或存储不可用时保留旧记录并提示。减少动态效果设置下保持静态；隐藏页面时停止动画。首页现有 10 个玩法，成就“常驻人口”仍保持访问九个不同玩法即可解锁，已有解锁不会撤销。
+
+专项检查：`node tools/check-doodle.cjs`；支持 `BASE_URL` 指向线上。这里的 Node 仅用于浏览器验收。

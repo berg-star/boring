@@ -1,11 +1,11 @@
 "use strict";
 (() => {
  const KEY='boring-lab-achievements-v1';
- const games=['reaction','wheel','card','question','fun','truth','pet','planet','book'];
+ const games=['reaction','wheel','card','question','fun','truth','pet','planet','book','doodle'];
  const kinds=['report','notice','wanted','patch','ad','invention'];
  const catalog=[
   ['explorer','不务正业初学者','你已经掌握了三种消磨时间的方法。','去不同的房间逛逛。',s=>s.visits.length>=3],
-  ['resident','研究所常驻人口','每个房间都留下了你的脚印。','研究所里还有没去过的地方吗？',s=>s.visits.length>=9],
+  ['resident','研究所常驻人口','至少九个房间留下了你的脚印。','研究所里还有没去过的地方吗？',s=>s.visits.length>=9],
   ['hesitate','犹豫大师','转盘都准备好了，你还没想好。','有时，待一会儿也会有发现。',s=>s.wheelMs>=180000],
   ['destiny','命运外包专家','这件事，交给命运负责。','多给命运几次表现机会。',s=>s.spins>=10],
   ['early','人类极限','你比开始信号还着急。','有一种速度，叫还没开始。',s=>s.early],

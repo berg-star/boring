@@ -18,7 +18,7 @@ def get(path, content_type):
 
 assert json.loads(get("/healthz", "application/json")) == {"status": "ok"}
 assert json.loads(get("/api/hello", "application/json")) == {"message": "Hello from C++"}
-for page in ("/", "/reaction.html", "/wheel.html", "/card.html", "/question.html", "/fun.html", "/truth.html", "/pet.html", "/planet.html", "/book.html", "/achievements.html"):
+for page in ("/", "/reaction.html", "/wheel.html", "/card.html", "/question.html", "/fun.html", "/truth.html", "/pet.html", "/planet.html", "/book.html", "/doodle.html", "/achievements.html"):
     assert "无聊研究所" in get(page, "text/html")
 get("/static/style.css", "text/css")
 get("/static/pet.css", "text/css")
@@ -27,7 +27,7 @@ get("/static/fun.css", "text/css")
 get("/static/book.css", "text/css")
 get("/static/achievements.css", "text/css")
 get("/static/cards.css", "text/css")
-for script in ("main.js", "reaction.js", "wheel.js", "random.js", "truth.js", "pet.js", "planet.js", "fun.js", "book.js", "achievements.js", "cards.js"):
+for script in ("main.js", "reaction.js", "wheel.js", "random.js", "truth.js", "pet.js", "planet.js", "fun.js", "book.js", "achievements.js", "cards.js", "doodle.js"):
     get("/static/" + script, "text/javascript")
 for endpoint, fields in (
     ("random-card", ("id", "series", "rarity", "keyword", "tagline", "message", "skill", "skillText", "good", "avoid", "luckyItem", "bonusLabel", "bonus", "luck")),
@@ -53,3 +53,5 @@ for path in ("/missing", "/data/cards.json", "/static/main.cpp"):
     except HTTPError as error:
         assert error.code == 404, path
 print("PASS: health, pages, assets, JSON APIs and 404 responses at " + base)
+
+get("/static/doodle.css", "text/css")
