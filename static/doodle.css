@@ -150,9 +150,144 @@ button:disabled {
 }
 
 @media (max-width: 600px) {
-  .doodle-tools { display: grid; grid-template-columns: 1fr 1fr; align-items: center; }
-  .doodle-tools fieldset, .doodle-tools label { grid-column: 1 / -1; }
-  .doodle-tools label { display: flex; align-items: center; justify-content: space-between; }
-  .doodle-tools select { width: 140px; margin: 0; }
-  .doodle-tools > button { white-space: nowrap; }
+  .doodle-tools {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    align-items: center;
+  }
+  .doodle-tools fieldset,
+  .doodle-tools label {
+    grid-column: 1 / -1;
+  }
+  .doodle-tools label {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .doodle-tools select {
+    width: 140px;
+    margin: 0;
+  }
+  .doodle-tools > button {
+    white-space: nowrap;
+  }
+}
+
+#drawing.is-live {
+  touch-action: none;
+  cursor: grab;
+}
+#drawing.is-grabbed {
+  cursor: grabbing;
+}
+.model-picker {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  margin: 18px 0;
+}
+.model-picker select {
+  width: auto;
+  flex: 1;
+  min-width: 170px;
+}
+.model-picker label {
+  font-size: 13px;
+}
+.model-picker button {
+  font-size: 13px;
+}
+.doodle-stages {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  justify-content: center;
+  margin: 20px 0 8px;
+}
+.doodle-stages button[aria-pressed="true"] {
+  border-color: #b9f879;
+  color: #b9f879;
+}
+.doodle-shelf {
+  margin-top: 22px;
+  padding: 24px;
+}
+.doodle-shelf summary {
+  cursor: pointer;
+  color: #b9f879;
+}
+#shelf-count {
+  float: right;
+  font-size: 13px;
+}
+#save-art-form {
+  margin-top: 20px;
+}
+#save-art-form label {
+  display: block;
+  margin-bottom: 10px;
+  font-size: 14px;
+}
+.shelf-save {
+  display: flex;
+  gap: 10px;
+}
+.shelf-save input {
+  flex: 1;
+  min-width: 0;
+}
+.shelf-save button {
+  white-space: nowrap;
+}
+#shelf-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+}
+.doodle-art {
+  border: 1px solid #455044;
+  border-radius: 12px;
+  overflow: hidden;
+  padding: 10px;
+}
+.doodle-art canvas {
+  width: 100%;
+  height: auto;
+  border-radius: 6px;
+}
+.doodle-art strong {
+  display: block;
+  margin: 10px 0;
+  overflow-wrap: anywhere;
+}
+.doodle-art > div {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+}
+.doodle-art button {
+  padding: 7px 9px;
+  font-size: 12px;
+}
+@media (max-width: 600px) {
+  .model-picker select {
+    flex-basis: 70%;
+  }
+  .model-picker button {
+    width: 100%;
+  }
+  .doodle-stages button {
+    padding: 10px;
+    font-size: 12px;
+  }
+  .shelf-save {
+    flex-direction: column;
+  }
+  #shelf-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .doodle-shelf {
+    padding: 14px;
+  }
 }

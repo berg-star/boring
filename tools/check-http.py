@@ -27,7 +27,7 @@ get("/static/fun.css", "text/css")
 get("/static/book.css", "text/css")
 get("/static/achievements.css", "text/css")
 get("/static/cards.css", "text/css")
-for script in ("main.js", "reaction.js", "wheel.js", "random.js", "truth.js", "pet.js", "planet.js", "fun.js", "book.js", "achievements.js", "cards.js", "doodle.js", "smash.js"):
+for script in ("main.js", "reaction.js", "wheel.js", "random.js", "truth.js", "pet.js", "planet.js", "fun.js", "book.js", "achievements.js", "cards.js", "doodle.js", "doodle-presets.js", "doodle-toy.js", "doodle-shelf.js", "smash.js"):
     get("/static/" + script, "text/javascript")
 for endpoint, fields in (
     ("random-card", ("id", "series", "rarity", "keyword", "tagline", "message", "skill", "skillText", "good", "avoid", "luckyItem", "bonusLabel", "bonus", "luck")),

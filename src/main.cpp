@@ -150,7 +150,7 @@ int main(int argc, char* argv[]) try {
     });
     // 只公开列出的网页和资源，不把任意用户路径拼到磁盘路径里。
     const std::set<std::string> pages = {"index.html", "reaction.html", "wheel.html", "card.html", "question.html", "fun.html", "truth.html", "pet.html", "planet.html", "book.html", "doodle.html", "smash.html", "achievements.html"};
-    const std::set<std::string> assets = {"style.css", "main.js", "reaction.js", "wheel.js", "wheel-presets.js", "wheel.css", "random.js", "truth.js", "pet.js", "pet.css", "planet.js", "planet.css", "fun.js", "fun.css", "book.js", "book.css", "achievements.js", "achievements.css", "cards.js", "cards.css", "doodle.js", "doodle.css", "smash.js", "smash.css"};
+    const std::set<std::string> assets = {"style.css", "main.js", "reaction.js", "wheel.js", "wheel-presets.js", "wheel.css", "random.js", "truth.js", "pet.js", "pet.css", "planet.js", "planet.css", "fun.js", "fun.css", "book.js", "book.css", "achievements.js", "achievements.css", "cards.js", "cards.css", "doodle.js", "doodle-presets.js", "doodle-toy.js", "doodle-shelf.js", "doodle.css", "smash.js", "smash.css"};
     CROW_ROUTE(app, "/")([&] { return serve_file(root / "static/index.html"); });
     CROW_ROUTE(app, "/<string>")([&](const std::string& name) {
         if (!pages.count(name)) return crow::response(404, "Page not found");

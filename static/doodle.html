@@ -13,6 +13,9 @@
     <link rel="stylesheet" href="/static/achievements.css" />
     <script defer src="/static/achievements.js"></script>
     <script defer src="/static/main.js"></script>
+    <script defer src="/static/doodle-presets.js"></script>
+    <script defer src="/static/doodle-toy.js"></script>
+    <script defer src="/static/doodle-shelf.js"></script>
     <script defer src="/static/doodle.js"></script>
     <link rel="stylesheet" href="/static/doodle.css" />
   </head>
@@ -70,11 +73,27 @@
             <span id="paper-hint">画条线，也算一个新物种。</span>
           </div>
           <p id="doodle-speech" role="status">它还没出生，已经有点好奇了。</p>
+          <div id="model-picker" class="model-picker">
+            <label for="model-kind">随机造型</label>
+            <select id="model-kind">
+              <option value="all">全部 · 20 种基础造型</option>
+              <option value="creature">奇怪生物</option>
+              <option value="object">日常物品</option>
+              <option value="abstract">抽象乱画</option>
+            </select>
+            <button id="recolor" class="secondary" type="button">整幅换成当前笔色</button>
+          </div>
           <div id="edit-actions" class="game-actions">
             <button id="alive" class="primary" type="button">让它活过来 ✳</button>
-            <button id="sample" class="secondary" type="button">没灵感？借一只小怪物</button>
+            <button id="sample" class="secondary" type="button">随机来个东西 ↻</button>
           </div>
           <div id="live-actions" hidden>
+            <div class="doodle-stages" role="group" aria-label="选择舞台">
+              <button data-stage="desk" class="secondary" aria-pressed="true">普通桌面</button>
+              <button data-stage="trampoline" class="secondary" aria-pressed="false">大蹦床</button>
+              <button data-stage="moon" class="secondary" aria-pressed="false">低重力月球</button>
+            </div>
+            <p id="stage-help" class="help">抓住涂鸦往上提，再松手。快速甩动可以抛出去。</p>
             <div class="doodle-motions" role="group" aria-label="选择动作">
               <button data-motion="jelly" class="secondary" aria-pressed="true">果冻扭动</button>
               <button data-motion="jump" class="secondary" aria-pressed="false">原地蹦跶</button>
@@ -82,6 +101,7 @@
               <button data-motion="random" class="secondary" aria-pressed="false">随机发疯</button>
             </div>
             <div class="game-actions">
+              <button id="toss" class="secondary" type="button">抛起来试试 ↑</button>
               <button id="poke" class="primary" type="button">戳它一下 ☞</button>
               <button id="pause" class="secondary" type="button" aria-pressed="false">
                 暂停动作
@@ -92,6 +112,21 @@
           <p id="doodle-error" class="error" role="status"></p>
           <p id="doodle-save" class="help" role="status"></p>
         </section>
+        <details id="shelf" class="panel doodle-shelf">
+          <summary>
+            我的作品收藏夹
+            <span id="shelf-count">0 / 12</span>
+          </summary>
+          <form id="save-art-form">
+            <label for="art-name">给当前作品起个名字</label>
+            <div class="shelf-save">
+              <input id="art-name" maxlength="24" required placeholder="比如：今天的精神状态" />
+              <button id="save-art" class="secondary" type="submit">另存到收藏夹</button>
+            </div>
+          </form>
+          <p id="shelf-status" class="help" role="status"></p>
+          <div id="shelf-grid"></div>
+        </details>
         <p class="help">
           鼠标或手指随手画，整幅涂鸦一起活动。
           <br />

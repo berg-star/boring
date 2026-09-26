@@ -9,7 +9,7 @@ const key='boring-lab-doodle-v1';
  const saved=()=>page.evaluate(k=>JSON.parse(localStorage.getItem(k)),key);
  assert.equal((await saved()).strokes.length,1);assert.ok((await saved()).strokes[0].points.length>2);
  await page.reload();assert.equal((await saved()).strokes.length,1);await page.locator('#undo').click();assert.equal((await saved()).strokes.length,0);
- await page.locator('#sample').click();assert.equal((await saved()).strokes.length,4);const original=JSON.stringify(await saved());await page.screenshot({path:'.qa/doodle-editor.png',fullPage:true});
+ await page.locator('#sample').click();assert.ok((await saved()).strokes.length>0);const original=JSON.stringify(await saved());await page.screenshot({path:'.qa/doodle-editor.png',fullPage:true});
  await page.locator('#alive').click();assert.equal(await page.locator('#paint-tools').isVisible(),false);
  const pixels=()=>page.locator('#drawing').evaluate(c=>c.toDataURL());
  for(const mode of ['jelly','jump','flop','random']){await page.locator('[data-motion='+mode+']').click();const a=await pixels();await page.waitForTimeout(180);assert.notEqual(await pixels(),a,mode+' moves');}

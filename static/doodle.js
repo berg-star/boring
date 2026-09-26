@@ -27,6 +27,10 @@
   let sprite = document.createElement("canvas"),
     sw = 0,
     sh = 0;
+  const toy = createDoodleToy(ctx);
+  let lastModel = "",
+    grabbed = false,
+    renderPose = { x: 320, y: 354, w: 200, h: 200 };
   const maxPoints = 16000;
   const count = () => strokes.reduce((n, s) => n + s.points.length, 0);
   function error(message = "") {
@@ -48,38 +52,41 @@
     if (raw) {
       if (raw.length > 1000000) throw Error();
       const data = JSON.parse(raw);
-      if (data?.version !== 1 || !Array.isArray(data.strokes) || data.strokes.length > 100)
-        throw Error();
-      let total = 0;
-      for (const s of data.strokes) {
-        if (
-          !s ||
-          !inks.some((i) => i[1] === s.color) ||
-          ![4, 9, 16].includes(s.width) ||
-          !Array.isArray(s.points) ||
-          !s.points.length
-        )
-          throw Error();
-        total += s.points.length;
-        if (
-          total > maxPoints ||
-          s.points.some(
-            (p) =>
-              !Array.isArray(p) ||
-              p.length !== 2 ||
-              !p.every(Number.isFinite) ||
-              p[0] < 0 ||
-              p[0] > 640 ||
-              p[1] < 0 ||
-              p[1] > 440,
-          )
-        )
-          throw Error();
-      }
+      if (data?.version !== 1) throw Error();
+      validateStrokes(data.strokes);
       strokes = data.strokes;
     }
   } catch {
     blocked = true;
+  }
+  function validateStrokes(list) {
+    if (!Array.isArray(list) || list.length > 100) throw Error();
+    let total = 0;
+    for (const s of list) {
+      if (
+        !s ||
+        !inks.some((i) => i[1] === s.color) ||
+        ![4, 9, 16].includes(s.width) ||
+        !Array.isArray(s.points) ||
+        !s.points.length
+      )
+        throw Error();
+      total += s.points.length;
+      if (
+        total > maxPoints ||
+        s.points.some(
+          (p) =>
+            !Array.isArray(p) ||
+            p.length !== 2 ||
+            !p.every(Number.isFinite) ||
+            p[0] < 0 ||
+            p[0] > 640 ||
+            p[1] < 0 ||
+            p[1] > 440,
+        )
+      )
+        throw Error();
+    }
   }
   function paint(c, s) {
     c.strokeStyle = c.fillStyle = s.color;
@@ -124,10 +131,12 @@
     const scale = Math.min(280 / sprite.width, 220 / sprite.height, 3);
     sw = sprite.width * scale;
     sh = sprite.height * scale;
+    toy.reset(sw, sh);
   }
   function drawLive(now = performance.now()) {
     ctx.clearRect(0, 0, 640, 440);
-    const moving = !paused && !reduced.matches;
+    toy.background();
+    const moving = !paused && !reduced.matches && !toy.moving;
     const t = moving ? phase : 0;
     const selected =
       motion === "random" ? ["jelly", "jump", "flop"][Math.floor(t / 4) % 3] : motion;
@@ -160,12 +169,18 @@
         angle += 0.14 * Math.sin(now / 35);
       }
     }
+    const body = toy.pose();
+    if (toy.moving) {
+      sx = body.sx;
+      sy = body.sy;
+    }
+    renderPose = { x: body.x, y: body.y - lift, w: sw * sx, h: sh * sy };
     ctx.fillStyle = "rgba(45,60,37,.12)";
     ctx.beginPath();
-    ctx.ellipse(320, 345, Math.max(25, sw * 0.4 - lift * 0.2), 9, 0, 0, Math.PI * 2);
+    ctx.ellipse(body.x, 365, Math.max(25, sw * 0.4 - lift * 0.2), 9, 0, 0, Math.PI * 2);
     ctx.fill();
     ctx.save();
-    ctx.translate(320, 337 - lift);
+    ctx.translate(body.x, body.y - lift);
     ctx.rotate(angle);
     ctx.transform(sx, 0, skew, sy, 0, 0);
     ctx.drawImage(sprite, -sw / 2, -sh, sw, sh);
@@ -185,7 +200,11 @@
       return;
     }
     if (!live || paused || document.hidden) return;
-    if (previous) phase += Math.min((now - previous) / 1000, 0.05);
+    if (previous) {
+      const dt = Math.min((now - previous) / 1000, 0.032);
+      phase += dt;
+      toy.update(dt);
+    }
     previous = now;
     drawLive(now);
     frame = requestAnimationFrame(tick);
@@ -212,7 +231,16 @@
   canvas.addEventListener("pointerdown", (e) => {
     if (!e.isPrimary || e.button !== 0) return;
     if (live) {
-      poke();
+      if (pointer !== null) return;
+      const [x, y] = point(e);
+      if (toy.down(x, y, renderPose)) {
+        e.preventDefault();
+        pointer = e.pointerId;
+        grabbed = true;
+        canvas.setPointerCapture(pointer);
+        canvas.classList.add("is-grabbed");
+        drawLive();
+      } else poke();
       return;
     }
     if (pointer !== null) return;
@@ -228,7 +256,14 @@
     drawEditor();
   });
   canvas.addEventListener("pointermove", (e) => {
-    if (pointer !== e.pointerId || !active) return;
+    if (pointer !== e.pointerId) return;
+    if (grabbed) {
+      const [x, y] = point(e);
+      toy.move(x, y);
+      drawLive();
+      return;
+    }
+    if (!active) return;
     const p = point(e),
       last = active.points.at(-1);
     if (Math.hypot(p[0] - last[0], p[1] - last[1]) < 2) return;
@@ -243,6 +278,14 @@
     if (pointer !== e.pointerId) return;
     const id = pointer;
     pointer = null;
+    if (grabbed) {
+      grabbed = false;
+      toy.release(discard, paused || reduced.matches);
+      canvas.classList.remove("is-grabbed");
+      if (canvas.hasPointerCapture(id)) canvas.releasePointerCapture(id);
+      start();
+      return;
+    }
     if (!discard && active) strokes.push(active);
     active = null;
     if (canvas.hasPointerCapture(id)) canvas.releasePointerCapture(id);
@@ -279,75 +322,71 @@
     }
   });
   $("sample").addEventListener("click", () => {
-    if (strokes.length && !confirm("用示例小怪物替换当前画作？")) return;
-    strokes = [
-      {
-        color: inks[0][1],
-        width: 9,
-        points: [
-          [220, 310],
-          [204, 260],
-          [213, 192],
-          [236, 155],
-          [241, 112],
-          [279, 143],
-          [320, 135],
-          [350, 145],
-          [390, 111],
-          [393, 161],
-          [422, 202],
-          [432, 270],
-          [411, 310],
-          [376, 302],
-          [352, 317],
-          [323, 303],
-          [292, 317],
-          [267, 303],
-          [242, 315],
-          [220, 310],
-        ],
-      },
-      { color: inks[0][1], width: 16, points: [[272, 211]] },
-      { color: inks[0][1], width: 16, points: [[368, 211]] },
-      {
-        color: inks[2][1],
-        width: 9,
-        points: [
-          [292, 247],
-          [306, 258],
-          [325, 262],
-          [342, 256],
-          [354, 246],
-        ],
-      },
-    ];
+    if (strokes.length && !confirm("随机造型会替换当前画纸。喜欢的作品可以先收藏，继续吗？"))
+      return;
+    const kind = $("model-kind").value;
+    const choices = DoodlePresets.models.filter(
+      (m) => (kind === "all" || m[2] === kind) && m[0] !== lastModel,
+    );
+    const model = choices[Math.floor(Math.random() * choices.length)];
+    lastModel = model[0];
+    strokes = DoodlePresets.make(model[0]);
+    validateStrokes(strokes);
+    $("doodle-speech").textContent = "抽到了「" + model[1] + "」。补几笔，它就是你的版本。";
+    $("art-name").value = model[1];
     error();
     drawEditor();
     save();
   });
+  $("recolor").addEventListener("click", () => {
+    strokes.forEach((s) => (s.color = ink));
+    drawEditor();
+    save();
+  });
+  document.querySelectorAll("[data-stage]").forEach((b) =>
+    b.addEventListener("click", () => {
+      if (pointer !== null) finish({ pointerId: pointer }, true);
+      toy.stage(b.dataset.stage);
+      document
+        .querySelectorAll("[data-stage]")
+        .forEach((x) => x.setAttribute("aria-pressed", String(x === b)));
+      $("stage-help").textContent = {
+        desk: "抓起来再松手，落地会压扁、弹两下。",
+        trampoline: "抛起来，蹦床会接住它继续弹。",
+        moon: "这里重力很小，抛起后会慢慢落下。",
+      }[b.dataset.stage];
+      start();
+    }),
+  );
+  $("toss").addEventListener("click", () => {
+    toy.toss(paused || reduced.matches);
+    start();
+  });
   $("alive").addEventListener("click", () => {
     if (!strokes.length) {
-      error("先画一笔，或者借一只小怪物吧。");
+      error("先画一笔，或者随机载入一个造型吧。");
       return;
     }
     live = true;
     phase = 0;
     error();
     buildSprite();
-    $("paint-tools").hidden = $("edit-actions").hidden = true;
+    $("paint-tools").hidden = $("edit-actions").hidden = $("model-picker").hidden = true;
     $("live-actions").hidden = false;
     $("paper-hint").hidden = true;
     canvas.classList.add("is-live");
-    canvas.setAttribute("aria-label", "活动中的涂鸦，点击或用下方按钮戳它一下。");
+    canvas.setAttribute("aria-label", "活动中的涂鸦，可以拖动抛掷，也可以用下方抛起按钮。");
     $("mode-label").textContent = "02 / 它有自己的想法了";
     $("doodle-speech").textContent = "它刚出生，就已经不想上班了。";
     start();
     $("poke").focus();
   });
   $("edit").addEventListener("click", () => {
+    if (pointer !== null) finish({ pointerId: pointer }, true);
     live = false;
     stop();
-    $("paint-tools").hidden = $("edit-actions").hidden = false;
+    toy.reset();
+    $("paint-tools").hidden = $("edit-actions").hidden = $("model-picker").hidden = false;
     $("live-actions").hidden = true;
     canvas.classList.remove("is-live");
     canvas.setAttribute("aria-label", "涂鸦画纸，可用鼠标或手指绘画。不会画也可以用下方示例。");
@@ -387,6 +426,7 @@
         ? "继续活动"
         : "暂停动作";
     $("pause").disabled = reduced.matches;
+    $("toss").disabled = paused || reduced.matches;
     $("pause").setAttribute("aria-pressed", String(paused || reduced.matches));
   }
   $("pause").addEventListener("click", () => {
@@ -402,11 +442,27 @@
   document.addEventListener("visibilitychange", () => {
     if (document.hidden) {
       stop();
-      if (active) finish({ pointerId: pointer });
+      if (pointer !== null) finish({ pointerId: pointer }, true);
     } else start();
   });
-  addEventListener("pagehide", stop);
+  addEventListener("pagehide", () => {
+    if (pointer !== null) finish({ pointerId: pointer }, true);
+    stop();
+  });
   addEventListener("pageshow", start);
+  createDoodleShelf({
+    validate: validateStrokes,
+    paint,
+    getStrokes: () => strokes,
+    open: (list) => {
+      if (live) $("edit").click();
+      strokes = list;
+      error();
+      drawEditor();
+      save();
+      $("drawing").scrollIntoView({ block: "center" });
+    },
+  });
   pauseLabel();
   drawEditor();
   save();
