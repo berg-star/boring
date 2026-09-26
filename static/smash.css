@@ -87,3 +87,10 @@
     font-size: 14px;
   }
 }
+
+.smash-settings {
+  flex-wrap: wrap;
+}
+.smash-settings [hidden] {
+  display: none;
+}

@@ -18,6 +18,10 @@
     frame = 0,
     lastTime = 0,
     activeUntil = 0;
+  let glassStrength = 10,
+    glassDamage = 0,
+    previousLayout = -1;
+  let regenerate = true;
   let sound = true,
     vibration = false,
     audio = null,
@@ -28,10 +32,14 @@
   const supportsHaptic = typeof navigator.vibrate === "function";
   try {
     const s = JSON.parse(localStorage.getItem(KEY));
+    if (typeof s?.regenerate === "boolean") regenerate = s.regenerate;
     if (typeof s?.sound === "boolean") sound = s.sound;
     if (typeof s?.vibration === "boolean") vibration = s.vibration && supportsHaptic;
   } catch {}
   function labels() {
+    $("regenerate").hidden = scene !== "bubbles";
+    $("regenerate").textContent = "自动再生：" + (regenerate ? "开" : "关");
+    $("regenerate").setAttribute("aria-pressed", String(regenerate));
     $("sound").textContent = audioFailed ? "音效暂不可用" : "声音：" + (sound ? "开" : "关");
     $("sound").setAttribute("aria-pressed", String(sound && !audioFailed));
     $("haptic").textContent = supportsHaptic
@@ -42,7 +50,7 @@
   }
   function save() {
     try {
-      localStorage.setItem(KEY, JSON.stringify({ sound, vibration }));
+      localStorage.setItem(KEY, JSON.stringify({ sound, vibration, regenerate }));
     } catch {
       $("smash-note").textContent = "设置暂时无法保存，不影响继续玩。";
     }
@@ -55,7 +63,7 @@
     voices.clear();
     if (supportsHaptic) navigator.vibrate(0);
   }
-  function feedback(kind) {
+  function feedback(kind, size = 2500) {
     const now = performance.now();
     if (vibration && supportsHaptic && now - lastHaptic > 65) {
       navigator.vibrate(kind === "glass" ? 24 : 10);
@@ -89,13 +97,16 @@
         source.buffer = buffer;
         filter = audio.createBiquadFilter();
         filter.type = "highpass";
-        filter.frequency.value = 2200;
+        filter.frequency.value = 1600 + Math.min(1, glassDamage / glassStrength) * 1800;
         source.connect(filter);
         filter.connect(gain);
       } else {
         source = audio.createOscillator();
         source.type = "sine";
-        const high = kind === "pop" ? 500 + Math.random() * 500 : 150;
+        const high =
+          kind === "pop"
+            ? 500 + Math.random() * 500
+            : Math.max(85, 210 - size / 70) + Math.random() * 15;
         source.frequency.setValueAtTime(high, t);
         source.frequency.exponentialRampToValueAtTime(60, t + duration);
         source.connect(gain);
@@ -122,7 +133,11 @@
     }
   }
   const descriptions = {
-    glass: ["易碎的，交给这里。", "轻敲玻璃，裂纹会从指尖散开。多敲几下，它就碎了。", "随手敲一下"],
+    glass: [
+      "易碎的，交给这里。",
+      "轻敲玻璃，裂纹会从指尖散开。每块耐敲程度不同，连续敲同一处更容易破开。",
+      "随手敲一下",
+    ],
     blocks: [
       "搭得整齐，是为了推倒。",
       "抓住一块积木，拖动后松手。甩得快一点，撞得远一点。",
@@ -147,6 +162,70 @@
     canvas.dataset.dragging = "false";
     if (id !== null && canvas.hasPointerCapture(id)) canvas.releasePointerCapture(id);
   }
+  function makeBlocks() {
+    // Four supported arrangements; rectangles use their actual width and height in collisions.
+    const choices = [0, 1, 2, 3].filter((i) => i !== previousLayout);
+    const layout = choices[Math.floor(Math.random() * choices.length)];
+    previousLayout = layout;
+    canvas.dataset.layout = ["towers", "stairs", "wall", "leaning"][layout];
+    const result = [];
+    const add = (x, y, w, h) =>
+      result.push({
+        x,
+        y,
+        w,
+        h,
+        vx: 0,
+        vy: 0,
+        color: colors[Math.floor(Math.random() * colors.length)],
+      });
+    if (layout === 0) {
+      for (let col = 0; col < 3; col++) {
+        const height = 3 + Math.floor(Math.random() * 4),
+          width = 68 + Math.floor(Math.random() * 30);
+        let y = 407;
+        for (let row = 0; row < height; row++) {
+          const h = row % 2 ? 30 : 48,
+            w = width - row * 3;
+          y -= h;
+          add(200 + col * 155, y + h / 2, w, h);
+        }
+      }
+    } else if (layout === 1) {
+      const reverse = Math.random() < 0.5,
+        columns = 5 + Math.floor(Math.random() * 2);
+      for (let col = 0; col < columns; col++) {
+        const height = reverse ? columns - col : col + 1;
+        for (let row = 0; row < height; row++) add(180 + col * 64, 407 - 22 - row * 44, 60, 44);
+      }
+    } else if (layout === 2) {
+      const rows = 4 + Math.floor(Math.random() * 2);
+      for (let row = 0; row < rows; row++) {
+        let unit = 0;
+        while (unit < 10) {
+          const span = unit < 9 && Math.random() < 0.55 ? 2 : 1;
+          add(120 + (unit + span / 2) * 48, 407 - 21 - row * 42, span * 48 - 2, 42);
+          unit += span;
+        }
+      }
+    } else {
+      const direction = Math.random() < 0.5 ? -1 : 1,
+        levels = 5 + Math.floor(Math.random() * 2);
+      for (let row = 0; row < levels; row++)
+        add(355 + direction * row * 8, 407 - 23 - row * 46, 128 - row * 8, 46);
+      for (let col = 0; col < 3; col++) add(160 + col * 44, 390, 40, 34);
+    }
+    return result;
+  }
+  function updateBubbles(now) {
+    if (scene !== "bubbles" || !regenerate) return;
+    for (const b of bubbles)
+      if (b.popped && now >= b.restoreAt + (reduced.matches ? 0 : 250)) b.popped = false;
+    canvas.dataset.popped = String(bubbles.filter((b) => b.popped).length);
+  }
+  function bubblesPending() {
+    return scene === "bubbles" && regenerate && bubbles.some((b) => b.popped);
+  }
   function reset() {
     stop();
     release();
@@ -154,24 +233,30 @@
     cracks = [];
     shards = [];
     broken = false;
+    glassStrength = 6 + Math.floor(Math.random() * 9);
+    glassDamage = 0;
     bubbles = Array.from({ length: 40 }, (_, i) => ({
       x: 94 + (i % 8) * 76,
       y: 74 + Math.floor(i / 8) * 76,
       popped: false,
       at: 0,
+      restoreAt: Infinity,
     }));
-    blocks = Array.from({ length: 20 }, (_, i) => ({
-      x: 248 + (i % 5) * 56,
-      y: 377 - Math.floor(i / 5) * 54,
-      vx: 0,
-      vy: 0,
-      color: colors[i % colors.length],
-    }));
+    blocks = scene === "blocks" ? makeBlocks() : [];
+    labels();
     canvas.dataset.scene = scene;
     canvas.dataset.broken = "false";
     canvas.dataset.popped = "0";
     const d = descriptions[scene];
-    $("scene-name").textContent = d[0];
+    $("scene-name").textContent =
+      scene === "blocks"
+        ? {
+            towers: "今天是几座小塔。",
+            stairs: "一级一级，推倒快乐。",
+            wall: "这一面墙，随你拆。",
+            leaning: "歪歪的，也有自己的平衡。",
+          }[canvas.dataset.layout]
+        : d[0];
     $("scene-help").textContent = d[1];
     $("action").textContent = d[2];
     canvas.setAttribute(
@@ -217,7 +302,7 @@
         ctx.moveTo(180, 420);
         ctx.lineTo(440, 40);
         ctx.stroke();
-        ctx.lineWidth = 1.6;
+        ctx.lineWidth = 1 + Math.min(1.6, (glassDamage / glassStrength) * 1.6);
         ctx.strokeStyle = "#d2eeee";
         for (const c of cracks)
           for (const ray of c.rays) {
@@ -257,18 +342,23 @@
       ctx.stroke();
       for (const b of blocks) {
         ctx.fillStyle = b.color;
-        ctx.fillRect(b.x - 25, b.y - 25, 50, 50);
+        ctx.fillRect(b.x - b.w / 2, b.y - b.h / 2, b.w, b.h);
         ctx.fillStyle = "rgba(255,255,255,.22)";
-        ctx.fillRect(b.x - 21, b.y - 21, 42, 5);
+        ctx.fillRect(b.x - b.w / 2 + 4, b.y - b.h / 2 + 4, b.w - 8, 5);
         ctx.strokeStyle = "rgba(0,0,0,.2)";
         ctx.lineWidth = 2;
-        ctx.strokeRect(b.x - 25, b.y - 25, 50, 50);
+        ctx.strokeRect(b.x - b.w / 2, b.y - b.h / 2, b.w, b.h);
       }
     } else {
       for (const b of bubbles) {
+        const inflation =
+          b.popped && regenerate && !reduced.matches
+            ? Math.max(0, Math.min(1, (performance.now() - b.restoreAt) / 250))
+            : 0;
+        const radius = inflation > 0 ? 10 + 18 * inflation : 28;
         ctx.beginPath();
-        ctx.arc(b.x, b.y, 28, 0, Math.PI * 2);
-        if (b.popped) {
+        ctx.arc(b.x, b.y, radius, 0, Math.PI * 2);
+        if (b.popped && inflation === 0) {
           ctx.fillStyle = "#243940";
           ctx.fill();
           ctx.strokeStyle = "#425d64";
@@ -280,7 +370,14 @@
           ctx.lineTo(b.x + 8, b.y + 2);
           ctx.stroke();
         } else {
-          const g = ctx.createRadialGradient(b.x - 9, b.y - 10, 1, b.x, b.y, 29);
+          const g = ctx.createRadialGradient(
+            b.x - radius / 3,
+            b.y - radius / 3,
+            1,
+            b.x,
+            b.y,
+            radius + 1,
+          );
           g.addColorStop(0, "#dbf1d7");
           g.addColorStop(0.4, "#87b6a9");
           g.addColorStop(1, "#3e6c72");
@@ -307,18 +404,18 @@
       b.x += b.vx * dt;
       b.y += b.vy * dt;
       b.vx *= Math.pow(0.98, dt * 60);
-      if (b.x < 26 || b.x > 694) {
-        b.x = Math.max(26, Math.min(694, b.x));
+      if (b.x < b.w / 2 + 1 || b.x > 719 - b.w / 2) {
+        b.x = Math.max(b.w / 2 + 1, Math.min(719 - b.w / 2, b.x));
         b.vx *= -0.35;
       }
-      if (b.y > 382) {
-        if (b.vy > 130) feedback("block");
-        b.y = 382;
+      if (b.y > 407 - b.h / 2) {
+        if (b.vy > 130) feedback("block", b.w * b.h);
+        b.y = 407 - b.h / 2;
         b.vy = Math.abs(b.vy) > 45 ? -b.vy * 0.2 : 0;
         b.vx *= 0.9;
       }
-      if (b.y < 26) {
-        b.y = 26;
+      if (b.y < b.h / 2 + 1) {
+        b.y = b.h / 2 + 1;
         b.vy = Math.abs(b.vy) * 0.2;
       }
     }
@@ -329,8 +426,8 @@
             b = blocks[j],
             dx = b.x - a.x,
             dy = b.y - a.y,
-            ox = 50 - Math.abs(dx),
-            oy = 50 - Math.abs(dy);
+            ox = (a.w + b.w) / 2 - Math.abs(dx),
+            oy = (a.h + b.h) / 2 - Math.abs(dy);
           if (ox <= 0 || oy <= 0) continue;
           const nx = ox < oy ? (dx >= 0 ? 1 : -1) : 0,
             ny = ox < oy ? 0 : dy >= 0 ? 1 : -1,
@@ -350,12 +447,12 @@
             a.vy -= impulse * ny * wa;
             b.vx += impulse * nx * wb;
             b.vy += impulse * ny * wb;
-            if (relative < -150) feedback("block");
+            if (relative < -150) feedback("block", (a.w * a.h + b.w * b.h) / 2);
           }
         }
     for (const b of blocks) {
-      b.x = Math.max(26, Math.min(694, b.x));
-      b.y = Math.max(26, Math.min(382, b.y));
+      b.x = Math.max(b.w / 2 + 1, Math.min(719 - b.w / 2, b.x));
+      b.y = Math.max(b.h / 2 + 1, Math.min(407 - b.h / 2, b.y));
     }
   }
   function tick(now) {
@@ -374,8 +471,10 @@
       s.a += s.spin * dt;
     }
     shards = shards.filter((s) => s.y < 570);
+    updateBubbles(now);
     draw();
-    if (now < activeUntil || drag || shards.length) frame = requestAnimationFrame(tick);
+    if (bubblesPending() || now < activeUntil || drag || shards.length)
+      frame = requestAnimationFrame(tick);
     else lastTime = 0;
   }
   function wake(ms = 1800) {
@@ -418,12 +517,14 @@
   function hit(x, y) {
     if (scene === "glass") {
       if (broken || x < 64 || x > 656 || y < 49 || y > 411) return;
+      const localHits = cracks.filter((c) => Math.hypot(c.x - x, c.y - y) < 65).length;
+      glassDamage += 1 + Math.min(0.45, localHits * 0.12);
       cracks.push({
         x,
         y,
         rays: Array.from({ length: 9 }, (_, i) => {
           const a = (i / 9) * Math.PI * 2 + Math.random() * 0.3,
-            length = 100 + Math.random() * 190;
+            length = 28 + Math.random() * 70 + (glassDamage / glassStrength) * 125;
           return {
             dx: Math.cos(a) * length,
             dy: Math.sin(a) * length,
@@ -433,21 +534,24 @@
       });
       feedback("glass");
       $("smash-message").textContent = "再敲一下也没关系。";
-      if (cracks.length >= 3) shatter(x, y);
+      if (cracks.length >= 6 && glassDamage >= glassStrength) shatter(x, y);
       draw();
     } else if (scene === "bubbles") {
       const b = bubbles.find((b) => !b.popped && Math.hypot(b.x - x, b.y - y) < 32);
       if (!b) return;
       b.popped = true;
       b.at = performance.now();
+      b.restoreAt = regenerate ? b.at + 500 + Math.random() * 700 : Infinity;
       feedback("pop");
       const remaining = bubbles.filter((b) => !b.popped).length;
       canvas.dataset.popped = String(40 - remaining);
       $("smash-message").textContent = remaining
         ? "啵。又松了一小口气。"
-        : "这一桌的烦躁，戳完了。";
+        : regenerate
+          ? "喘口气，它们马上又鼓起来。"
+          : "这一桌的烦躁，戳完了。";
       draw();
-      if (!reduced.matches) wake(280);
+      if (regenerate || !reduced.matches) wake(280);
     }
   }
   function point(e) {
@@ -468,8 +572,9 @@
       drag =
         [...blocks]
           .reverse()
-          .find((b) => Math.abs(b.x - lastPoint.x) < 28 && Math.abs(b.y - lastPoint.y) < 28) ||
-        null;
+          .find(
+            (b) => Math.abs(b.x - lastPoint.x) < b.w / 2 && Math.abs(b.y - lastPoint.y) < b.h / 2,
+          ) || null;
       canvas.dataset.dragging = String(!!drag);
       if (drag) {
         feedback("block");
@@ -485,8 +590,8 @@
       const dt = Math.max(0.016, (p.time - lastPoint.time) / 1000);
       drag.vx = Math.max(-700, Math.min(700, (p.x - lastPoint.x) / dt));
       drag.vy = Math.max(-700, Math.min(700, (p.y - lastPoint.y) / dt));
-      drag.x = Math.max(26, Math.min(694, p.x));
-      drag.y = Math.max(26, Math.min(382, p.y));
+      drag.x = Math.max(drag.w / 2 + 1, Math.min(719 - drag.w / 2, p.x));
+      drag.y = Math.max(drag.h / 2 + 1, Math.min(407 - drag.h / 2, p.y));
       wake(5000);
     } else if (scene === "bubbles") {
       const steps = Math.ceil(Math.hypot(p.x - lastPoint.x, p.y - lastPoint.y) / 12);
@@ -545,6 +650,19 @@
     labels();
     save();
   });
+  $("regenerate").addEventListener("click", () => {
+    regenerate = !regenerate;
+    const now = performance.now();
+    for (const b of bubbles)
+      if (b.popped) b.restoreAt = regenerate ? now + 500 + Math.random() * 700 : Infinity;
+    labels();
+    save();
+    draw();
+    if (bubblesPending()) wake(1500);
+    $("smash-message").textContent = regenerate
+      ? "它们会很快鼓回来，慢慢戳。"
+      : "这一桌可以一颗不剩地戳完。";
+  });
   $("haptic").addEventListener("click", () => {
     vibration = !vibration && supportsHaptic;
     if (!vibration && supportsHaptic) navigator.vibrate(0);
@@ -558,7 +676,7 @@
       stop();
       silence();
       audio?.suspend().catch(() => {});
-    } else if (scene === "blocks" || shards.length) wake(2000);
+    } else if (scene === "blocks" || shards.length || bubblesPending()) wake(2000);
   });
   reduced.addEventListener("change", () => {
     if (reduced.matches) shards = [];
@@ -571,7 +689,7 @@
     audio?.suspend().catch(() => {});
   });
   addEventListener("pageshow", () => {
-    if (scene === "blocks") wake(2000);
+    if (scene === "blocks" || bubblesPending()) wake(2000);
   });
   labels();
   reset();
