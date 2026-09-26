@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description" content="敲碎玻璃、推倒积木、戳破气泡。没有分数，纯粹解压。" />
+    <title>桌面破坏王 · 无聊研究所</title>
+    <link
+      rel="icon"
+      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40'%3E%3Crect width='40' height='40' rx='12' fill='%23b9f879'/%3E%3Ctext x='7' y='29' font-size='28'%3E✳%3C/text%3E%3C/svg%3E"
+    />
+    <link rel="stylesheet" href="/static/style.css" />
+    <link rel="stylesheet" href="/static/achievements.css" />
+    <script defer src="/static/achievements.js"></script>
+    <script defer src="/static/main.js"></script>
+    <script defer src="/static/smash.js"></script>
+    <link rel="stylesheet" href="/static/smash.css" />
+  </head>
+  <body>
+    <div class="site-shell">
+      <header class="header">
+        <a class="brand" href="/">
+          <span class="brand-mark">✳</span>
+          <span>
+            无聊研究所
+            <small>BORING LAB.</small>
+          </span>
+        </a>
+        <a class="header-link" href="/#playground">全部玩法 ↗</a>
+      </header>
+      <main class="game-main smash-main">
+        <a class="back" href="/#playground">← 回游乐场</a>
+        <div class="game-heading">
+          <p class="eyebrow">EXPERIMENT / 11</p>
+          <h1>桌面破坏王。</h1>
+          <p>这里的一切，都可以重新来过。</p>
+        </div>
+        <section class="panel smash-room" aria-label="解压桌面">
+          <div class="smash-scenes" role="group" aria-label="选择场景">
+            <button class="secondary" data-scene="glass" aria-pressed="true">◇ 敲碎玻璃</button>
+            <button class="secondary" data-scene="blocks" aria-pressed="false">▧ 推倒积木</button>
+            <button class="secondary" data-scene="bubbles" aria-pressed="false">◉ 戳破气泡</button>
+          </div>
+          <div class="smash-caption">
+            <span id="scene-name">易碎的，交给这里。</span>
+            <span>没有分数 · 不用赢</span>
+          </div>
+          <canvas
+            id="desk"
+            width="720"
+            height="460"
+            tabindex="0"
+            role="img"
+            aria-label="解压画布"
+            aria-describedby="scene-help"
+          >
+            画布无法显示时，请换用支持 Canvas 的浏览器。
+          </canvas>
+          <p id="scene-help" class="help">轻敲玻璃，裂纹会从指尖散开。多敲几下，它就碎了。</p>
+          <p id="smash-message" role="status">今天不必小心翼翼。</p>
+          <div class="game-actions">
+            <button id="again" class="primary" type="button">再来一桌 ↻</button>
+            <button id="action" class="secondary" type="button">随手敲一下</button>
+          </div>
+          <div class="smash-settings">
+            <button id="sound" class="secondary" type="button" aria-pressed="true">声音：开</button>
+            <button id="haptic" class="secondary" type="button" aria-pressed="false">
+              震动：关
+            </button>
+          </div>
+          <p id="smash-note" class="help" role="status"></p>
+        </section>
+        <p class="help">
+          画布里按空格或 Enter 也能玩。声音与震动都可以关闭。
+          <br />
+          部分手机浏览器不支持震动；不影响其他玩法。
+        </p>
+      </main>
+      <footer>
+        <span>✳ 无聊研究所 / 快乐不必有意义。</span>
+        <span>JUST FOR FUN. © 2026</span>
+      </footer>
+    </div>
+  </body>
+</html>

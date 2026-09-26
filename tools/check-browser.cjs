@@ -26,17 +26,17 @@ async function main() {
       assert.ok(new Set(records).size>1,endpoint+' must return varied records');
     }
     for (const route of ['/missing.html','/static/main.cpp','/static/cards.json','/api/missing','/data/cards.json','/static/../CMakeLists.txt']) assert.equal((await api.get(base+route)).status(),404,route);
-    const pages = ['','reaction.html','wheel.html','card.html','question.html','fun.html','truth.html','pet.html','planet.html','book.html','doodle.html','achievements.html'];
+    const pages = ['','reaction.html','wheel.html','card.html','question.html','fun.html','truth.html','pet.html','planet.html','book.html','doodle.html','smash.html','achievements.html'];
     for (const route of pages) {
       const response = await page.goto(base+'/'+route);assert.equal(response.status(),200);
       const assets = await page.locator('script[src],link[rel="stylesheet"]').evaluateAll(nodes=>nodes.map(n=>n.src||n.href));
       for (const asset of assets) assert.equal((await api.get(asset)).status(),200,asset);
     }
-    await page.goto(base);assert.equal(await page.locator('.game-card').count(),10);
+    await page.goto(base);assert.equal(await page.locator('.game-card').count(),11);
     await page.screenshot({path:'.qa/home-desktop.png',fullPage:true});
     await page.getByRole('button',{name:'🧠 测试',exact:true}).click();assert.equal(await page.locator('.game-card:visible').count(),1);
     await page.getByRole('button',{name:'全部玩法',exact:true}).click();
-    await page.getByRole('button',{name:/随便给我来一个/}).click();await page.waitForURL(/\/(reaction|wheel|card|question|fun|truth|pet|planet|book|doodle)\.html$/);
+    await page.getByRole('button',{name:/随便给我来一个/}).click();await page.waitForURL(/\/(reaction|wheel|card|question|fun|truth|pet|planet|book|doodle|smash)\.html$/);
     await page.goto(base+'/reaction.html');
     await page.locator('#reaction-pad').click();assert.match(await page.locator('#reaction-title').textContent(),/等它/);
     await page.locator('#reaction-pad').click();assert.equal(await page.locator('#reaction-title').textContent(),'太早了！');
@@ -106,7 +106,7 @@ async function main() {
       }
       const missing = spawnSync(executable,[path.resolve('.qa/missing-root')],{encoding:'utf8',timeout:5000});assert.equal(missing.status,1);
     }
-    console.log('PASS: APIs, random variety, missing routes, resources, all ten games, keyboard, wheel pointer, retry, 320/390/768px layouts, invalid data.');
+    console.log('PASS: APIs, random variety, missing routes, resources, all eleven games, keyboard, wheel pointer, retry, 320/390/768px layouts, invalid data.');
   } finally {await browser.close();}
 }
 main().catch(error=>{console.error(error);process.exit(1);});

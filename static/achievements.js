@@ -1,7 +1,7 @@
 "use strict";
 (() => {
  const KEY='boring-lab-achievements-v1';
- const games=['reaction','wheel','card','question','fun','truth','pet','planet','book','doodle'];
+ const games=['reaction','wheel','card','question','fun','truth','pet','planet','book','doodle','smash'];
  const kinds=['report','notice','wanted','patch','ad','invention'];
  const catalog=[
   ['explorer','不务正业初学者','你已经掌握了三种消磨时间的方法。','去不同的房间逛逛。',s=>s.visits.length>=3],
