@@ -76,12 +76,21 @@
           <div id="model-picker" class="model-picker">
             <label for="model-kind">随机造型</label>
             <select id="model-kind">
+              <option value="stretch" selected>推荐 · 最适合拉扯的 4 种</option>
               <option value="all">全部 · 20 种基础造型</option>
               <option value="creature">奇怪生物</option>
               <option value="object">日常物品</option>
               <option value="abstract">抽象乱画</option>
             </select>
             <button id="recolor" class="secondary" type="button">整幅换成当前笔色</button>
+          </div>
+          <div id="featured-models" class="doodle-motions" role="group" aria-label="推荐造型">
+            <button data-preset="walker" class="secondary">长脚怪</button>
+            <button data-preset="octopus" class="secondary">触手球</button>
+            <button data-preset="sock" class="secondary">袜子</button>
+            <button data-preset="spring" class="secondary">弹簧</button>
+            <button data-preset="cup" class="secondary">杯子 · 硬橡皮</button>
+            <button data-preset="toast" class="secondary">吐司 · 硬橡皮</button>
           </div>
           <div id="edit-actions" class="game-actions">
             <button id="alive" class="primary" type="button">让它活过来 ✳</button>
@@ -90,7 +99,25 @@
           <div id="live-actions" hidden>
             <div class="doodle-motions" role="group" aria-label="揉捏工具">
               <button data-tool="pull" class="secondary" aria-pressed="true">抓住拉一拉</button>
+              <button data-tool="wind" class="secondary" aria-pressed="false">吹风机</button>
               <button data-tool="press" class="secondary" aria-pressed="false">局部按压</button>
+            </div>
+            <div id="wind-controls" hidden>
+              <div class="doodle-motions">
+                <label>
+                  风力
+                  <select id="wind-power">
+                    <option value="0.5">微风</option>
+                    <option value="1" selected>大风</option>
+                    <option value="1.6">狂风</option>
+                  </select>
+                </label>
+                <button id="wind-toggle" class="secondary" aria-pressed="false">开启吹风</button>
+                <button id="wind-flip" class="secondary">换到另一边</button>
+              </div>
+              <p class="help">
+                按住画纸移动吹风机，松手停风；也可以点击“开启吹风”。暂停或离开页面会自动停风。
+              </p>
             </div>
             <div class="doodle-motions" role="group" aria-label="材料手感">
               <button data-material="soft" class="secondary" aria-pressed="true">
@@ -98,6 +125,9 @@
               </button>
               <button data-material="firm" class="secondary" aria-pressed="false">
                 硬橡皮 · 弹得快
+              </button>
+              <button data-material="paper" class="secondary" aria-pressed="false">
+                纸片 · 轻飘飘
               </button>
             </div>
             <div class="doodle-stages" role="group" aria-label="选择舞台">
@@ -110,11 +140,9 @@
               <button data-motion="rest" class="secondary" aria-pressed="true">安静待着</button>
               <button data-motion="jelly" class="secondary" aria-pressed="false">果冻扭动</button>
               <button data-motion="jump" class="secondary" aria-pressed="false">原地蹦跶</button>
-              <button data-motion="flop" class="secondary" aria-pressed="false">软趴趴倒下</button>
-              <button data-motion="random" class="secondary" aria-pressed="false">随机发疯</button>
             </div>
             <div class="game-actions">
-              <button id="toss" class="secondary" type="button">抛起来试试 ↑</button>
+              <button id="shake" class="secondary" type="button">抖桌子</button>
               <button id="poke" class="primary" type="button">戳它一下 ☞</button>
               <button id="pause" class="secondary" type="button" aria-pressed="false">
                 暂停动作

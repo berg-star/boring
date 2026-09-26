@@ -17,14 +17,18 @@ window.createDoodleToy = function (ctx) {
     last = null,
     offset = [0, 0],
     impact = 0,
-    target = null;
+    target = null,
+    landing = 0,
+    weight = 1,
+    windActive = false;
   const limit = (n, a, b) => Math.max(a, Math.min(b, n));
   function reset(width = w, height = h) {
     w = width;
     h = height;
     x = 320;
     y = 354;
-    vx = vy = impact = 0;
+    vx = vy = impact = landing = 0;
+    windActive = false;
     held = flying = false;
     target = null;
     last = null;
@@ -34,6 +38,8 @@ window.createDoodleToy = function (ctx) {
     y = limit(y, h * 1.12 + 10, 354);
   }
   function update(dt) {
+    const windy = windActive;
+    windActive = false;
     impact = Math.max(0, impact - dt * 3);
     if (held) {
       if (target) {
@@ -46,7 +52,7 @@ window.createDoodleToy = function (ctx) {
     }
     if (!flying) return;
     const model = stages[stage];
-    vy += model.gravity * dt;
+    vy += model.gravity * weight * dt;
     x += vx * dt;
     y += vy * dt;
     vx *= Math.pow(0.998, dt * 60);
@@ -64,13 +70,14 @@ window.createDoodleToy = function (ctx) {
       y = 354;
       impact = Math.min(0.28, Math.abs(vy) / 2400);
       const speed = Math.abs(vy);
+      if (speed > 80) landing = speed;
       vy = -speed * model.bounce;
-      vx *= 0.8;
+      vx *= windy ? 0.99 : 0.8;
       if (stage === "trampoline" && speed > 90)
         vy = -Math.max(440, Math.min(620, speed * model.bounce));
       if (Math.abs(vy) < 45) {
         vy = 0;
-        if (Math.abs(vx) < 12) {
+        if (Math.abs(vx) < 12 && !windy) {
           vx = 0;
           flying = false;
         }
@@ -92,7 +99,7 @@ window.createDoodleToy = function (ctx) {
       return held;
     },
     pose() {
-      return { x, y, sx: 1 + impact, sy: 1 - impact };
+      return { x, y, sx: 1, sy: 1 };
     },
     down(px, py, render) {
       if (
@@ -132,12 +139,24 @@ window.createDoodleToy = function (ctx) {
       if (still) vx = vy = 0;
       last = null;
     },
-    toss(still = false) {
-      if (still) return;
-      x = 320;
-      y = 354;
-      vx = (Math.random() - 0.5) * 220;
-      vy = stage === "moon" ? -240 : -540;
+    material(value) {
+      weight = value === "paper" ? 0.48 : 1;
+    },
+    takeLanding() {
+      const speed = landing;
+      landing = 0;
+      return speed;
+    },
+    shake() {
+      if (held) return;
+      vx = (Math.random() < 0.5 ? -1 : 1) * 170;
+      vy = stage === "moon" ? -170 : -300;
+      flying = true;
+    },
+    wind(force, dt) {
+      if (held || !force) return;
+      windActive = true;
+      vx = limit(vx + ((force * 450) / weight) * dt, -230, 230);
       flying = true;
     },
     background() {
@@ -204,12 +223,21 @@ window.createDoodleSoft = function () {
   let width = 200,
     height = 200,
     grip = null,
-    material = "soft";
+    material = "soft",
+    breeze = 0,
+    clock = 0,
+    inertiaX = 0,
+    inertiaY = 0,
+    impactWave = null;
   const clamp = (v, n) => Math.max(-n, Math.min(n, v));
   function reset(w = width, h = height) {
     width = w;
     height = h;
     grip = null;
+    breeze = 0;
+    clock = 0;
+    inertiaX = inertiaY = 0;
+    impactWave = null;
     nodes.length = 0;
     for (let row = 0; row <= 8; row++)
       for (let col = 0; col <= 8; col++)
@@ -224,11 +252,23 @@ window.createDoodleSoft = function () {
   }
   function update(dt, instant = false) {
     dt = Math.max(0, Math.min(dt, 0.032));
+    clock += dt;
+    if (impactWave) {
+      impactWave.age += dt;
+      if (impactWave.age > 0.65) impactWave = null;
+    }
     const stiff = material === "firm",
-      spring = stiff ? 210 : 90;
+      spring = stiff ? 210 : material === "paper" ? 135 : 90;
     for (const n of nodes) {
       let tx = 0,
         ty = 0;
+      const heightRatio = -n.y / height;
+      tx =
+        breeze *
+        (stiff ? 19 : material === "paper" ? 58 : 38) *
+        (0.2 + heightRatio) *
+        (1 + 0.24 * Math.sin(clock * 11 + n.y / 35));
+      ty = Math.abs(breeze) * 7 * Math.sin(clock * 9 + n.x / 28) * heightRatio;
       if (grip) {
         const radius = Math.max(24, Math.min(width, height) * 0.48);
         const weight = Math.exp(-((n.x - grip.x) ** 2 + (n.y - grip.y) ** 2) / (2 * radius ** 2));
@@ -236,6 +276,20 @@ window.createDoodleSoft = function () {
         tx = clamp(grip.dx, 95) * weight * strength;
         ty = clamp(grip.dy, 95) * weight * strength;
       }
+      // The lower edge compresses first; the impulse travels upward over time.
+      if (impactWave) {
+        const delay = heightRatio * 0.14,
+          age = impactWave.age - delay;
+        if (age >= 0) {
+          const pulse = Math.sin(Math.min(1, age / 0.2) * Math.PI) * Math.exp(-age * 5);
+          const strength = impactWave.strength * (stiff ? 0.55 : 1);
+          tx += (n.x / Math.max(1, width)) * strength * pulse;
+          ty += strength * pulse * Math.sin(Math.PI * heightRatio) * 0.75;
+        }
+      }
+      const freeEdge = 0.25 + (0.75 * Math.abs(n.x)) / (width / 2);
+      tx += inertiaX * freeEdge * (stiff ? 0.45 : 1);
+      ty += inertiaY * (0.3 + 0.7 * heightRatio) * (stiff ? 0.45 : 1);
       if (instant) {
         n.dx = tx;
         n.dy = ty;
@@ -277,6 +331,16 @@ window.createDoodleSoft = function () {
     reset,
     update,
     map,
+    inertia(dx, dy) {
+      inertiaX = clamp(dx, 35);
+      inertiaY = clamp(dy, 30);
+    },
+    land(speed) {
+      impactWave = { age: 0, strength: Math.min(70, speed * 0.09) };
+    },
+    wind(force) {
+      breeze = clamp(force, 1.6);
+    },
     material(value) {
       material = value;
     },

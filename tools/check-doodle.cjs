@@ -12,7 +12,7 @@ const key='boring-lab-doodle-v1';
  await page.locator('#sample').click();assert.ok((await saved()).strokes.length>0);const original=JSON.stringify(await saved());await page.screenshot({path:'.qa/doodle-editor.png',fullPage:true});
  await page.locator('#alive').click();assert.equal(await page.locator('#paint-tools').isVisible(),false);
  const pixels=()=>page.locator('#drawing').evaluate(c=>c.toDataURL());
- for(const mode of ['jelly','jump','flop','random']){await page.locator('[data-motion='+mode+']').click();const a=await pixels();await page.waitForTimeout(180);assert.notEqual(await pixels(),a,mode+' moves');}
+ for(const mode of ['jelly','jump']){await page.locator('[data-motion='+mode+']').click();const a=await pixels();await page.waitForTimeout(180);assert.notEqual(await pixels(),a,mode+' moves');}
  await page.locator('#poke').click();assert.match(await page.locator('#doodle-speech').innerText(),/脾气/);
  await page.locator('#pause').click();const frozen=await pixels();await page.waitForTimeout(180);assert.equal(await pixels(),frozen);
  await page.locator('#edit').click();assert.equal(JSON.stringify(await saved()),original);await page.locator('#alive').click();await page.locator('#pause').click();await page.screenshot({path:'.qa/doodle-live.png',fullPage:true});
@@ -23,5 +23,5 @@ const key='boring-lab-doodle-v1';
  await cdp.send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[{x:mb.x+50,y:mb.y+50}]});await cdp.send('Input.dispatchTouchEvent',{type:'touchMove',touchPoints:[{x:mb.x+150,y:mb.y+80}]});await cdp.send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]});
  assert.equal(await mobile.evaluate(k=>JSON.parse(localStorage.getItem(k)).strokes.length,key),1);await mobile.locator('#sample').click();
  await mobile.screenshot({path:'.qa/doodle-mobile.png',fullPage:true});assert.equal(await mobile.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true);
- assert.deepEqual(errors,[]);console.log('PASS: mouse and touch drawing, undo, local saves, sample, four motions, pause, edit preservation, reduced motion, corrupt storage and mobile layout');
+ assert.deepEqual(errors,[]);console.log('PASS: mouse and touch drawing, undo, local saves, sample, retained motions, pause, edit preservation, reduced motion, corrupt storage and mobile layout');
  }finally{await browser.close();}})().catch(e=>{console.error(e);process.exitCode=1});

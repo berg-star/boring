@@ -32,6 +32,8 @@
   let liveStrokes = [],
     tool = "pull",
     grip = null;
+  let previousVelocity = { x: 0, y: 0 },
+    shakeTime = 0;
   function deformGrip() {
     if (!grip) return;
     const body = toy.pose();
@@ -46,6 +48,49 @@
   let lastModel = "",
     grabbed = false,
     renderPose = { x: 320, y: 354, w: 200, h: 200 };
+  let windOn = false,
+    windPointer = false,
+    nozzle = { x: 80, y: 250 },
+    windSide = 1;
+  function stopWind() {
+    windOn = false;
+    soft.wind(0);
+    $("wind-toggle").setAttribute("aria-pressed", "false");
+    $("wind-toggle").textContent = "开启吹风";
+  }
+  function windForce() {
+    if (!windOn || paused || reduced.matches) return 0;
+    const body = toy.pose();
+    const reach = Math.max(0.15, 1 - Math.abs(nozzle.y - (body.y - sh * 0.5)) / 280);
+    return windSide * Number($("wind-power").value) * reach;
+  }
+  function drawWind() {
+    if (tool !== "wind") return;
+    ctx.save();
+    ctx.translate(nozzle.x, nozzle.y);
+    ctx.scale(windSide, 1);
+    ctx.fillStyle = "#58735b";
+    ctx.fillRect(-24, -13, 32, 26);
+    ctx.fillRect(-19, 9, 10, 26);
+    ctx.fillStyle = "#b9f879";
+    ctx.fillRect(8, -10, 10, 20);
+    if (windForce()) {
+      ctx.strokeStyle = "rgba(83,125,113,.65)";
+      ctx.lineWidth = 2;
+      const offset = (phase * 160) % 40;
+      for (let i = 0; i < 7; i++) {
+        const x = 25 + i * 26 + offset,
+          y = Math.sin(phase * 7 + i) * 5;
+        ctx.beginPath();
+        ctx.moveTo(x, y - 18);
+        ctx.lineTo(x + 16, y - 21);
+        ctx.moveTo(x, y + 18);
+        ctx.lineTo(x + 16, y + 21);
+        ctx.stroke();
+      }
+    }
+    ctx.restore();
+  }
   const maxPoints = 16000;
   const count = () => strokes.reduce((n, s) => n + s.points.length, 0);
   function error(message = "") {
@@ -148,6 +193,7 @@
     sh = sprite.height * scale;
     toy.reset(sw, sh);
     soft.reset(sw, sh);
+    previousVelocity = { x: 0, y: 0 };
     // Resample long straight lines so their middle can bend too.
     liveStrokes = strokes.map((s) => {
       const points = [];
@@ -168,11 +214,13 @@
   }
   function drawLive(now = performance.now()) {
     ctx.clearRect(0, 0, 640, 440);
+    ctx.save();
+    if (shakeTime > 0 && !paused && !reduced.matches)
+      ctx.translate(Math.sin(phase * 65) * shakeTime * 13, Math.cos(phase * 52) * shakeTime * 7);
     toy.background();
     const moving = !paused && !reduced.matches && !toy.moving && !grabbed;
     const t = moving ? phase : 0;
-    const selected =
-      motion === "random" ? ["jelly", "jump", "flop"][Math.floor(t / 4) % 3] : motion;
+    const selected = motion;
     let sx = 1,
       sy = 1,
       angle = 0,
@@ -191,12 +239,7 @@
         sy = 0.82 + jump * 0.3;
         angle = 0.07 * Math.sin(t * 3);
       }
-      if (selected === "flop") {
-        const f = (1 - Math.cos(t * 1.7)) / 2;
-        sx = 1 + 0.3 * f;
-        sy = 1 - 0.68 * f;
-        angle = 0.28 * f;
-      }
+
       if (now < pokeUntil) {
         lift += 25 * Math.abs(Math.sin((pokeUntil - now) / 90));
         angle += 0.14 * Math.sin(now / 35);
@@ -216,7 +259,18 @@
     ctx.translate(body.x, body.y - lift);
     ctx.rotate(angle);
     ctx.transform(sx, 0, skew, sy, 0, 0);
-    for (const s of liveStrokes) paint(ctx, { ...s, points: s.points.map((p) => soft.map(...p)) });
+    for (const s of liveStrokes)
+      paint(ctx, {
+        ...s,
+        points: s.points.map((p) => {
+          const q = soft.map(...p);
+          // Keep stretched ink inside the side walls while the wind presses it there.
+          q[0] = Math.max(10 - body.x, Math.min(630 - body.x, q[0]));
+          return q;
+        }),
+      });
+    ctx.restore();
+    drawWind();
     ctx.restore();
   }
   function stop() {
@@ -236,7 +290,21 @@
     if (previous) {
       const dt = Math.min((now - previous) / 1000, 0.032);
       phase += dt;
+      const force = windForce();
+      toy.wind(force, dt);
+      soft.wind(force);
+      const before = toy.pose();
       toy.update(dt);
+      const after = toy.pose(),
+        velocity = { x: (after.x - before.x) / dt, y: (after.y - before.y) / dt };
+      soft.inertia(
+        -(velocity.x - previousVelocity.x) * 0.08,
+        -(velocity.y - previousVelocity.y) * 0.065,
+      );
+      previousVelocity = velocity;
+      const landing = toy.takeLanding();
+      if (landing) soft.land(landing);
+      shakeTime = Math.max(0, shakeTime - dt);
       deformGrip();
       soft.update(dt);
     }
@@ -273,6 +341,20 @@
     if (live) {
       if (pointer !== null) return;
       const [x, y] = point(e);
+      if (tool === "wind") {
+        if (paused || reduced.matches) return;
+        e.preventDefault();
+        pointer = e.pointerId;
+        windPointer = true;
+        nozzle = { x, y };
+        windSide = x < toy.pose().x ? 1 : -1;
+        windOn = true;
+        $("wind-toggle").setAttribute("aria-pressed", "true");
+        $("wind-toggle").textContent = "关闭吹风";
+        canvas.setPointerCapture(pointer);
+        drawLive();
+        return;
+      }
       if (toy.down(x, y, renderPose)) {
         motion = "rest";
         document
@@ -304,6 +386,13 @@
   });
   canvas.addEventListener("pointermove", (e) => {
     if (pointer !== e.pointerId) return;
+    if (windPointer) {
+      const [x, y] = point(e);
+      nozzle = { x, y };
+      windSide = x < toy.pose().x ? 1 : -1;
+      drawLive();
+      return;
+    }
     if (grabbed) {
       const [x, y] = point(e);
       grip.px = x;
@@ -328,6 +417,13 @@
     if (pointer !== e.pointerId) return;
     const id = pointer;
     pointer = null;
+    if (windPointer) {
+      windPointer = false;
+      stopWind();
+      if (canvas.hasPointerCapture(id)) canvas.releasePointerCapture(id);
+      start();
+      return;
+    }
     if (grabbed) {
       grabbed = false;
       grip = null;
@@ -379,18 +475,31 @@
       return;
     const kind = $("model-kind").value;
     const choices = DoodlePresets.models.filter(
-      (m) => (kind === "all" || m[2] === kind) && m[0] !== lastModel,
+      (m) =>
+        (kind === "all" ||
+          m[2] === kind ||
+          (kind === "stretch" && ["walker", "octopus", "sock", "spring"].includes(m[0]))) &&
+        m[0] !== lastModel,
     );
-    const model = choices[Math.floor(Math.random() * choices.length)];
+    loadModel(choices[Math.floor(Math.random() * choices.length)]);
+  });
+  function loadModel(model) {
     lastModel = model[0];
     strokes = DoodlePresets.make(model[0]);
     validateStrokes(strokes);
-    $("doodle-speech").textContent = "抽到了「" + model[1] + "」。补几笔，它就是你的版本。";
+    setMaterial(["cup", "toast"].includes(model[0]) ? "firm" : "soft");
+    $("doodle-speech").textContent = "载入了「" + model[1] + "」。试试拉它的边角。";
     $("art-name").value = model[1];
     error();
     drawEditor();
     save();
-  });
+  }
+  document.querySelectorAll("[data-preset]").forEach((b) =>
+    b.addEventListener("click", () => {
+      if (strokes.length && !confirm("替换当前画纸？喜欢的作品可以先收藏。")) return;
+      loadModel(DoodlePresets.models.find((m) => m[0] === b.dataset.preset));
+    }),
+  );
   $("recolor").addEventListener("click", () => {
     strokes.forEach((s) => (s.color = ink));
     drawEditor();
@@ -399,6 +508,7 @@
   document.querySelectorAll("[data-stage]").forEach((b) =>
     b.addEventListener("click", () => {
       if (pointer !== null) finish({ pointerId: pointer }, true);
+      stopWind();
       toy.stage(b.dataset.stage);
       soft.reset(sw, sh);
       document
@@ -412,10 +522,7 @@
       start();
     }),
   );
-  $("toss").addEventListener("click", () => {
-    toy.toss(paused || reduced.matches);
-    start();
-  });
+
   $("alive").addEventListener("click", () => {
     if (!strokes.length) {
       error("先画一笔，或者随机载入一个造型吧。");
@@ -425,11 +532,15 @@
     phase = 0;
     error();
     buildSprite();
-    $("paint-tools").hidden = $("edit-actions").hidden = $("model-picker").hidden = true;
+    $("paint-tools").hidden =
+      $("edit-actions").hidden =
+      $("model-picker").hidden =
+      $("featured-models").hidden =
+        true;
     $("live-actions").hidden = false;
     $("paper-hint").hidden = true;
     canvas.classList.add("is-live");
-    canvas.setAttribute("aria-label", "活动中的涂鸦，可以拖动抛掷，也可以用下方抛起按钮。");
+    canvas.setAttribute("aria-label", "活动中的涂鸦，可拉扯、按压、吹风；回车或空格可以戳一下。");
     $("mode-label").textContent = "02 / 它有自己的想法了";
     $("doodle-speech").textContent = "抓住一个角拉一拉，松手看看它怎么弹回来。";
     start();
@@ -438,9 +549,14 @@
   $("edit").addEventListener("click", () => {
     if (pointer !== null) finish({ pointerId: pointer }, true);
     live = false;
+    stopWind();
     stop();
     toy.reset();
-    $("paint-tools").hidden = $("edit-actions").hidden = $("model-picker").hidden = false;
+    $("paint-tools").hidden =
+      $("edit-actions").hidden =
+      $("model-picker").hidden =
+      $("featured-models").hidden =
+        false;
     $("live-actions").hidden = true;
     canvas.classList.remove("is-live");
     canvas.setAttribute("aria-label", "涂鸦画纸，可用鼠标或手指绘画。不会画也可以用下方示例。");
@@ -453,8 +569,6 @@
     rest: "抓住一个角拉一拉，或者换成按压，揉出一个小凹坑。",
     jelly: "软乎乎的，也要坚持晃来晃去。",
     jump: "没有腿，但有蹦跶的梦想。",
-    flop: "努力站起来，算了，再躺一会儿。",
-    random: "它的精神状态，现在是随机的。",
   };
   document.querySelectorAll("[data-motion]").forEach((b) =>
     b.addEventListener("click", () => {
@@ -470,22 +584,68 @@
   document.querySelectorAll("[data-tool]").forEach((b) =>
     b.addEventListener("click", () => {
       if (pointer !== null) finish({ pointerId: pointer }, true);
+      stopWind();
       tool = b.dataset.tool;
+      $("wind-controls").hidden = tool !== "wind";
+      if (tool === "wind") {
+        motion = "rest";
+        phase = 0;
+        document
+          .querySelectorAll("[data-motion]")
+          .forEach((x) => x.setAttribute("aria-pressed", String(x.dataset.motion === "rest")));
+        const body = toy.pose();
+        nozzle = { x: body.x > 320 ? 80 : 560, y: body.y - sh * 0.5 };
+        windSide = nozzle.x < body.x ? 1 : -1;
+      }
+      drawLive();
       document
         .querySelectorAll("[data-tool]")
         .forEach((x) => x.setAttribute("aria-pressed", String(x === b)));
       $("doodle-speech").textContent =
-        tool === "press" ? "按住涂鸦，局部会凹下去；松手恢复。" : "抓住一个角，慢慢拉开，再松手。";
+        tool === "wind"
+          ? "拿起吹风机，看看它能坚持几级风。"
+          : tool === "press"
+            ? "按住涂鸦，局部会凹下去；松手恢复。"
+            : "抓住一个角，慢慢拉开，再松手。";
     }),
   );
+  function setMaterial(value) {
+    soft.material(value);
+    toy.material(value);
+    document
+      .querySelectorAll("[data-material]")
+      .forEach((x) => x.setAttribute("aria-pressed", String(x.dataset.material === value)));
+  }
+  $("shake").addEventListener("click", () => {
+    if (pointer !== null) finish({ pointerId: pointer }, true);
+    shakeTime = 0.6;
+    toy.shake();
+    soft.land(400);
+    $("doodle-speech").textContent = "桌子没事，它的精神状态不一定。";
+    start();
+  });
   document.querySelectorAll("[data-material]").forEach((b) =>
     b.addEventListener("click", () => {
-      soft.material(b.dataset.material);
+      setMaterial(b.dataset.material);
       document
         .querySelectorAll("[data-material]")
         .forEach((x) => x.setAttribute("aria-pressed", String(x === b)));
     }),
   );
+  $("wind-toggle").addEventListener("click", () => {
+    if (windOn) stopWind();
+    else {
+      windOn = true;
+      $("wind-toggle").setAttribute("aria-pressed", "true");
+      $("wind-toggle").textContent = "关闭吹风";
+    }
+    start();
+  });
+  $("wind-flip").addEventListener("click", () => {
+    windSide *= -1;
+    nozzle.x = windSide > 0 ? 80 : 560;
+    drawLive();
+  });
   $("poke").addEventListener("click", poke);
   canvas.addEventListener("keydown", (e) => {
     if (live && ["Enter", " "].includes(e.key)) {
@@ -500,26 +660,39 @@
         ? "继续活动"
         : "暂停动作";
     $("pause").disabled = reduced.matches;
-    $("toss").disabled = paused || reduced.matches;
+    $("wind-toggle").disabled = paused || reduced.matches;
+    $("shake").disabled = paused || reduced.matches;
     $("pause").setAttribute("aria-pressed", String(paused || reduced.matches));
   }
   $("pause").addEventListener("click", () => {
+    if (pointer !== null) finish({ pointerId: pointer }, true);
+    stopWind();
     paused = !paused;
     pauseLabel();
     start();
   });
   reduced.addEventListener("change", () => {
-    if (reduced.matches) paused = true;
+    if (reduced.matches) {
+      if (pointer !== null) finish({ pointerId: pointer }, true);
+      stopWind();
+      paused = true;
+    }
     pauseLabel();
     start();
   });
   document.addEventListener("visibilitychange", () => {
     if (document.hidden) {
+      stopWind();
       stop();
       if (pointer !== null) finish({ pointerId: pointer }, true);
     } else start();
   });
+  addEventListener("blur", () => {
+    stopWind();
+    if (pointer !== null) finish({ pointerId: pointer }, true);
+  });
   addEventListener("pagehide", () => {
+    stopWind();
     if (pointer !== null) finish({ pointerId: pointer }, true);
     stop();
   });
