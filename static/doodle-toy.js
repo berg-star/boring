@@ -16,7 +16,8 @@ window.createDoodleToy = function (ctx) {
     flying = false,
     last = null,
     offset = [0, 0],
-    impact = 0;
+    impact = 0,
+    target = null;
   const limit = (n, a, b) => Math.max(a, Math.min(b, n));
   function reset(width = w, height = h) {
     w = width;
@@ -25,6 +26,7 @@ window.createDoodleToy = function (ctx) {
     y = 354;
     vx = vy = impact = 0;
     held = flying = false;
+    target = null;
     last = null;
   }
   function clamp() {
@@ -33,7 +35,16 @@ window.createDoodleToy = function (ctx) {
   }
   function update(dt) {
     impact = Math.max(0, impact - dt * 3);
-    if (held || !flying) return;
+    if (held) {
+      if (target) {
+        const blend = 1 - Math.exp(-dt * 6);
+        x += (target[0] - x) * blend;
+        y += (target[1] - y) * blend;
+        clamp();
+      }
+      return;
+    }
+    if (!flying) return;
     const model = stages[stage];
     vy += model.gravity * dt;
     x += vx * dt;
@@ -81,7 +92,7 @@ window.createDoodleToy = function (ctx) {
       return held;
     },
     pose() {
-      return { x, y, sx: held ? 0.91 : 1 + impact, sy: held ? 1.1 : 1 - impact };
+      return { x, y, sx: 1 + impact, sy: 1 - impact };
     },
     down(px, py, render) {
       if (
@@ -95,6 +106,7 @@ window.createDoodleToy = function (ctx) {
       y = render.y;
       clamp();
       held = true;
+      target = null;
       flying = false;
       vx = vy = 0;
       offset = [px - x, py - y];
@@ -107,14 +119,14 @@ window.createDoodleToy = function (ctx) {
         dt = Math.max(0.016, (now - last.time) / 1000);
       vx = limit((px - last.x) / dt, -750, 750);
       vy = limit((py - last.y) / dt, -800, 800);
-      x = px - offset[0];
-      y = py - offset[1];
+      target = [px - offset[0], py - offset[1]];
       clamp();
       last = { x: px, y: py, time: now };
     },
     release(cancel = false, still = false) {
       if (!held) return;
       held = false;
+      target = null;
       if (cancel || performance.now() - last.time > 100) vx = vy = 0;
       flying = !still;
       if (still) vx = vy = 0;
@@ -182,6 +194,97 @@ window.createDoodleToy = function (ctx) {
         ctx.stroke();
       }
       ctx.restore();
+    },
+  };
+};
+
+// A small spring field deforms drawing points without changing the saved artwork.
+window.createDoodleSoft = function () {
+  const nodes = [];
+  let width = 200,
+    height = 200,
+    grip = null,
+    material = "soft";
+  const clamp = (v, n) => Math.max(-n, Math.min(n, v));
+  function reset(w = width, h = height) {
+    width = w;
+    height = h;
+    grip = null;
+    nodes.length = 0;
+    for (let row = 0; row <= 8; row++)
+      for (let col = 0; col <= 8; col++)
+        nodes.push({
+          x: (col * width) / 8 - width / 2,
+          y: (row * height) / 8 - height,
+          dx: 0,
+          dy: 0,
+          vx: 0,
+          vy: 0,
+        });
+  }
+  function update(dt, instant = false) {
+    dt = Math.max(0, Math.min(dt, 0.032));
+    const stiff = material === "firm",
+      spring = stiff ? 210 : 90;
+    for (const n of nodes) {
+      let tx = 0,
+        ty = 0;
+      if (grip) {
+        const radius = Math.max(24, Math.min(width, height) * 0.48);
+        const weight = Math.exp(-((n.x - grip.x) ** 2 + (n.y - grip.y) ** 2) / (2 * radius ** 2));
+        const strength = stiff ? 0.52 : 1;
+        tx = clamp(grip.dx, 95) * weight * strength;
+        ty = clamp(grip.dy, 95) * weight * strength;
+      }
+      if (instant) {
+        n.dx = tx;
+        n.dy = ty;
+        n.vx = n.vy = 0;
+        continue;
+      }
+      // Substeps keep even rapid pointer changes bounded.
+      for (let i = 0; i < 4; i++) {
+        const step = dt / 4;
+        n.vx += ((tx - n.dx) * spring - n.vx * (stiff ? 19 : 10)) * step;
+        n.vy += ((ty - n.dy) * spring - n.vy * (stiff ? 19 : 10)) * step;
+        n.dx = clamp(n.dx + n.vx * step, 120);
+        n.dy = clamp(n.dy + n.vy * step, 120);
+      }
+    }
+  }
+  function map(x, y) {
+    const u = Math.max(0, Math.min(8, ((x + width / 2) / width) * 8));
+    const v = Math.max(0, Math.min(8, ((y + height) / height) * 8));
+    const col = Math.min(7, Math.floor(u)),
+      row = Math.min(7, Math.floor(v));
+    const fx = u - col,
+      fy = v - row;
+    let dx = 0,
+      dy = 0;
+    for (const [index, weight] of [
+      [row * 9 + col, (1 - fx) * (1 - fy)],
+      [row * 9 + col + 1, fx * (1 - fy)],
+      [(row + 1) * 9 + col, (1 - fx) * fy],
+      [(row + 1) * 9 + col + 1, fx * fy],
+    ]) {
+      dx += nodes[index].dx * weight;
+      dy += nodes[index].dy * weight;
+    }
+    return [x + dx, y + dy];
+  }
+  reset();
+  return {
+    reset,
+    update,
+    map,
+    material(value) {
+      material = value;
+    },
+    hold(x, y, dx, dy) {
+      grip = { x, y, dx, dy };
+    },
+    release() {
+      grip = null;
     },
   };
 };

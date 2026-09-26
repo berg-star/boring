@@ -88,6 +88,18 @@
             <button id="sample" class="secondary" type="button">随机来个东西 ↻</button>
           </div>
           <div id="live-actions" hidden>
+            <div class="doodle-motions" role="group" aria-label="揉捏工具">
+              <button data-tool="pull" class="secondary" aria-pressed="true">抓住拉一拉</button>
+              <button data-tool="press" class="secondary" aria-pressed="false">局部按压</button>
+            </div>
+            <div class="doodle-motions" role="group" aria-label="材料手感">
+              <button data-material="soft" class="secondary" aria-pressed="true">
+                软果冻 · 晃悠悠
+              </button>
+              <button data-material="firm" class="secondary" aria-pressed="false">
+                硬橡皮 · 弹得快
+              </button>
+            </div>
             <div class="doodle-stages" role="group" aria-label="选择舞台">
               <button data-stage="desk" class="secondary" aria-pressed="true">普通桌面</button>
               <button data-stage="trampoline" class="secondary" aria-pressed="false">大蹦床</button>
@@ -95,7 +107,8 @@
             </div>
             <p id="stage-help" class="help">抓住涂鸦往上提，再松手。快速甩动可以抛出去。</p>
             <div class="doodle-motions" role="group" aria-label="选择动作">
-              <button data-motion="jelly" class="secondary" aria-pressed="true">果冻扭动</button>
+              <button data-motion="rest" class="secondary" aria-pressed="true">安静待着</button>
+              <button data-motion="jelly" class="secondary" aria-pressed="false">果冻扭动</button>
               <button data-motion="jump" class="secondary" aria-pressed="false">原地蹦跶</button>
               <button data-motion="flop" class="secondary" aria-pressed="false">软趴趴倒下</button>
               <button data-motion="random" class="secondary" aria-pressed="false">随机发疯</button>
@@ -128,7 +141,7 @@
           <div id="shelf-grid"></div>
         </details>
         <p class="help">
-          鼠标或手指随手画，整幅涂鸦一起活动。
+          鼠标或手指随手画，抓住局部拉扯、按压，松手就会回弹。
           <br />
           不上传画作，保存在当前浏览器；清除网站数据会丢失。
         </p>

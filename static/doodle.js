@@ -18,7 +18,7 @@
     ink = inks[0][1],
     live = false,
     paused = reduced.matches;
-  let motion = "jelly",
+  let motion = "rest",
     frame = 0,
     phase = 0,
     previous = 0,
@@ -28,6 +28,21 @@
     sw = 0,
     sh = 0;
   const toy = createDoodleToy(ctx);
+  const soft = createDoodleSoft();
+  let liveStrokes = [],
+    tool = "pull",
+    grip = null;
+  function deformGrip() {
+    if (!grip) return;
+    const body = toy.pose();
+    soft.hold(
+      grip.x,
+      grip.y,
+      tool === "press" ? 0 : grip.px - body.x - grip.x,
+      tool === "press" ? 48 : grip.py - body.y - grip.y,
+    );
+    if (paused || reduced.matches) soft.update(0, true);
+  }
   let lastModel = "",
     grabbed = false,
     renderPose = { x: 320, y: 354, w: 200, h: 200 };
@@ -132,11 +147,29 @@
     sw = sprite.width * scale;
     sh = sprite.height * scale;
     toy.reset(sw, sh);
+    soft.reset(sw, sh);
+    // Resample long straight lines so their middle can bend too.
+    liveStrokes = strokes.map((s) => {
+      const points = [];
+      for (let i = 0; i < s.points.length; i++) {
+        const p = s.points[i],
+          prev = s.points[Math.max(0, i - 1)];
+        const steps = i
+          ? Math.max(1, Math.ceil((Math.hypot(p[0] - prev[0], p[1] - prev[1]) * scale) / 5))
+          : 1;
+        for (let j = 1; j <= steps; j++)
+          points.push([
+            (prev[0] + ((p[0] - prev[0]) * j) / steps - x0) * scale - sw / 2,
+            (prev[1] + ((p[1] - prev[1]) * j) / steps - y0) * scale - sh,
+          ]);
+      }
+      return { color: s.color, width: s.width * scale, points };
+    });
   }
   function drawLive(now = performance.now()) {
     ctx.clearRect(0, 0, 640, 440);
     toy.background();
-    const moving = !paused && !reduced.matches && !toy.moving;
+    const moving = !paused && !reduced.matches && !toy.moving && !grabbed;
     const t = moving ? phase : 0;
     const selected =
       motion === "random" ? ["jelly", "jump", "flop"][Math.floor(t / 4) % 3] : motion;
@@ -183,7 +216,7 @@
     ctx.translate(body.x, body.y - lift);
     ctx.rotate(angle);
     ctx.transform(sx, 0, skew, sy, 0, 0);
-    ctx.drawImage(sprite, -sw / 2, -sh, sw, sh);
+    for (const s of liveStrokes) paint(ctx, { ...s, points: s.points.map((p) => soft.map(...p)) });
     ctx.restore();
   }
   function stop() {
@@ -204,6 +237,8 @@
       const dt = Math.min((now - previous) / 1000, 0.032);
       phase += dt;
       toy.update(dt);
+      deformGrip();
+      soft.update(dt);
     }
     previous = now;
     drawLive(now);
@@ -224,7 +259,12 @@
     ];
   }
   function poke() {
-    pokeUntil = performance.now() + 650;
+    if (!paused && !reduced.matches && !grabbed) {
+      soft.hold(0, -sh * 0.55, 0, 65);
+      soft.update(0.032);
+      soft.release();
+    }
+    pokeUntil = performance.now() + 250;
     $("doodle-speech").textContent = "嘿！没有骨头也是有脾气的。";
     if (paused || reduced.matches) drawLive();
   }
@@ -234,6 +274,13 @@
       if (pointer !== null) return;
       const [x, y] = point(e);
       if (toy.down(x, y, renderPose)) {
+        motion = "rest";
+        document
+          .querySelectorAll("[data-motion]")
+          .forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.motion === "rest")));
+        const body = toy.pose();
+        grip = { x: x - body.x, y: y - body.y, px: x, py: y };
+        deformGrip();
         e.preventDefault();
         pointer = e.pointerId;
         grabbed = true;
@@ -259,7 +306,10 @@
     if (pointer !== e.pointerId) return;
     if (grabbed) {
       const [x, y] = point(e);
-      toy.move(x, y);
+      grip.px = x;
+      grip.py = y;
+      if (tool === "pull") toy.move(x, y);
+      deformGrip();
       drawLive();
       return;
     }
@@ -280,6 +330,9 @@
     pointer = null;
     if (grabbed) {
       grabbed = false;
+      grip = null;
+      soft.release();
+      if (discard || paused || reduced.matches) soft.reset(sw, sh);
       toy.release(discard, paused || reduced.matches);
       canvas.classList.remove("is-grabbed");
       if (canvas.hasPointerCapture(id)) canvas.releasePointerCapture(id);
@@ -347,6 +400,7 @@
     b.addEventListener("click", () => {
       if (pointer !== null) finish({ pointerId: pointer }, true);
       toy.stage(b.dataset.stage);
+      soft.reset(sw, sh);
       document
         .querySelectorAll("[data-stage]")
         .forEach((x) => x.setAttribute("aria-pressed", String(x === b)));
@@ -377,7 +431,7 @@
     canvas.classList.add("is-live");
     canvas.setAttribute("aria-label", "活动中的涂鸦，可以拖动抛掷，也可以用下方抛起按钮。");
     $("mode-label").textContent = "02 / 它有自己的想法了";
-    $("doodle-speech").textContent = "它刚出生，就已经不想上班了。";
+    $("doodle-speech").textContent = "抓住一个角拉一拉，松手看看它怎么弹回来。";
     start();
     $("poke").focus();
   });
@@ -396,6 +450,7 @@
     canvas.focus();
   });
   const sayings = {
+    rest: "抓住一个角拉一拉，或者换成按压，揉出一个小凹坑。",
     jelly: "软乎乎的，也要坚持晃来晃去。",
     jump: "没有腿，但有蹦跶的梦想。",
     flop: "努力站起来，算了，再躺一会儿。",
@@ -410,6 +465,25 @@
         .forEach((x) => x.setAttribute("aria-pressed", String(x === b)));
       $("doodle-speech").textContent = sayings[motion];
       start();
+    }),
+  );
+  document.querySelectorAll("[data-tool]").forEach((b) =>
+    b.addEventListener("click", () => {
+      if (pointer !== null) finish({ pointerId: pointer }, true);
+      tool = b.dataset.tool;
+      document
+        .querySelectorAll("[data-tool]")
+        .forEach((x) => x.setAttribute("aria-pressed", String(x === b)));
+      $("doodle-speech").textContent =
+        tool === "press" ? "按住涂鸦，局部会凹下去；松手恢复。" : "抓住一个角，慢慢拉开，再松手。";
+    }),
+  );
+  document.querySelectorAll("[data-material]").forEach((b) =>
+    b.addEventListener("click", () => {
+      soft.material(b.dataset.material);
+      document
+        .querySelectorAll("[data-material]")
+        .forEach((x) => x.setAttribute("aria-pressed", String(x === b)));
     }),
   );
   $("poke").addEventListener("click", poke);
