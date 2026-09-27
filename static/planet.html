@@ -81,12 +81,27 @@
             <option value="surprise">神秘种子 · 可能长出路灯</option>
           </select>
         </div>
+        <div id="weather-controls" class="planet-seeds" hidden>
+          <label for="weather-kind">云里装什么</label>
+          <select id="weather-kind">
+            <option value="random">随机天气 · 偶尔爆米花</option>
+            <option value="rain">普通雨 · 浇水</option>
+            <option value="popcorn">爆米花雨 · 开饭</option>
+          </select>
+        </div>
         <div class="game-actions">
+          <button id="call-ufo" class="secondary" type="button">召唤 UFO</button>
+          <button id="call-egg" class="secondary" type="button">送颗神秘蛋</button>
+          <button id="call-meteor" class="secondary" type="button">来颗流星</button>
+          <button id="catch-meteor" class="primary" type="button" hidden>抓住流星许愿</button>
+          <button id="hatch-egg" class="secondary" type="button" hidden>点开神秘蛋</button>
           <button id="undo-plant" class="secondary" type="button" hidden>撤销刚才的铲除</button>
           <button id="surprise-event" class="primary" type="button">星球，整点活 ↗</button>
         </div>
         <p class="help">
           种苗 → 拖云下雨 → 长大；连下几场雨会留下池塘。小居民会来躲雨，夜里会睡觉。
+          <br />
+          夜里才能遇到流星；点击流星或神秘蛋有惊喜，也可以使用上方按钮。
           <br />
           键盘也能玩：方向键旋转，回车触发事件。
           <br />

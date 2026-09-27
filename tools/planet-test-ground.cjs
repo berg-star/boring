@@ -12,4 +12,5 @@ module.exports = async function preparePlanet(page) {
     localStorage.setItem(key, JSON.stringify(state));
   });
   await page.reload();
+  await page.locator("#weather-kind").evaluate((el) => (el.value = "rain"));
 };

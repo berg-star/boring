@@ -37,6 +37,7 @@ const base = process.env.TEST_BASE || "http://127.0.0.1:18080",
     assert.equal((await state()).trees.length, 1);
     assert.match(await p.locator("#planet-message").innerText(), /挤/);
     await p.locator('[data-tool="rain"]').click();
+    await p.locator("#weather-kind").selectOption("rain");
     for (let i = 0; i < 3; i++) await click();
     const grown = await state();
     assert.equal(grown.trees[0].growth, 2);
@@ -57,6 +58,7 @@ const base = process.env.TEST_BASE || "http://127.0.0.1:18080",
     assert.equal(await p.locator("#night").getAttribute("aria-pressed"), "true");
     await p.locator("#night").click();
     await p.locator('[data-tool="rain"]').click();
+    await p.locator("#weather-kind").selectOption("rain");
     await p.locator("#planet").scrollIntoViewIfNeeded();
     const b = await p.locator("#planet").boundingBox(),
       pos = (x, y) => [b.x + (x * b.width) / 600, b.y + (y * b.height) / 510];
@@ -79,6 +81,7 @@ const base = process.env.TEST_BASE || "http://127.0.0.1:18080",
     await p.reload();
     assert.match(await p.locator("#planet-save").innerText(), /不覆盖/);
     await p.locator('[data-tool="rain"]').click();
+    await p.locator("#weather-kind").selectOption("rain");
     await click();
     assert.equal(await p.evaluate((k) => localStorage.getItem(k), key), "broken");
     for (const width of [320, 390, 768]) {

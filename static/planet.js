@@ -402,6 +402,232 @@
   loadWorld();
   if (repairGround())
     message.textContent = "已经把水上的居民和植物搬回陆地，原来的品种和生长状态都保留了。";
+
+  // Visitors and wishes are temporary visual events. Saved plants are never removed.
+  let ufo = null,
+    egg = null,
+    guest = null,
+    meteor = null,
+    wish = null;
+  const inverted = new Map();
+  let nextVisitor = performance.now() + 35000 + Math.random() * 25000;
+  let nextMeteor = performance.now() + 22000 + Math.random() * 18000;
+  function eventUI() {
+    document.getElementById("call-ufo").disabled = !!ufo;
+    document.getElementById("call-egg").disabled = !!ufo || !!egg || !!guest;
+    document.getElementById("hatch-egg").hidden = !egg;
+    document.getElementById("catch-meteor").hidden = !meteor;
+    document.getElementById("call-meteor").disabled = !night || !!meteor;
+    document.getElementById("call-meteor").title = night ? "" : "先切到夜晚，再来许愿";
+  }
+  function visibleGround() {
+    const candidates = groundPoints.filter(
+      (p) => project(p).z > 0.4 && dry(p) && near(p, volcano) > 0.25,
+    );
+    return (
+      candidates[Math.floor(Math.random() * candidates.length)] || nearestGround(inverse(CX, CY))
+    );
+  }
+  function callUfo(cargo = "random") {
+    if (ufo) return;
+    const available = trees.filter((t) => t.type === "tree" && project(t).z > 0.2);
+    const takeTree =
+      cargo !== "egg" && available.length && (cargo === "tree" || Math.random() < 0.55);
+    if (!takeTree && (egg || guest)) {
+      message.textContent = "上一位客人还没离开，稍等它玩一会儿。";
+      return;
+    }
+    const target = takeTree
+      ? available[Math.floor(Math.random() * available.length)]
+      : visibleGround();
+    if (!target) {
+      message.textContent = "这一面没有合适的陆地，转到绿色的一面再试试。";
+      return;
+    }
+    ufo = { start: performance.now(), target, tree: !!takeTree };
+    message.textContent = takeTree
+      ? "UFO 想借一棵树研究一下，保证归还。"
+      : "UFO 带来一颗神秘蛋，等它放下后点开看看。";
+    playSound("hello");
+    if (reduced.matches) finishUfo();
+    eventUI();
+    draw();
+  }
+  function finishUfo() {
+    if (!ufo) return;
+    if (ufo.tree) {
+      if (trees.includes(ufo.target)) inverted.set(ufo.target, performance.now() + 18000);
+      message.textContent = "树还回来了……它们是不是把说明书拿反了？一会儿就会恢复。";
+    } else {
+      const p = dry(ufo.target) ? ufo.target : nearestGround(ufo.target);
+      if (p) egg = { p: { ...p } };
+      message.textContent = "神秘蛋落在陆地上了。点它一下，看看里面住着谁。";
+    }
+    ufo = null;
+    eventUI();
+  }
+  function hatch() {
+    if (!egg) return;
+    const p = dry(egg.p) ? egg.p : nearestGround(egg.p);
+    guest = { p: { ...p }, until: performance.now() + 18000, kind: Math.floor(Math.random() * 3) };
+    egg = null;
+    message.textContent = [
+      "孵出一只三眼团子，它来这里度个短假。",
+      "一颗会打招呼的小星星，决定在陆地上歇会儿。",
+      "蛋里居然是一只迷你飞碟。外星快递，套娃配送。",
+    ][guest.kind];
+    playSound("hello");
+    eventUI();
+    draw();
+  }
+  function callMeteor() {
+    if (!night) {
+      message.textContent = "先切到夜晚，流星才会来值班。";
+      return;
+    }
+    if (meteor) return;
+    meteor = { start: performance.now() };
+    message.textContent = "流星来了！点天空里的亮星，或者按“抓住流星许愿”。";
+    eventUI();
+    draw();
+  }
+  function meteorPosition(now = performance.now()) {
+    const t = reduced.matches ? 0.45 : Math.min(1, (now - meteor.start) / 12000);
+    return { x: 75 + t * 450, y: 36 + t * 80 };
+  }
+  function catchMeteor() {
+    if (!meteor) return;
+    wish = {
+      kind: ["pink", "dance", "glow"][Math.floor(Math.random() * 3)],
+      until: performance.now() + 14000,
+    };
+    meteor = null;
+    message.textContent = {
+      pink: "愿望生效：所有树都换上了粉色外套，14 秒后恢复。",
+      dance: "愿望生效：居民集体跳舞，今晚先不睡了。",
+      glow: "愿望生效：整颗星球亮晶晶，像一颗宇宙糖果。",
+    }[wish.kind];
+    playSound("hello");
+    eventUI();
+    draw();
+  }
+  function tickVisitors(now) {
+    if (document.hidden) return;
+    if (ufo && now - ufo.start > 8000) finishUfo();
+    if (meteor && (!night || (!reduced.matches && now - meteor.start > 12000))) meteor = null;
+    if (wish && now > wish.until) wish = null;
+    if (guest && now > guest.until) guest = null;
+    if (egg && !dry(egg.p)) egg.p = nearestGround(egg.p);
+    if (guest && !dry(guest.p)) guest.p = nearestGround(guest.p);
+    for (const [plant, until] of inverted)
+      if (now > until || !trees.includes(plant)) inverted.delete(plant);
+    if (!reduced.matches) {
+      if (now > nextVisitor) {
+        nextVisitor = now + 45000 + Math.random() * 30000;
+        if (!ufo && !egg && !guest) callUfo();
+      }
+      if (now > nextMeteor) {
+        nextMeteor = now + 30000 + Math.random() * 25000;
+        if (night && !meteor) callMeteor();
+      }
+    }
+    eventUI();
+  }
+  function drawVisitors(now) {
+    if (wish?.kind === "glow") {
+      ctx.strokeStyle = "#f5dfa9";
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      ctx.arc(CX, CY, R + 12, 0, Math.PI * 2);
+      ctx.stroke();
+      for (let i = 0; i < 12; i++) {
+        const a = (i * Math.PI) / 6;
+        circle(CX + Math.cos(a) * (R + 22), CY + Math.sin(a) * (R + 22), 3, "#ffeab7");
+      }
+    }
+    if (egg) {
+      const p = project(egg.p);
+      if (p.z > 0.08) {
+        ctx.fillStyle = "#f4e5be";
+        ctx.beginPath();
+        ctx.ellipse(p.x, p.y - 12, 10, 14, 0, 0, Math.PI * 2);
+        ctx.fill();
+        circle(p.x - 3, p.y - 17, 3, "#bc9bdd");
+        circle(p.x + 3, p.y - 8, 3, "#bc9bdd");
+      }
+    }
+    if (guest) {
+      const p = project(guest.p);
+      if (p.z > 0.08) {
+        circle(
+          p.x,
+          p.y - 10,
+          guest.kind === 1 ? 11 : 13,
+          ["#c6b0ee", "#ffe8a2", "#a5e1d7"][guest.kind],
+        );
+        for (let i = 0; i < (guest.kind === 0 ? 3 : 2); i++)
+          circle(p.x - 5 + i * 5, p.y - 12, 2, "#384350");
+        ctx.font = "12px sans-serif";
+        ctx.fillStyle = "#f6efd7";
+        ctx.fillText("你好，地球邻居", p.x - 38, p.y - 30);
+      }
+    }
+    if (ufo) {
+      const p = project(ufo.target),
+        t = (now - ufo.start) / 8000;
+      const x = reduced.matches
+          ? p.x
+          : p.x + (t < 0.2 ? (0.2 - t) * -1000 : t > 0.8 ? (t - 0.8) * 1000 : 0),
+        y = p.y - 100;
+      ctx.fillStyle = "#b9f87930";
+      ctx.beginPath();
+      ctx.moveTo(x - 12, y);
+      ctx.lineTo(p.x - 24, p.y);
+      ctx.lineTo(p.x + 24, p.y);
+      ctx.lineTo(x + 12, y);
+      ctx.fill();
+      if (ufo.tree && p.z > 0.08 && t > 0.2 && t < 0.8) {
+        ctx.save();
+        ctx.translate(p.x, p.y);
+        ctx.translate(0, -Math.sin(((t - 0.2) / 0.6) * Math.PI) * 65);
+        tree({ x: 0, y: 0, z: p.z, type: ufo.target.type, growth: ufo.target.growth });
+        ctx.restore();
+      }
+      circle(x, y - 9, 17, "#bce8e0");
+      ctx.fillStyle = "#9a91b5";
+      ctx.beginPath();
+      ctx.ellipse(x, y, 33, 10, 0, 0, Math.PI * 2);
+      ctx.fill();
+      for (let i = -1; i <= 1; i++) circle(x + i * 17, y + 1, 3, "#ecf5b4");
+    }
+    if (meteor) {
+      const p = meteorPosition(now);
+      ctx.strokeStyle = "#ffeac2";
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      ctx.moveTo(p.x - 42, p.y - 18);
+      ctx.lineTo(p.x, p.y);
+      ctx.stroke();
+      circle(p.x, p.y, 7, "#fff5c7");
+      circle(p.x, p.y, 15, "#ffe8b233");
+    }
+  }
+  document.getElementById("call-ufo").addEventListener("click", () => callUfo("tree"));
+  document.getElementById("call-egg").addEventListener("click", () => callUfo("egg"));
+  document.getElementById("hatch-egg").addEventListener("click", hatch);
+  document.getElementById("call-meteor").addEventListener("click", callMeteor);
+  document.getElementById("catch-meteor").addEventListener("click", catchMeteor);
+  // Refresh quiet scenes too, so temporary wishes expire with reduced motion enabled.
+  let visitorTimer = setInterval(() => {
+    if (!document.hidden && (ufo || wish || guest || inverted.size)) draw();
+  }, 500);
+  addEventListener("pagehide", () => clearInterval(visitorTimer));
+  addEventListener("pageshow", () => {
+    clearInterval(visitorTimer);
+    visitorTimer = setInterval(() => {
+      if (!document.hidden && (ufo || wish || guest || inverted.size)) draw();
+    }, 500);
+  });
   function residentMood(r, text, seconds = 4) {
     r.mood = text;
     r.until = performance.now() + seconds * 1000;
@@ -447,13 +673,19 @@
     for (const r of residents) {
       if (r.mood === "吓一跳！" && now < r.until) continue;
       const raining = effects.some((e) => e.kind === "rain" && near(e.p, r.p) < 0.9);
+      const snack = effects.find(
+        (e) => e.kind === "popcorn" && near(e.p, r.p) < 0.8 && dry(e.p) && clearPath(r.p, e.p),
+      );
       const shelter = (raining ? trees : [])
         .filter(
           (t) => t.type === "tree" && t.growth === 2 && near(t, r.p) < 0.9 && clearPath(r.p, t),
         )
         .sort((a, b) => near(a, r.p) - near(b, r.p))[0];
       let target;
-      if (raining && shelter) {
+      if (snack) {
+        target = snack.p;
+        residentMood(r, "接住爆米花！", 1);
+      } else if (raining && shelter) {
         target = shelter;
         if (near(r.p, shelter) < 0.12) residentMood(r, "这里不漏雨");
       } else if (night) {
@@ -467,7 +699,10 @@
         });
       if (target) {
         const distance = near(target, r.p);
-        const step = Math.min(1, (dt * (raining ? 0.2 : 0.045)) / Math.max(0.02, distance));
+        const step = Math.min(
+          1,
+          (dt * (raining || snack ? 0.2 : 0.045)) / Math.max(0.02, distance),
+        );
         const next = normalize({
           x: r.p.x + (target.x - r.p.x) * step,
           y: r.p.y + (target.y - r.p.y) * step,
@@ -504,7 +739,16 @@
     ctx.save();
     ctx.translate(p.x, p.y);
     ctx.scale(s, s);
-    const bob = reduced.matches || night ? 0 : Math.sin(now / 220 + r.seed) * 2;
+    const dancing = wish?.kind === "dance";
+    const bob =
+      reduced.matches || (night && !dancing)
+        ? 0
+        : Math.sin(now / (dancing ? 95 : 220) + r.seed) * (dancing ? 6 : 2);
+    if (dancing) {
+      ctx.rotate(reduced.matches ? 0 : Math.sin(now / 120 + r.seed) * 0.25);
+      r.mood = "一起跳舞！";
+      r.until = now + 500;
+    }
     ctx.translate(0, bob);
     circle(0, -5, 7, r.color);
     circle(-2, -7, 1, "#273634");
@@ -559,6 +803,10 @@
     ctx.save();
     ctx.translate(p.x, p.y);
     ctx.scale(s, s);
+    if (p.inverted) {
+      ctx.translate(0, -20);
+      ctx.scale(1, -1);
+    }
     if (p.type === "mushroom") {
       ctx.fillStyle = "#f0d6b0";
       ctx.fillRect(-3, -12, 6, 17);
@@ -586,9 +834,9 @@
     }
     ctx.fillStyle = "#775747";
     ctx.fillRect(-2, -4, 4, 13);
-    circle(-5, -10, 8, night ? "#418269" : "#558d52");
-    circle(5, -11, 8, night ? "#509d73" : "#70ac59");
-    circle(0, -18, 9, night ? "#73af8c" : "#b5d779");
+    circle(-5, -10, 8, wish?.kind === "pink" ? "#dc87ae" : night ? "#418269" : "#558d52");
+    circle(5, -11, 8, wish?.kind === "pink" ? "#f2a7c8" : night ? "#509d73" : "#70ac59");
+    circle(0, -18, 9, wish?.kind === "pink" ? "#ffd0e3" : night ? "#73af8c" : "#b5d779");
     ctx.restore();
   }
   function mountain(p, sneeze) {
@@ -632,6 +880,7 @@
       frame = 0;
     }
     const now = performance.now();
+    tickVisitors(now);
     if (!document.hidden && !reduced.matches) {
       simulate(Math.min(0.05, (now - (lastSim || now)) / 1000), now);
     }
@@ -689,12 +938,17 @@
       ctx.fill();
       ctx.restore();
     }
-    const things = trees.map((p) => ({
-      ...project(p),
-      kind: "tree",
-      type: p.type,
-      growth: p.growth,
-    }));
+    const things = trees
+      .filter(
+        (p) => !(ufo?.tree && ufo.target === p && now - ufo.start > 1600 && now - ufo.start < 6400),
+      )
+      .map((p) => ({
+        ...project(p),
+        kind: "tree",
+        type: p.type,
+        growth: p.growth,
+        inverted: inverted.has(p),
+      }));
     residents.forEach((r) => things.push({ ...project(r.p), kind: "resident", r }));
     things.push({ ...vp, kind: "volcano" });
     things.sort((a, b) => a.z - b.z);
@@ -714,10 +968,16 @@
       const t = (now - e.time) / 2600;
       ctx.save();
       ctx.globalAlpha = Math.min(1, (1 - t) * 2);
-      if (e.kind === "rain") {
+      if (e.kind === "rain" || e.kind === "popcorn") {
         for (let j = 0; j < 12; j++) {
           const x = p.x - 35 + ((j * 17) % 70),
             y = p.y - 55 + ((t * 160 + j * 13) % 75);
+          if (e.kind === "popcorn") {
+            circle(x, y, 4, "#fff0bc");
+            circle(x - 3, y - 2, 3, "#fff9db");
+            circle(x + 3, y - 2, 3, "#ffe8a1");
+            continue;
+          }
           ctx.strokeStyle = "#b2e9ff";
           ctx.lineWidth = 2;
           ctx.beginPath();
@@ -726,7 +986,7 @@
           ctx.stroke();
         }
         circle(p.x - 15, p.y - 63, 13, "#e1edf4");
-        circle(p.x + 4, p.y - 69, 17, "#f0f3f5");
+        circle(p.x + 4, p.y - 69, 17, e.kind === "popcorn" ? "#fff1cb" : "#f0f3f5");
         circle(p.x + 20, p.y - 61, 12, "#dde7ef");
       } else if (e.kind === "volcano") {
         for (let j = 0; j < 15; j++) {
@@ -774,6 +1034,7 @@
       }
       ctx.restore();
     }
+    drawVisitors(now);
     if (cloudPoint) {
       const p = project(cloudPoint);
       if (p.z > 0) {
@@ -819,6 +1080,10 @@
         message.textContent = "这里没有植物。点树木或蘑菇的根部，就能铲掉。";
         return;
       }
+      if (ufo?.tree && ufo.target === target.t) {
+        message.textContent = "这棵树正在外星飞船里做客，等它回来再铲吧。";
+        return;
+      }
       trees.splice(target.i, 1);
       undo = { plant: target.t, until: Date.now() + 8000 };
       residents.forEach((r) => {
@@ -855,7 +1120,14 @@
       window.BoringAchievements?.record("tree");
       message.textContent = "种下一株小苗。把云拖过来下两场雨，看看它会长成什么。";
     } else if (kind === "rain") {
-      wet(p);
+      const weather = document.getElementById("weather-kind").value;
+      if (weather === "popcorn" || (weather === "random" && Math.random() < 0.22)) {
+        kind = "popcorn";
+        residents.forEach((r) => {
+          if (near(r.p, p) < 0.9) residentMood(r, "接住爆米花！", 4);
+        });
+        message.textContent = "这朵云今天不浇水，只管开饭！爆米花不会积成池塘。";
+      } else wet(p);
     } else if (kind === "water") message.textContent = "海里传来一声咕噜。可能有条鱼在唱歌。";
     else message.textContent = "小树晃了晃叶子：你好呀。";
     playSound(kind);
@@ -922,6 +1194,19 @@
     if (click) {
       const c = coords(e),
         p = inverse(c.x, c.y);
+      if (meteor && Math.hypot(c.x - meteorPosition().x, c.y - meteorPosition().y) < 30) {
+        catchMeteor();
+        draw();
+        return;
+      }
+      if (egg) {
+        const ep = project(egg.p);
+        if (ep.z > 0.08 && Math.hypot(c.x - ep.x, c.y - (ep.y - 12)) < 24) {
+          hatch();
+          draw();
+          return;
+        }
+      }
       if (p) {
         if (tool === "dig" || tool === "explore") {
           const hit = trees
@@ -976,10 +1261,13 @@
             ? "点植物铲除，8 秒内可撤销；拖动仍能旋转星球。"
             : "选好啦，点一下星球试试。";
       document.getElementById("seed-controls").hidden = tool !== "tree";
+      document.getElementById("weather-controls").hidden = tool !== "rain";
     }),
   );
   document.getElementById("night").addEventListener("click", (e) => {
     night = !night;
+    if (!night) meteor = null;
+    eventUI();
     e.currentTarget.setAttribute("aria-pressed", String(night));
     e.currentTarget.textContent = night ? "切到白天 ☀" : "切到夜晚 ☾";
     document.querySelector(".planet-room").classList.toggle("is-night", night);
