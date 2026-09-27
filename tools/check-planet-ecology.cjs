@@ -1,3 +1,4 @@
+const preparePlanet = require("./planet-test-ground.cjs");
 const { chromium } = require("playwright");
 const assert = require("node:assert/strict");
 const base = process.env.TEST_BASE || "http://127.0.0.1:18080",
@@ -11,12 +12,19 @@ const base = process.env.TEST_BASE || "http://127.0.0.1:18080",
     await p.goto(base + "/planet.html");
     const initial = await p.evaluate((k) => JSON.parse(localStorage.getItem(k)), key);
     assert.equal(initial.residents.length, 5);
-    const empty = { ...initial, trees: [], ponds: [], yaw: 0, pitch: 0, night: false };
+    const empty = {
+      ...initial,
+      trees: [],
+      ponds: [],
+      yaw: -Math.PI / 80,
+      pitch: Math.PI * 0.15,
+      night: false,
+    };
     await p.evaluate(([k, v]) => localStorage.setItem(k, JSON.stringify(v)), [key, empty]);
     await p.reload();
     await p.locator("#sound").click();
     const state = () => p.evaluate((k) => JSON.parse(localStorage.getItem(k)), key);
-    const click = async (x = 300, y = 169) => {
+    const click = async (x = 300, y = 253) => {
       await p.locator("#planet").scrollIntoViewIfNeeded();
       const b = await p.locator("#planet").boundingBox();
       await p.mouse.click(b.x + (x * b.width) / 600, b.y + (y * b.height) / 510);
@@ -33,7 +41,7 @@ const base = process.env.TEST_BASE || "http://127.0.0.1:18080",
     const grown = await state();
     assert.equal(grown.trees[0].growth, 2);
     assert.equal(grown.ponds[0].water, 3);
-    assert.ok(grown.trees.some((t) => t.type === "mushroom"));
+    assert.ok(grown.trees.every((t) => ["tree", "mushroom", "lamp"].includes(t.type)));
     await p.locator('[data-tool="dig"]').click();
     await click();
     assert.equal((await state()).trees.length, grown.trees.length - 1);
@@ -85,6 +93,7 @@ const base = process.env.TEST_BASE || "http://127.0.0.1:18080",
     });
     m.on("pageerror", (e) => errors.push(e.message));
     await m.goto(base + "/planet.html");
+    await preparePlanet(m);
     await m.locator('[data-tool="tree"]').tap();
     await m.locator("#planet").scrollIntoViewIfNeeded();
     const mb = await m.locator("#planet").boundingBox();

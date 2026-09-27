@@ -277,8 +277,89 @@
     y: Math.sin(lat),
     z: Math.cos(lat) * Math.cos(lon),
   });
-  const land = (p) =>
+  const terrainNoise = (p) =>
     Math.sin(p.x * 5 + p.z * 2) + Math.cos(p.y * 7 - p.z * 3) + Math.sin(p.z * 5 + p.x * 2) > 0.45;
+  // Use the same latitude/longitude cells as the visible green terrain.
+  const land = (p) => {
+    const latitude = Math.asin(Math.max(-1, Math.min(1, p.y)));
+    const longitude = Math.atan2(p.x, p.z);
+    const row = Math.min(29, Math.floor((latitude + Math.PI / 2) / (Math.PI / 30)));
+    const col = Math.min(79, Math.floor((longitude + Math.PI) / (Math.PI / 40)));
+    return terrainNoise(
+      point(-Math.PI / 2 + ((row + 0.5) * Math.PI) / 30, -Math.PI + ((col + 0.5) * Math.PI) / 40),
+    );
+  };
+  function dry(p) {
+    if (!land(p) || ponds.some((q) => near(p, q) < (6 + q.water * 5) / R + 0.035)) return false;
+    // A small shoreline margin keeps feet and plant bases visibly on the ground.
+    return [
+      [0.035, 0, 0],
+      [-0.035, 0, 0],
+      [0, 0.035, 0],
+      [0, -0.035, 0],
+      [0, 0, 0.035],
+      [0, 0, -0.035],
+    ].every(([x, y, z]) => land(normalize({ x: p.x + x, y: p.y + y, z: p.z + z })));
+  }
+  function clearPath(a, b) {
+    const steps = Math.max(1, Math.ceil(near(a, b) / 0.015));
+    for (let i = 1; i <= steps; i++) {
+      const f = i / steps;
+      if (
+        !dry(
+          normalize({
+            x: a.x + (b.x - a.x) * f,
+            y: a.y + (b.y - a.y) * f,
+            z: a.z + (b.z - a.z) * f,
+          }),
+        )
+      )
+        return false;
+    }
+    return true;
+  }
+  const groundPoints = Array.from({ length: 3000 }, (_, i) =>
+    point(Math.asin(1 - (2 * (i + 0.5)) / 3000), i * 2.399963),
+  );
+  function nearestGround(p, occupied = []) {
+    let best = null,
+      distance = Infinity;
+    for (const q of groundPoints) {
+      const d = near(p, q);
+      if (
+        d < distance &&
+        dry(q) &&
+        near(q, volcano) > 0.24 &&
+        occupied.every((t) => near(t, q) > 0.17)
+      ) {
+        best = q;
+        distance = d;
+      }
+    }
+    return best;
+  }
+  function repairGround() {
+    let moved = 0;
+    const placed = trees.filter(dry);
+    for (const t of trees)
+      if (!dry(t)) {
+        const ground = nearestGround(t, placed);
+        if (ground) {
+          Object.assign(t, ground);
+          placed.push(t);
+          moved++;
+        }
+      }
+    for (const r of residents)
+      if (!dry(r.p)) {
+        const ground = nearestGround(r.p);
+        if (ground) {
+          r.p = { ...ground };
+          moved++;
+        }
+      }
+    return moved;
+  }
   function rotate(p) {
     const x = p.x * Math.cos(yaw) + p.z * Math.sin(yaw),
       z = -p.x * Math.sin(yaw) + p.z * Math.cos(yaw);
@@ -307,7 +388,7 @@
   }
   for (let i = 0; i < 55; i++) {
     const p = point(Math.asin(1 - (2 * (i + 0.5)) / 55), i * 2.39996);
-    if (land(p)) trees.push({ ...p, type: "tree", growth: 2 });
+    if (dry(p)) trees.push({ ...p, type: "tree", growth: 2 });
   }
   const colors = ["#f5cb8e", "#e8a7ad", "#b7a8e7", "#d5e9aa", "#99d9ce"];
   for (let i = 0; i < 5; i++)
@@ -319,6 +400,8 @@
       seed: i * 1.9,
     });
   loadWorld();
+  if (repairGround())
+    message.textContent = "已经把水上的居民和植物搬回陆地，原来的品种和生长状态都保留了。";
   function residentMood(r, text, seconds = 4) {
     r.mood = text;
     r.until = performance.now() + seconds * 1000;
@@ -334,15 +417,23 @@
     if (land(p)) {
       if (pond) pond.water = Math.min(3, pond.water + 1);
       else if (ponds.length < 12) {
-        pond = { ...p, water: 1 };
-        ponds.push(pond);
+        const basin = nearestGround(p, trees);
+        if (basin && near(basin, p) < 0.45) {
+          pond = { ...basin, water: 1 };
+          ponds.push(pond);
+        }
       }
     }
     if (pond?.water === 3 && trees.length < MAX_PLANTS) {
       const candidate = normalize({ x: p.x + 0.28, y: p.y + 0.05, z: p.z + 0.06 });
-      if (trees.every((t) => near(t, candidate) > 0.16) && near(candidate, volcano) > 0.24)
+      if (
+        dry(candidate) &&
+        trees.every((t) => near(t, candidate) > 0.16) &&
+        near(candidate, volcano) > 0.24
+      )
         trees.push({ ...candidate, type: "mushroom", growth: 1 });
     }
+    repairGround();
     residents.forEach((r) => {
       if (near(r.p, p) < 0.9) residentMood(r, "找树躲雨！");
     });
@@ -356,8 +447,10 @@
     for (const r of residents) {
       if (r.mood === "吓一跳！" && now < r.until) continue;
       const raining = effects.some((e) => e.kind === "rain" && near(e.p, r.p) < 0.9);
-      const shelter = trees
-        .filter((t) => t.type === "tree" && t.growth === 2)
+      const shelter = (raining ? trees : [])
+        .filter(
+          (t) => t.type === "tree" && t.growth === 2 && near(t, r.p) < 0.9 && clearPath(r.p, t),
+        )
         .sort((a, b) => near(a, r.p) - near(b, r.p))[0];
       let target;
       if (raining && shelter) {
@@ -375,11 +468,27 @@
       if (target) {
         const distance = near(target, r.p);
         const step = Math.min(1, (dt * (raining ? 0.2 : 0.045)) / Math.max(0.02, distance));
-        r.p = normalize({
+        const next = normalize({
           x: r.p.x + (target.x - r.p.x) * step,
           y: r.p.y + (target.y - r.p.y) * step,
           z: r.p.z + (target.z - r.p.z) * step,
         });
+        if (clearPath(r.p, next)) r.p = next;
+        else {
+          // Turn along the shore instead of walking through water.
+          for (let turn = 0; turn < 8; turn++) {
+            const a = r.seed + (turn * Math.PI) / 4;
+            const candidate = normalize({
+              x: r.p.x + Math.cos(a) * dt * 0.06,
+              y: r.p.y + Math.sin(a) * dt * 0.06,
+              z: r.p.z + Math.sin(a + 0.8) * dt * 0.06,
+            });
+            if (clearPath(r.p, candidate)) {
+              r.p = candidate;
+              break;
+            }
+          }
+        }
       }
       if (
         !raining &&
@@ -428,7 +537,7 @@
   for (let a = -Math.PI / 2; a < Math.PI / 2 - 0.01; a += Math.PI / 30)
     for (let b = -Math.PI; b < Math.PI; b += Math.PI / 40) {
       const mid = point(a + Math.PI / 60, b + Math.PI / 80);
-      if (land(mid))
+      if (terrainNoise(mid))
         patches.push({
           mid,
           points: [
@@ -725,6 +834,10 @@
       residents.forEach((r) => residentMood(r, "吓一跳！"));
       message.textContent = "阿——嚏！居民吓得停住了脚步。";
     } else if (kind === "tree") {
+      if (!dry(p)) {
+        message.textContent = "这里是水面或岸边，植物要种在陆地里。换块绿色的空地吧。";
+        return;
+      }
       if (
         trees.length >= MAX_PLANTS ||
         trees.some((t) => near(t, p) < 0.17) ||
@@ -756,8 +869,12 @@
       status();
       return;
     }
-    if (trees.length >= MAX_PLANTS || trees.some((t) => near(t, undo.plant) < 0.17)) {
-      message.textContent = "原来的位置已被新植物占用，暂时不能放回去。";
+    if (
+      !dry(undo.plant) ||
+      trees.length >= MAX_PLANTS ||
+      trees.some((t) => near(t, undo.plant) < 0.17)
+    ) {
+      message.textContent = "原来的位置已被植物或池塘占用，暂时不能放回去。";
       return;
     }
     trees.push(undo.plant);
