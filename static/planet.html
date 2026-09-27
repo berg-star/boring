@@ -37,7 +37,7 @@
         </div>
         <section class="planet-room">
           <div class="planet-top">
-            <span class="pill">随便探索中</span>
+            <span class="pill" id="planet-count">随便探索中</span>
             <div class="planet-switches">
               <button
                 id="sound"
@@ -68,19 +68,29 @@
         </section>
         <div class="filters planet-tools" role="group" aria-label="探索方式">
           <button class="active" data-tool="explore" aria-pressed="true">✧ 随便点点</button>
-          <button data-tool="tree" aria-pressed="false">♧ 种棵树</button>
+          <button data-tool="tree" aria-pressed="false">♧ 种点东西</button>
+          <button data-tool="dig" aria-pressed="false">小铲子</button>
           <button data-tool="rain" aria-pressed="false">☂ 下场雨</button>
           <button data-tool="volcano" aria-pressed="false">△ 火山喷嚏</button>
         </div>
+        <div id="seed-controls" class="planet-seeds" hidden>
+          <label for="seed-kind">种什么</label>
+          <select id="seed-kind">
+            <option value="tree">小树苗</option>
+            <option value="mushroom">蘑菇</option>
+            <option value="surprise">神秘种子 · 可能长出路灯</option>
+          </select>
+        </div>
         <div class="game-actions">
+          <button id="undo-plant" class="secondary" type="button" hidden>撤销刚才的铲除</button>
           <button id="surprise-event" class="primary" type="button">星球，整点活 ↗</button>
         </div>
         <p class="help">
-          海里藏着小动静，树也喜欢被打招呼。
+          种苗 → 拖云下雨 → 长大；连下几场雨会留下池塘。小居民会来躲雨，夜里会睡觉。
           <br />
           键盘也能玩：方向键旋转，回车触发事件。
           <br />
-          这是一场随手探索，刷新后星球重新开始。
+          <span id="planet-save">星球自动保存在当前浏览器。</span>
         </p>
       </main>
       <footer>
