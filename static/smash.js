@@ -541,7 +541,7 @@
       if (!b) return;
       b.popped = true;
       b.at = performance.now();
-      b.restoreAt = regenerate ? b.at + 500 + Math.random() * 700 : Infinity;
+      b.restoreAt = regenerate ? b.at + 2000 + Math.random() * 2000 : Infinity;
       feedback("pop");
       const remaining = bubbles.filter((b) => !b.popped).length;
       canvas.dataset.popped = String(40 - remaining);
@@ -654,13 +654,13 @@
     regenerate = !regenerate;
     const now = performance.now();
     for (const b of bubbles)
-      if (b.popped) b.restoreAt = regenerate ? now + 500 + Math.random() * 700 : Infinity;
+      if (b.popped) b.restoreAt = regenerate ? now + 2000 + Math.random() * 2000 : Infinity;
     labels();
     save();
     draw();
     if (bubblesPending()) wake(1500);
     $("smash-message").textContent = regenerate
-      ? "它们会很快鼓回来，慢慢戳。"
+      ? "它们会在 2～4 秒后陆续鼓回来，慢慢戳。"
       : "这一桌可以一颗不剩地戳完。";
   });
   $("haptic").addEventListener("click", () => {
