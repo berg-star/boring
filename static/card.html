@@ -97,14 +97,28 @@
           <button class="secondary" id="favorite" type="button" disabled aria-pressed="false">
             ♡ 收藏这张
           </button>
-          <button class="secondary" id="share-card" type="button" disabled>生成分享图 ↓</button>
+          <button
+            class="secondary"
+            id="share-card"
+            type="button"
+            disabled
+            aria-controls="card-image"
+            aria-expanded="false"
+          >
+            生成分享卡片 ↓
+          </button>
         </div>
         <p id="api-error" class="error" role="status"></p>
-        <div id="card-image" hidden>
+        <section id="card-image" hidden aria-label="分享卡片预览">
+          <div class="share-heading">
+            <h2>把这张快乐带走</h2>
+            <button id="close-card-image" class="secondary" type="button">收起预览</button>
+          </div>
+          <p class="help">完整卡片已附上无聊研究所名字和网址，保存后就能发给朋友。</p>
           <img id="share-preview" alt="可保存分享的完整卡片" />
-          <a id="download-card" class="secondary">下载图片 ↓</a>
-          <p class="help">手机也可以长按图片保存。</p>
-        </div>
+          <a id="download-card" class="primary">保存 PNG 图片 ↓</a>
+          <p class="help">手机也可以长按图片保存；若下载未弹出，请使用长按保存。</p>
+        </section>
         <details id="collection" class="collection">
           <summary>
             我的收藏册
