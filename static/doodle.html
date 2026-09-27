@@ -42,6 +42,15 @@
           <div class="doodle-top">
             <span id="mode-label" class="pill">01 / 画一个小东西</span>
             <span class="doodle-stamp">生命力，随手制造。</span>
+            <button
+              id="edit"
+              class="secondary"
+              type="button"
+              hidden
+              aria-label="退出活动，回到画纸，保留当前画作"
+            >
+              退出活动
+            </button>
           </div>
           <div id="paint-tools" class="doodle-tools">
             <fieldset>
@@ -58,6 +67,7 @@
             </label>
             <button id="undo" class="secondary" type="button">撤销一笔</button>
             <button id="clear" class="secondary" type="button">清空画纸</button>
+            <button id="recolor" class="secondary" type="button">整幅换色</button>
           </div>
           <div class="doodle-paper">
             <canvas
@@ -82,25 +92,30 @@
               <option value="object">日常物品</option>
               <option value="abstract">抽象乱画</option>
             </select>
-            <button id="recolor" class="secondary" type="button">整幅换成当前笔色</button>
-          </div>
-          <div id="featured-models" class="doodle-motions" role="group" aria-label="推荐造型">
-            <button data-preset="walker" class="secondary">长脚怪</button>
-            <button data-preset="octopus" class="secondary">触手球</button>
-            <button data-preset="sock" class="secondary">袜子</button>
-            <button data-preset="spring" class="secondary">弹簧</button>
-            <button data-preset="cup" class="secondary">杯子 · 硬橡皮</button>
-            <button data-preset="toast" class="secondary">吐司 · 硬橡皮</button>
-          </div>
-          <div id="edit-actions" class="game-actions">
-            <button id="alive" class="primary" type="button">让它活过来 ✳</button>
             <button id="sample" class="secondary" type="button">随机来个东西 ↻</button>
           </div>
+          <details id="featured-models" class="doodle-options" open>
+            <summary>
+              直接选一个造型
+              <span>6 种推荐</span>
+            </summary>
+            <div class="doodle-motions" role="group" aria-label="推荐造型">
+              <button data-preset="walker" class="secondary">长脚怪</button>
+              <button data-preset="octopus" class="secondary">触手球</button>
+              <button data-preset="sock" class="secondary">袜子</button>
+              <button data-preset="spring" class="secondary">弹簧</button>
+              <button data-preset="cup" class="secondary">杯子 · 硬橡皮</button>
+              <button data-preset="toast" class="secondary">吐司 · 硬橡皮</button>
+            </div>
+          </details>
+          <div id="edit-actions" class="game-actions">
+            <button id="alive" class="primary" type="button">让它活过来 ✳</button>
+          </div>
           <div id="live-actions" hidden>
-            <div class="doodle-motions" role="group" aria-label="揉捏工具">
-              <button data-tool="pull" class="secondary" aria-pressed="true">抓住拉一拉</button>
+            <div class="doodle-motions doodle-primary-tools" role="group" aria-label="直接操作涂鸦">
+              <button data-tool="pull" class="secondary" aria-pressed="true">抓拉</button>
               <button data-tool="wind" class="secondary" aria-pressed="false">吹风机</button>
-              <button data-tool="press" class="secondary" aria-pressed="false">局部按压</button>
+              <button data-tool="press" class="secondary" aria-pressed="false">按压</button>
             </div>
             <div id="wind-controls" hidden>
               <div class="doodle-motions">
@@ -119,36 +134,46 @@
                 按住画纸移动吹风机，松手停风；也可以点击“开启吹风”。暂停或离开页面会自动停风。
               </p>
             </div>
-            <div class="doodle-motions" role="group" aria-label="材料手感">
-              <button data-material="soft" class="secondary" aria-pressed="true">
-                软果冻 · 晃悠悠
-              </button>
-              <button data-material="firm" class="secondary" aria-pressed="false">
-                硬橡皮 · 弹得快
-              </button>
-              <button data-material="paper" class="secondary" aria-pressed="false">
-                纸片 · 轻飘飘
-              </button>
-            </div>
-            <div class="doodle-stages" role="group" aria-label="选择舞台">
-              <button data-stage="desk" class="secondary" aria-pressed="true">普通桌面</button>
-              <button data-stage="trampoline" class="secondary" aria-pressed="false">大蹦床</button>
-              <button data-stage="moon" class="secondary" aria-pressed="false">低重力月球</button>
-            </div>
-            <p id="stage-help" class="help">抓住涂鸦往上提，再松手。快速甩动可以抛出去。</p>
-            <div class="doodle-motions" role="group" aria-label="选择动作">
-              <button data-motion="rest" class="secondary" aria-pressed="true">安静待着</button>
-              <button data-motion="jelly" class="secondary" aria-pressed="false">果冻扭动</button>
-              <button data-motion="jump" class="secondary" aria-pressed="false">原地蹦跶</button>
-            </div>
-            <div class="game-actions">
+            <div class="game-actions doodle-quick-actions">
               <button id="shake" class="secondary" type="button">抖桌子</button>
               <button id="poke" class="primary" type="button">戳它一下 ☞</button>
               <button id="pause" class="secondary" type="button" aria-pressed="false">
                 暂停动作
               </button>
-              <button id="edit" class="secondary" type="button">回去补几笔</button>
             </div>
+            <details id="live-settings" class="doodle-options" open>
+              <summary>
+                更多玩法设置
+                <span>材质 · 舞台 · 自动动作</span>
+              </summary>
+              <p class="option-label">材料手感</p>
+              <div class="doodle-motions" role="group" aria-label="材料手感">
+                <button data-material="soft" class="secondary" aria-pressed="true">
+                  软果冻 · 晃悠悠
+                </button>
+                <button data-material="firm" class="secondary" aria-pressed="false">
+                  硬橡皮 · 弹得快
+                </button>
+                <button data-material="paper" class="secondary" aria-pressed="false">
+                  纸片 · 轻飘飘
+                </button>
+              </div>
+              <p class="option-label">舞台</p>
+              <div class="doodle-stages" role="group" aria-label="选择舞台">
+                <button data-stage="desk" class="secondary" aria-pressed="true">普通桌面</button>
+                <button data-stage="trampoline" class="secondary" aria-pressed="false">
+                  大蹦床
+                </button>
+                <button data-stage="moon" class="secondary" aria-pressed="false">低重力月球</button>
+              </div>
+              <p id="stage-help" class="help">抓住涂鸦往上提，再松手。快速甩动可以抛出去。</p>
+              <p class="option-label">自动动作</p>
+              <div class="doodle-motions" role="group" aria-label="选择动作">
+                <button data-motion="rest" class="secondary" aria-pressed="true">安静待着</button>
+                <button data-motion="jelly" class="secondary" aria-pressed="false">果冻扭动</button>
+                <button data-motion="jump" class="secondary" aria-pressed="false">原地蹦跶</button>
+              </div>
+            </details>
           </div>
           <p id="doodle-error" class="error" role="status"></p>
           <p id="doodle-save" class="help" role="status"></p>

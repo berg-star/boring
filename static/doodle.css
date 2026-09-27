@@ -291,3 +291,177 @@ button:disabled {
     padding: 14px;
   }
 }
+
+/* Keep the primary actions visible; optional controls are grouped by purpose. */
+.is-playing .doodle-stamp {
+  display: none;
+}
+#edit {
+  padding: 10px 14px;
+  min-height: 44px;
+  white-space: nowrap;
+}
+.doodle-options {
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 12px 16px;
+  margin: 14px 0;
+}
+.doodle-options summary {
+  cursor: pointer;
+  color: #e2eedb;
+  min-height: 24px;
+  line-height: 24px;
+}
+.doodle-options summary span {
+  color: var(--muted);
+  font-size: 12px;
+  margin-left: 8px;
+}
+.option-label {
+  font-size: 12px;
+  color: var(--muted);
+  margin: 18px 0 8px;
+}
+#live-settings .doodle-motions,
+#live-settings .doodle-stages {
+  margin: 8px 0;
+}
+#live-actions {
+  display: flex;
+  flex-direction: column;
+}
+#live-actions > .doodle-primary-tools {
+  order: 0;
+}
+#wind-controls {
+  order: 1;
+}
+#live-settings {
+  order: 2;
+}
+.doodle-quick-actions {
+  order: 3;
+}
+@media (max-width: 600px) {
+  .doodle-top {
+    position: sticky;
+    top: 0;
+    z-index: 5;
+    background: #1b231f;
+    padding: 8px 0;
+    margin-bottom: 12px;
+    border-bottom: 1px solid var(--border);
+  }
+  .doodle-top .pill {
+    font-size: 11px;
+  }
+  .doodle-primary-tools {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    margin: 8px 0;
+  }
+  .doodle-primary-tools button {
+    padding: 11px 6px;
+    min-height: 44px;
+  }
+  .doodle-quick-actions {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 8px;
+    margin: 8px 0;
+    order: 2;
+  }
+  .doodle-quick-actions button {
+    padding: 10px 4px;
+    min-height: 44px;
+  }
+  #live-settings {
+    order: 3;
+  }
+  .doodle-options {
+    padding: 10px 12px;
+    margin: 12px 0;
+  }
+  .doodle-options summary {
+    min-height: 24px;
+  }
+  .doodle-options summary span {
+    display: block;
+    margin-left: 16px;
+    line-height: 18px;
+  }
+  .model-picker {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 8px;
+    margin: 12px 0;
+  }
+  .model-picker label {
+    grid-column: 1 / -1;
+  }
+  .model-picker select {
+    width: 100%;
+    min-width: 0;
+    font-size: 12px;
+    padding: 10px 6px;
+  }
+  .model-picker #sample {
+    width: auto;
+    padding: 10px 8px;
+    font-size: 12px;
+    min-height: 44px;
+  }
+  #recolor {
+    grid-column: 1 / -1;
+  }
+  #edit-actions {
+    margin-top: 12px;
+  }
+  #edit-actions #alive {
+    width: 100%;
+  }
+  #doodle-speech {
+    font-size: 14px;
+    line-height: 1.5;
+    margin: 12px 0;
+    min-height: 21px;
+  }
+  #wind-controls .doodle-motions {
+    gap: 6px;
+    margin: 8px 0;
+    align-items: center;
+  }
+  #wind-controls .doodle-motions button {
+    flex: 1;
+    padding: 10px 6px;
+    min-height: 44px;
+  }
+  #wind-controls label {
+    font-size: 12px;
+  }
+  #wind-controls select {
+    width: auto;
+    padding: 8px;
+  }
+  #wind-controls .help {
+    font-size: 12px;
+    margin: 6px 0 12px;
+  }
+}
+@media (max-width: 600px) {
+  .doodle-room:not(.is-playing) .doodle-top {
+    position: static;
+  }
+  #palette button {
+    width: 44px;
+    height: 44px;
+  }
+  #doodle-error:empty {
+    display: none;
+  }
+  #doodle-save {
+    margin: 12px 0 0;
+    font-size: 12px;
+  }
+}

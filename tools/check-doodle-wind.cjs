@@ -94,6 +94,7 @@ const assert = require("node:assert/strict");
     });
     m.on("pageerror", (e) => errors.push(e.message));
     await m.goto((process.env.BASE_URL || "http://127.0.0.1:18080") + "/doodle.html");
+    await m.locator("#featured-models summary").click();
     await m.locator('[data-preset="octopus"]').click();
     await m.locator("#alive").click();
     await m.locator('[data-tool="wind"]').click();

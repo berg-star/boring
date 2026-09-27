@@ -11,6 +11,13 @@
     ["蓝色", "#598cae"],
     ["紫色", "#9b70ac"],
   ];
+  const mobileLayout = matchMedia("(max-width: 600px)");
+  function arrangeControls() {
+    $("featured-models").open = !mobileLayout.matches;
+    $("live-settings").open = !mobileLayout.matches;
+  }
+  arrangeControls();
+  mobileLayout.addEventListener("change", arrangeControls);
   const reduced = matchMedia("(prefers-reduced-motion: reduce)");
   let strokes = [],
     active = null,
@@ -538,13 +545,17 @@
       $("featured-models").hidden =
         true;
     $("live-actions").hidden = false;
+    $("edit").hidden = false;
+    document.querySelector(".doodle-room").classList.add("is-playing");
     $("paper-hint").hidden = true;
     canvas.classList.add("is-live");
     canvas.setAttribute("aria-label", "活动中的涂鸦，可拉扯、按压、吹风；回车或空格可以戳一下。");
-    $("mode-label").textContent = "02 / 它有自己的想法了";
+    $("mode-label").textContent = "02 / 活动中";
     $("doodle-speech").textContent = "抓住一个角拉一拉，松手看看它怎么弹回来。";
     start();
-    $("poke").focus();
+    $("edit").focus({ preventScroll: true });
+    if (mobileLayout.matches)
+      document.querySelector(".doodle-top").scrollIntoView({ block: "start" });
   });
   $("edit").addEventListener("click", () => {
     if (pointer !== null) finish({ pointerId: pointer }, true);
@@ -558,12 +569,16 @@
       $("featured-models").hidden =
         false;
     $("live-actions").hidden = true;
+    $("edit").hidden = true;
+    document.querySelector(".doodle-room").classList.remove("is-playing");
     canvas.classList.remove("is-live");
     canvas.setAttribute("aria-label", "涂鸦画纸，可用鼠标或手指绘画。不会画也可以用下方示例。");
     $("mode-label").textContent = "01 / 画一个小东西";
     $("doodle-speech").textContent = "给它补两笔，它会不会更有精神？";
     drawEditor();
-    canvas.focus();
+    canvas.focus({ preventScroll: true });
+    if (mobileLayout.matches)
+      document.querySelector(".doodle-top").scrollIntoView({ block: "start" });
   });
   const sayings = {
     rest: "抓住一个角拉一拉，或者换成按压，揉出一个小凹坑。",
