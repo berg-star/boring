@@ -1092,7 +1092,7 @@
         } else frame = requestAnimationFrame(draw);
       });
   }
-  function act(p) {
+  function act(p, weatherOverride = null) {
     let kind = tool;
     const closestResident = residents.find((r) => near(r.p, p) < 0.12);
     if (kind === "explore") {
@@ -1160,7 +1160,7 @@
       window.BoringAchievements?.record("tree");
       message.textContent = "种下一株小苗。把云拖过来下两场雨，看看它会长成什么。";
     } else if (kind === "rain") {
-      const weather = document.getElementById("weather-kind").value;
+      const weather = weatherOverride || document.getElementById("weather-kind").value;
       if (weather === "popcorn" || (weather === "random" && Math.random() < 0.22)) {
         kind = "popcorn";
         residents.forEach((r) => {
@@ -1311,12 +1311,46 @@
     saveWorld();
     draw();
   });
-  document.getElementById("surprise-event").addEventListener("click", () => {
+  function surpriseEvent() {
+    const available = [];
+    const emptyLand =
+      trees.length < MAX_PLANTS
+        ? groundPoints.filter(
+            (p) => dry(p) && near(p, volcano) >= 0.24 && trees.every((t) => near(t, p) >= 0.17),
+          )
+        : [];
+    if (emptyLand.length)
+      available.push({ kind: "tree", points: emptyLand, label: "种下一株小苗" });
+    const plants = trees.filter((t) => dry(t) && !(ufo?.tree && ufo.target === t));
+    if (plants.length) {
+      const seedlings = plants.filter((t) => t.growth < 2);
+      available.push({
+        kind: "rain",
+        points: seedlings.length ? seedlings : plants,
+        label: "给植物下了一场雨",
+      });
+    }
+    available.push({ kind: "volcano", points: [volcano], label: "让火山打个喷嚏" });
+    const sea = groundPoints.filter((p) => !land(p));
+    if (sea.length) available.push({ kind: "water", points: sea, label: "在海面冒了个泡" });
+    const event = available[Math.floor(Math.random() * available.length)];
+    const visible = event.points.filter((p) => project(p).z > 0.45);
+    const choices = visible.length ? visible : event.points;
+    const target = choices[Math.floor(Math.random() * choices.length)];
+    yaw = -Math.atan2(target.x, target.z);
+    pitch = Math.asin(target.y);
     const previous = tool;
-    tool = ["tree", "rain", "volcano", "water"][Math.floor(Math.random() * 4)];
-    act(inverse(CX, CY));
-    tool = previous;
-  });
+    try {
+      tool = event.kind;
+      act(target, "rain");
+    } finally {
+      tool = previous;
+    }
+    message.textContent = "这次整活：" + event.label + "。" + message.textContent;
+    draw();
+    canvas.scrollIntoView({ block: "nearest", behavior: "auto" });
+  }
+  document.getElementById("surprise-event").addEventListener("click", surpriseEvent);
   document.querySelector(".planet-room").classList.toggle("is-night", night);
   document.getElementById("night").setAttribute("aria-pressed", String(night));
   document.getElementById("night").textContent = night ? "切到白天 ☀" : "切到夜晚 ☾";

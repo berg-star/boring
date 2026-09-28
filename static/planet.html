@@ -79,6 +79,19 @@
               </button>
             </div>
           </div>
+          <div class="filters planet-tools" role="group" aria-label="探索方式">
+            <button class="active" data-tool="explore" aria-pressed="true">✧ 随便点点</button>
+            <button data-tool="tree" aria-pressed="false">♧ 种点东西</button>
+            <button data-tool="dig" aria-pressed="false">小铲子</button>
+          </div>
+          <div id="seed-controls" class="planet-seeds" hidden>
+            <label for="seed-kind">种什么</label>
+            <select id="seed-kind">
+              <option value="tree">小树苗</option>
+              <option value="mushroom">蘑菇</option>
+              <option value="surprise">神秘种子 · 可能长出路灯</option>
+            </select>
+          </div>
           <div class="planet-hint" aria-live="polite" aria-atomic="true">
             <strong id="planet-tool-name">当前：随便点点</strong>
             <p id="planet-tool-hint">拖动旋转星球；轻点居民、树木、海水或火山，看看会发生什么。</p>
@@ -89,23 +102,6 @@
           </div>
           <p id="planet-message" role="status">这座火山看起来有点鼻子痒。</p>
         </section>
-        <div class="filters planet-tools" role="group" aria-label="探索方式">
-          <button class="active" data-tool="explore" aria-pressed="true">✧ 随便点点</button>
-          <button data-tool="tree" aria-pressed="false">♧ 种点东西</button>
-          <button data-tool="dig" aria-pressed="false">小铲子</button>
-        </div>
-        <p class="planet-rotate-help">拖动星球即可旋转；下雨时，先切回“随便点点”。</p>
-        <div id="seed-controls" class="planet-seeds" hidden>
-          <label for="seed-kind">种什么</label>
-          <select id="seed-kind">
-            <option value="tree">小树苗</option>
-            <option value="mushroom">蘑菇</option>
-            <option value="surprise">神秘种子 · 可能长出路灯</option>
-          </select>
-        </div>
-        <div class="game-actions planet-quick-action">
-          <button id="surprise-event" class="primary" type="button">星球，整点活 ↗</button>
-        </div>
         <details id="planet-more" class="planet-more">
           <summary>
             <span>
@@ -114,6 +110,10 @@
             </span>
             <span id="planet-more-state"></span>
           </summary>
+          <div class="game-actions planet-quick-action">
+            <button id="surprise-event" class="primary" type="button">星球，整点活 ↗</button>
+          </div>
+          <p class="planet-surprise-help">自动找位置，给星球安排一件能发生的小事。</p>
           <div class="planet-more-body">
             <section aria-labelledby="planet-weather-title">
               <h2 id="planet-weather-title">天气与火山</h2>
