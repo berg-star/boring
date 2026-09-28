@@ -1,20 +1,502 @@
 [
-  {"question":"如果猫突然会说话，你觉得它第一句话会吐槽谁？"},
-  {"question":"如果今天必须删除一种食物，你删什么？"},
-  {"question":"如果你可以暂停时间 10 分钟，你第一件事干嘛？"},
-  {"question":"如果你的电脑会说话，它最想投诉你什么？"},
-  {"question":"如果每天起床都有背景音乐，你想选哪一首？"},
-  {"question":"如果周一变成一种动物，它会是什么？"},
-  {"question":"如果你的影子有一天请假了，它会去哪儿？"},
-  {"question":"如果冰箱里只能放三样东西，你会选什么？"},
-  {"question":"如果外星人让你用一道菜介绍地球，你端什么上桌？"},
-  {"question":"如果你能和十年前的自己聊一句话，但只能聊零食，你说什么？"},
-  {"question":"如果电梯能随机带你去一个虚构世界，你想去哪儿？"},
-  {"question":"如果所有人头上都显示一个状态，你今天会显示什么？"},
-  {"question":"如果你的床需要写年终总结，它会怎么评价你？"},
-  {"question":"如果生活有撤销键，你最近会撤销哪件小事？"},
-  {"question":"如果你能把一种声音静音一整天，你会选什么？"},
-  {"question":"如果一只鸭子坚持跟着你上班，你准备给它安排什么岗位？"},
-  {"question":"如果你的手机相册办一场展览，展览的名字是什么？"},
-  {"question":"如果你突然拥有一个完全没用的超能力，你希望它有多没用？"}
+  {
+    "id": "q-001",
+    "category": "objects",
+    "question": "如果猫突然会说话，你觉得它第一句话会吐槽谁？"
+  },
+  {
+    "id": "q-002",
+    "category": "choice",
+    "question": "如果今天必须删除一种食物，你删什么？"
+  },
+  {
+    "id": "q-003",
+    "category": "imagination",
+    "question": "如果你可以暂停时间 10 分钟，你第一件事干嘛？"
+  },
+  {
+    "id": "q-004",
+    "category": "objects",
+    "question": "如果你的电脑会说话，它最想投诉你什么？"
+  },
+  {
+    "id": "q-005",
+    "category": "life",
+    "question": "如果每天起床都有背景音乐，你想选哪一首？"
+  },
+  {
+    "id": "q-006",
+    "category": "imagination",
+    "question": "如果周一变成一种动物，它会是什么？"
+  },
+  {
+    "id": "q-007",
+    "category": "objects",
+    "question": "如果你的影子有一天请假了，它会去哪儿？"
+  },
+  {
+    "id": "q-008",
+    "category": "choice",
+    "question": "如果冰箱里只能放三样东西，你会选什么？"
+  },
+  {
+    "id": "q-009",
+    "category": "imagination",
+    "question": "如果外星人让你用一道菜介绍地球，你端什么上桌？"
+  },
+  {
+    "id": "q-010",
+    "category": "life",
+    "question": "如果你能和十年前的自己聊一句话，但只能聊零食，你说什么？"
+  },
+  {
+    "id": "q-011",
+    "category": "imagination",
+    "question": "如果电梯能随机带你去一个虚构世界，你想去哪儿？"
+  },
+  {
+    "id": "q-012",
+    "category": "life",
+    "question": "如果所有人头上都显示一个状态，你今天会显示什么？"
+  },
+  {
+    "id": "q-013",
+    "category": "objects",
+    "question": "如果你的床需要写年终总结，它会怎么评价你？"
+  },
+  {
+    "id": "q-014",
+    "category": "life",
+    "question": "如果生活有撤销键，你最近会撤销哪件小事？"
+  },
+  {
+    "id": "q-015",
+    "category": "choice",
+    "question": "如果你能把一种声音静音一整天，你会选什么？"
+  },
+  {
+    "id": "q-016",
+    "category": "objects",
+    "question": "如果一只鸭子坚持跟着你上班，你准备给它安排什么岗位？"
+  },
+  {
+    "id": "q-017",
+    "category": "life",
+    "question": "如果你的手机相册办一场展览，展览的名字是什么？"
+  },
+  {
+    "id": "q-018",
+    "category": "imagination",
+    "question": "如果你突然拥有一个完全没用的超能力，你希望它有多没用？"
+  },
+  {
+    "id": "q-019",
+    "category": "imagination",
+    "question": "如果月亮可以出租一晚，你会拿它办什么活动？"
+  },
+  {
+    "id": "q-020",
+    "category": "imagination",
+    "question": "假如梦境也有便利店，里面卖得最好的东西是什么？"
+  },
+  {
+    "id": "q-021",
+    "category": "imagination",
+    "question": "如果能把一段气味装进瓶子，你想随身带着哪一种？"
+  },
+  {
+    "id": "q-022",
+    "category": "imagination",
+    "question": "如果城市每天随机换一种颜色，你最期待哪一天？"
+  },
+  {
+    "id": "q-023",
+    "category": "imagination",
+    "question": "假如云朵可以坐，你想搭哪种形状的云去哪里？"
+  },
+  {
+    "id": "q-024",
+    "category": "imagination",
+    "question": "如果时间有味道，周五下午会是什么味？"
+  },
+  {
+    "id": "q-025",
+    "category": "imagination",
+    "question": "如果每个人都能带一个随身小天气，你今天会带什么？"
+  },
+  {
+    "id": "q-026",
+    "category": "imagination",
+    "question": "假如你住进一本书，想把自己的房间安在哪一页？"
+  },
+  {
+    "id": "q-027",
+    "category": "imagination",
+    "question": "如果一颗星球只围着你家转，你会给它定什么规矩？"
+  },
+  {
+    "id": "q-028",
+    "category": "imagination",
+    "question": "假如彩虹少了一种颜色，你想拿什么新颜色补上？"
+  },
+  {
+    "id": "q-029",
+    "category": "imagination",
+    "question": "如果重力每周休息一小时，你会提前准备什么？"
+  },
+  {
+    "id": "q-030",
+    "category": "imagination",
+    "question": "假如雨滴落地前能传一句话，你希望今天下什么雨？"
+  },
+  {
+    "id": "q-031",
+    "category": "imagination",
+    "question": "如果能给宇宙增加一条完全无用的规则，你会写什么？"
+  },
+  {
+    "id": "q-032",
+    "category": "imagination",
+    "question": "假如镜子能映出十分钟后的房间，你最先检查什么？"
+  },
+  {
+    "id": "q-033",
+    "category": "imagination",
+    "question": "如果地球突然收到一个巨大快递，你觉得寄件人是谁？"
+  },
+  {
+    "id": "q-034",
+    "category": "imagination",
+    "question": "假如所有路都能通向你想去的地方，今天你会出门吗？"
+  },
+  {
+    "id": "q-035",
+    "category": "imagination",
+    "question": "如果声音可以变成实体，你最想摸一摸哪种声音？"
+  },
+  {
+    "id": "q-036",
+    "category": "imagination",
+    "question": "假如一粒米里藏着一个世界，那里的居民最怕什么？"
+  },
+  {
+    "id": "q-037",
+    "category": "imagination",
+    "question": "如果你能给夜空加一个按钮，这个按钮会做什么？"
+  },
+  {
+    "id": "q-038",
+    "category": "imagination",
+    "question": "假如忘记的东西都住在同一座岛上，你上岛先找什么？"
+  },
+  {
+    "id": "q-039",
+    "category": "life",
+    "question": "今天要是拍成一集电视剧，这一集叫什么名字？"
+  },
+  {
+    "id": "q-040",
+    "category": "life",
+    "question": "给你一天当一家小店的老板，你想卖哪种奇怪商品？"
+  },
+  {
+    "id": "q-041",
+    "category": "life",
+    "question": "如果晚饭能决定今晚的梦，你会点什么？"
+  },
+  {
+    "id": "q-042",
+    "category": "life",
+    "question": "假如你的日常有片尾彩蛋，最近会出现什么画面？"
+  },
+  {
+    "id": "q-043",
+    "category": "life",
+    "question": "如果今天只留下一张照片，你想拍哪一刻？"
+  },
+  {
+    "id": "q-044",
+    "category": "life",
+    "question": "你愿意把哪件不起眼的小事设成每天的节日？"
+  },
+  {
+    "id": "q-045",
+    "category": "life",
+    "question": "假如你的房间要参加选美，哪个角落最有胜算？"
+  },
+  {
+    "id": "q-046",
+    "category": "life",
+    "question": "如果你给自己写一张夸张的使用说明，第一条是什么？"
+  },
+  {
+    "id": "q-047",
+    "category": "life",
+    "question": "有什么东西买的时候很认真，用起来却很随意？"
+  },
+  {
+    "id": "q-048",
+    "category": "life",
+    "question": "如果家门口突然开了一家你设计的早餐店，招牌菜是什么？"
+  },
+  {
+    "id": "q-049",
+    "category": "life",
+    "question": "你想给哪种普通食物颁一个毫无必要的奖？"
+  },
+  {
+    "id": "q-050",
+    "category": "life",
+    "question": "如果通勤路上能多一个站点，你希望它通向哪里？"
+  },
+  {
+    "id": "q-051",
+    "category": "life",
+    "question": "假如今晚有一小时可以毫无理由地浪费，你打算怎么花？"
+  },
+  {
+    "id": "q-052",
+    "category": "life",
+    "question": "你会把哪件小物品放进“证明我来过地球”的盒子里？"
+  },
+  {
+    "id": "q-053",
+    "category": "life",
+    "question": "如果周末可以取名字，这个周末你会叫什么？"
+  },
+  {
+    "id": "q-054",
+    "category": "life",
+    "question": "假如每天能为一种生活小麻烦跳过广告，你会选哪一个？"
+  },
+  {
+    "id": "q-055",
+    "category": "life",
+    "question": "如果你的一天是一种饮料，今天需要加冰还是加糖？"
+  },
+  {
+    "id": "q-056",
+    "category": "life",
+    "question": "你最近见过哪件“没什么用，但很想拥有”的东西？"
+  },
+  {
+    "id": "q-057",
+    "category": "life",
+    "question": "假如快递盒能保留收货瞬间的心情，你家会堆出什么颜色？"
+  },
+  {
+    "id": "q-058",
+    "category": "life",
+    "question": "如果给今天盖一个印章，你会刻哪四个字？"
+  },
+  {
+    "id": "q-059",
+    "category": "choice",
+    "question": "每次打喷嚏都放烟花，和每次打嗝都冒泡泡，你选哪一个？"
+  },
+  {
+    "id": "q-060",
+    "category": "choice",
+    "question": "一辈子都能找到袜子，和永远不用排队买奶茶，你更想要哪个？"
+  },
+  {
+    "id": "q-061",
+    "category": "choice",
+    "question": "走路自带脚步配乐，和说话自带字幕，你愿意选哪一种？"
+  },
+  {
+    "id": "q-062",
+    "category": "choice",
+    "question": "只能坐滑梯下楼，或只能乘气球上楼，你想住几层？"
+  },
+  {
+    "id": "q-063",
+    "category": "choice",
+    "question": "有一只会吐槽的雨伞，和一双爱指路的鞋，你想带谁出门？"
+  },
+  {
+    "id": "q-064",
+    "category": "choice",
+    "question": "每顿饭都多一口惊喜，和每杯饮料都少最后一口，你能接受哪一种？"
+  },
+  {
+    "id": "q-065",
+    "category": "choice",
+    "question": "能听懂蚊子在想什么，和能让拖鞋准确飞回脚上，你选哪个能力？"
+  },
+  {
+    "id": "q-066",
+    "category": "choice",
+    "question": "每天多出一小时发呆，和每周多出一个可以随便命名的节日，你选哪个？"
+  },
+  {
+    "id": "q-067",
+    "category": "choice",
+    "question": "住在会转向太阳的房子，和住在每天换一扇景色的房子，你更喜欢哪一个？"
+  },
+  {
+    "id": "q-068",
+    "category": "choice",
+    "question": "一只小恐龙帮你搬快递，和一只小章鱼帮你整理电线，你想雇谁？"
+  },
+  {
+    "id": "q-069",
+    "category": "choice",
+    "question": "所有食物都变成蓝色，和所有饮料都用叉子喝，你更能接受哪一个？"
+  },
+  {
+    "id": "q-070",
+    "category": "choice",
+    "question": "每次迟到自动出现烟雾，和每次准时自动响起掌声，你选哪种入场？"
+  },
+  {
+    "id": "q-071",
+    "category": "choice",
+    "question": "和一棵树交换一天身份，还是和一盏路灯交换一天，你会选谁？"
+  },
+  {
+    "id": "q-072",
+    "category": "choice",
+    "question": "早餐只能吃会唱歌的包子，或午饭只能吃会跳舞的面条，哪个更难下嘴？"
+  },
+  {
+    "id": "q-073",
+    "category": "choice",
+    "question": "每次开门都听到一句夸奖，和每次关灯都看到一颗流星，你选哪个？"
+  },
+  {
+    "id": "q-074",
+    "category": "choice",
+    "question": "一件永远不皱但每天随机变色的衣服，和一件会自动鼓掌的衣服，你想穿哪件？"
+  },
+  {
+    "id": "q-075",
+    "category": "choice",
+    "question": "能让一个红绿灯为你放行一次，和能让一台售货机推荐今日饮料，你选哪个？"
+  },
+  {
+    "id": "q-076",
+    "category": "choice",
+    "question": "手机每天给你一条离谱建议，和冰箱每天讲一个冷笑话，你更愿意听谁？"
+  },
+  {
+    "id": "q-077",
+    "category": "choice",
+    "question": "养一只迷你云朵，还是养一块会打呼噜的石头，你会选哪个？"
+  },
+  {
+    "id": "q-078",
+    "category": "choice",
+    "question": "永远能猜中下一首歌，和永远能剥出完整的橘子皮，你想要哪个天赋？"
+  },
+  {
+    "id": "q-079",
+    "category": "choice",
+    "question": "口袋里总有一颗糖，和背包里总有一张空白车票，你会选哪一个？"
+  },
+  {
+    "id": "q-080",
+    "category": "choice",
+    "question": "每次看日落都能换一个滤镜，和每次看星星都能自带解说，你更想试哪个？"
+  },
+  {
+    "id": "q-081",
+    "category": "objects",
+    "question": "如果洗衣机可以组建乐队，它会演奏什么乐器？"
+  },
+  {
+    "id": "q-082",
+    "category": "objects",
+    "question": "假如耳机里的左右声道吵架了，你会怎么劝它们？"
+  },
+  {
+    "id": "q-083",
+    "category": "objects",
+    "question": "如果冰箱门上的磁贴半夜开会，它们会讨论什么？"
+  },
+  {
+    "id": "q-084",
+    "category": "objects",
+    "question": "假如你的鞋给今天的路写点评，它会打几颗星？"
+  },
+  {
+    "id": "q-085",
+    "category": "objects",
+    "question": "如果闹钟能给自己请一天假，它会选周几？"
+  },
+  {
+    "id": "q-086",
+    "category": "objects",
+    "question": "假如电梯有个人简介，它最想强调哪项优点？"
+  },
+  {
+    "id": "q-087",
+    "category": "objects",
+    "question": "如果桌上的杯子能选室友，它会邀请哪件东西？"
+  },
+  {
+    "id": "q-088",
+    "category": "objects",
+    "question": "假如路灯只愿意给喜欢的人亮灯，你怎么和它交朋友？"
+  },
+  {
+    "id": "q-089",
+    "category": "objects",
+    "question": "如果充电线觉得工作太累，它会要求什么福利？"
+  },
+  {
+    "id": "q-090",
+    "category": "objects",
+    "question": "假如你的键盘举行颁奖典礼，哪个键最可能拿终身成就奖？"
+  },
+  {
+    "id": "q-091",
+    "category": "objects",
+    "question": "如果一朵花突然开始写日记，它今天会抱怨什么？"
+  },
+  {
+    "id": "q-092",
+    "category": "objects",
+    "question": "假如地铁扶手成立合唱团，它们想唱什么歌？"
+  },
+  {
+    "id": "q-093",
+    "category": "objects",
+    "question": "如果沙发能选电视节目，它会让你看什么？"
+  },
+  {
+    "id": "q-094",
+    "category": "objects",
+    "question": "假如你的水杯给你寄一张明信片，寄件地址会写哪里？"
+  },
+  {
+    "id": "q-095",
+    "category": "objects",
+    "question": "如果外卖袋能点评旅程，它最难忘哪一段路？"
+  },
+  {
+    "id": "q-096",
+    "category": "objects",
+    "question": "假如一粒爆米花成了导演，它会拍什么类型的电影？"
+  },
+  {
+    "id": "q-097",
+    "category": "objects",
+    "question": "如果垃圾桶能拒收一种东西，它会最先拒绝什么？"
+  },
+  {
+    "id": "q-098",
+    "category": "objects",
+    "question": "假如空调和电风扇争“年度最佳室友”，你把票投给谁？"
+  },
+  {
+    "id": "q-099",
+    "category": "objects",
+    "question": "如果一把椅子准备退休，你会送它什么礼物？"
+  },
+  {
+    "id": "q-100",
+    "category": "objects",
+    "question": "假如一片落叶要给自己办告别演唱会，你会点什么歌？"
+  }
 ]

@@ -11,6 +11,7 @@
     />
     <link rel="stylesheet" href="/static/style.css" />
     <link rel="stylesheet" href="/static/achievements.css" />
+    <link rel="stylesheet" href="/static/question.css" />
     <script defer src="/static/achievements.js"></script>
     <script defer src="/static/main.js"></script>
     <script defer src="/static/random.js"></script>
@@ -35,8 +36,37 @@
           <h1>奇怪问题</h1>
           <p>没有标准答案，只有你的脑洞。认真回答和胡说八道都可以。</p>
         </div>
+        <section class="question-picker" aria-labelledby="question-picker-title">
+          <div class="question-picker-heading">
+            <h2 id="question-picker-title">今天开哪种脑洞？</h2>
+            <span id="question-total">100 道问题 · 四种主题</span>
+          </div>
+          <div class="question-themes" role="group" aria-label="选择问题主题">
+            <button type="button" data-theme="all" aria-pressed="true">
+              全部
+              <span data-question-count="all">100</span>
+            </button>
+            <button type="button" data-theme="imagination" aria-pressed="false">
+              脑洞大开
+              <span data-question-count="imagination">25</span>
+            </button>
+            <button type="button" data-theme="life" aria-pressed="false">
+              生活小事
+              <span data-question-count="life">25</span>
+            </button>
+            <button type="button" data-theme="choice" aria-pressed="false">
+              离谱选择
+              <span data-question-count="choice">25</span>
+            </button>
+            <button type="button" data-theme="objects" aria-pressed="false">
+              万物开口
+              <span data-question-count="objects">25</span>
+            </button>
+          </div>
+        </section>
         <div id="result" class="panel question-panel" aria-live="polite">
           <div class="result-kicker">A VERY SERIOUS NONSENSE QUESTION</div>
+          <span id="question-theme-label" class="question-theme-label">正在准备</span>
           <div class="question-mark" aria-hidden="true">“</div>
           <p class="question-text" id="question">一个奇怪的问题正在赶来的路上……</p>
           <p class="help">想一想，或者抛给旁边的人。</p>
@@ -45,7 +75,8 @@
           <button class="primary" id="draw" type="button">再来一个 ↻</button>
         </div>
         <p id="api-error" class="error" role="status"></p>
-        <p class="help">不用提交答案。让脑子随便逛逛就好。</p>
+        <p class="help">题目会轮换，避开最近 8 道。切换主题就会抽一道新的。</p>
+        <p class="help">不用提交答案。一个人想一想，或和朋友聊一聊，都可以。</p>
       </main>
       <footer>
         <span>

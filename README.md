@@ -28,10 +28,10 @@ boring-lab/
 │   ├── card.html
 │   ├── question.html
 │   ├── fun.html
-│   └── random.js          # 抽卡和奇怪问题共用请求、展示及错误处理
+│   └── random.js          # 奇怪问题题库、主题轮换与防重复
 ├── data/
 │   ├── cards.json         # 90 张六系列主题卡片
-│   ├── questions.json     # 18 个奇怪问题
+│   ├── questions.json     # 100 个奇怪问题，四个主题各 25 道
 │   └── activities.json    # 24 份整活小节目
 └── tools/                 # 可选验收工具，不参与网站运行
     ├── package.json
@@ -90,7 +90,7 @@ Asio 路径应指向含 `asio/include/asio.hpp` 的仓库根目录。参考：[C
 | `/reaction.html` | 反应速度，抢跑提示，当前浏览器会话最佳成绩 |
 | `/wheel.html` | 两种模板、添加 / 删除选项、真实旋转和结果 |
 | `/card.html` | 抽取后翻面揭晓、收藏册、生成分享图 |
-| `/question.html` | 随机问题，再来一个 |
+| `/question.html` | 四个主题，题目轮换，再来一个 |
 | `/fun.html` | 六类随机小节目及复制分享 |
 
 静态网页也可以通过 `/static/页面名.html` 访问。所有资源从本站加载，不依赖外部字体或 CDN。不要直接双击 HTML：三个随机玩法需要从 Crow 服务访问。
@@ -102,10 +102,11 @@ Asio 路径应指向含 `asio/include/asio.hpp` 的仓库根目录。参考：[C
 | `/api/hello` | `message: "Hello from C++"` |
 | `/healthz` | `status: "ok"`，供平台检查服务健康状态 |
 | `/api/random-card` | `id`, `series`, `rarity`, `keyword`, `tagline`, `message`, `skill`, `skillText`, `good`, `avoid`, `luckyItem`, `bonusLabel`, `bonus`, `luck` |
-| `/api/random-question` | `question` |
+| `/api/random-question` | `id`, `category`, `question`，保留的单条随机接口 |
+| `/api/questions` | 完整奇怪问题题库，每条含 `id`, `category`, `question` |
 | `/api/random-fun` | `kind`, `title`, `intro`, `label1..3`, `value1..3`, `footer` |
 
-JSON 文件最外层是非空数组；字符串字段不能为空，指数必须为 0～100 的数字。启动时读取并校验数据：文件丢失、格式错误、字段错误会打印原因并退出，而不是悄悄生成错误结果。启动后每次请求等概率抽一条；允许重复，点击“今日抽卡”也不限于每天一次，所有内容仅供娱乐。
+JSON 文件最外层是非空数组；字符串字段不能为空，指数必须为 0～100 的数字。启动时读取并校验数据：文件丢失、格式错误、字段错误会打印原因并退出，而不是悄悄生成错误结果。单条随机接口每次请求等概率抽一条，允许重复。奇怪问题页面改用完整题库，在浏览器中按主题洗牌轮换；点击“今日抽卡”也不限于每天一次，所有内容仅供娱乐。
 
 随机数采用 `<random>`，每个线程拥有自己的引擎。API 设置 `Cache-Control: no-store`，前端也禁用随机请求缓存，并提供等待、超时、失败和重试反馈。只允许访问显式列出的静态文件，避免任意读取磁盘路径。
 
@@ -153,6 +154,16 @@ Render 会从源码构建 Linux 容器，不运行 Windows `.exe`。具体操作
 - 320 / 390 / 768 像素宽度无水平溢出；已人工查看桌面首页、手机首页和手机转盘截图。
 - 缺失数据、错误 JSON、空数组和越界指数均能清楚报错并退出。
 - 当前 Chrome 无原生 WebMCP 上下文，此可选能力未做真实代理调用验证；常规浏览器功能已通过。Linux 尚未在本机实际编译。
+
+## 奇怪问题
+
+入口 `/question.html`。保留原来的 18 道，扩充至 100 道：脑洞大开、生活小事、离谱选择、万物开口各 25 道。可以抽全部，也可以选择主题；切换主题立即抽一道，题目旁显示实际所属主题。不提交或保存答案。
+
+页面从 `/api/questions` 加载一次题库，后续抽取由浏览器完成。同一主题连续抽取会用洗牌题堆轮换，同一轮不重复；切换主题也避开最近 8 道。各主题的题堆在当前页面内保留；若切换后剩余题目全在最近记录里，会重新洗牌，优先保证最近 8 道不重复。
+
+最近 8 道的 ID 仅存入当前浏览器标签页的 `sessionStorage`，刷新可以延续防重复，但题堆重新开始；不作为长期收藏或行李箱存档。关闭标签页通常会清除这份临时记录；存储不可用或损坏时仍可在当前页面正常抽题。微信与外部浏览器分别保存自己的临时记录。
+
+专项验收：`node tools/check-questions.cjs`；线上检查可先设置 `$env:TEST_BASE="https://boring-lab-production.up.railway.app"`。覆盖完整题库、同主题轮换、跨主题防重复、刷新、存储受限、失败重试和手机布局。
 
 ## 真心话
 

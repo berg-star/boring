@@ -118,7 +118,22 @@ int main(int argc, char* argv[]) try {
         card_list[i] = crow::json::wvalue(row);
     }
     const auto card_json = card_list.dump();
-    const auto questions = load_records(root / "data/questions.json", {"question"});
+    const auto questions = load_records(root / "data/questions.json", {"id", "category", "question"});
+    crow::json::wvalue question_list = crow::json::wvalue::list();
+    std::set<std::string> question_ids, question_texts, loaded_question_categories;
+    const std::set<std::string> question_categories = {"imagination", "life", "choice", "objects"};
+    for (std::size_t i = 0; i < questions.size(); ++i) {
+        const auto row = crow::json::load(questions[i]);
+        const std::string id = row["id"].s(), category = row["category"].s(), question = row["question"].s();
+        if (id.size() != 5 || id == "q-000" || id.substr(0, 2) != "q-" || id.find_first_not_of("0123456789", 2) != std::string::npos ||
+            !question_ids.insert(id).second || !question_categories.count(category) || !question_texts.insert(question).second)
+            throw std::runtime_error("Invalid question identity, category or duplicate text");
+        loaded_question_categories.insert(category);
+        question_list[i] = crow::json::wvalue(row);
+    }
+    if (loaded_question_categories != question_categories)
+        throw std::runtime_error("All four question categories are required");
+    const auto question_json = question_list.dump();
     const auto activities = load_records(root / "data/activities.json", {"kind", "title", "intro", "label1", "value1", "label2", "value2", "label3", "value3", "footer"});
     const auto answers = load_records(root / "data/answers.json", {"answer"});
     crow::json::wvalue answer_list = crow::json::wvalue::list();
@@ -150,7 +165,7 @@ int main(int argc, char* argv[]) try {
     });
     // 只公开列出的网页和资源，不把任意用户路径拼到磁盘路径里。
     const std::set<std::string> pages = {"index.html", "reaction.html", "wheel.html", "card.html", "question.html", "fun.html", "truth.html", "pet.html", "planet.html", "book.html", "doodle.html", "smash.html", "achievements.html", "luggage.html"};
-    const std::set<std::string> assets = {"style.css", "main.js", "reaction.js", "wheel.js", "wheel-presets.js", "wheel.css", "random.js", "truth.js", "pet.js", "pet.css", "planet.js", "planet.css", "fun.js", "fun.css", "book.js", "book.css", "achievements.js", "achievements.css", "cards.js", "cards.css", "doodle.js", "doodle-presets.js", "doodle-toy.js", "doodle-shelf.js", "doodle.css", "smash.js", "smash.css", "luggage.js", "luggage-schema.js", "luggage.css"};
+    const std::set<std::string> assets = {"style.css", "main.js", "reaction.js", "wheel.js", "wheel-presets.js", "wheel.css", "random.js", "truth.js", "pet.js", "pet.css", "planet.js", "planet.css", "fun.js", "fun.css", "book.js", "book.css", "achievements.js", "achievements.css", "cards.js", "cards.css", "doodle.js", "doodle-presets.js", "doodle-toy.js", "doodle-shelf.js", "doodle.css", "smash.js", "smash.css", "luggage.js", "luggage-schema.js", "luggage.css", "question.css"};
     CROW_ROUTE(app, "/")([&] { return serve_file(root / "static/index.html"); });
     CROW_ROUTE(app, "/<string>")([&](const std::string& name) {
         if (!pages.count(name)) return crow::response(404, "Page not found");
@@ -179,6 +194,12 @@ int main(int argc, char* argv[]) try {
     });
     CROW_ROUTE(app, "/api/random-card")([&] { return random_record(cards); });
     CROW_ROUTE(app, "/api/random-question")([&] { return random_record(questions); });
+    CROW_ROUTE(app, "/api/questions")([&] {
+        crow::response response(question_json);
+        response.set_header("Content-Type", "application/json; charset=utf-8");
+        response.set_header("Cache-Control", "no-store");
+        return response;
+    });
     CROW_ROUTE(app, "/api/book-answers")([&] {
         crow::response response(answer_json);
         response.set_header("Content-Type", "application/json; charset=utf-8");

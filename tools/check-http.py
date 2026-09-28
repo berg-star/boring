@@ -27,11 +27,12 @@ get("/static/fun.css", "text/css")
 get("/static/book.css", "text/css")
 get("/static/achievements.css", "text/css")
 get("/static/cards.css", "text/css")
+get("/static/question.css", "text/css")
 for script in ("main.js", "reaction.js", "wheel.js", "random.js", "truth.js", "pet.js", "planet.js", "fun.js", "book.js", "achievements.js", "cards.js", "doodle.js", "doodle-presets.js", "doodle-toy.js", "doodle-shelf.js", "smash.js", "luggage.js", "luggage-schema.js"):
     get("/static/" + script, "text/javascript")
 for endpoint, fields in (
     ("random-card", ("id", "series", "rarity", "keyword", "tagline", "message", "skill", "skillText", "good", "avoid", "luckyItem", "bonusLabel", "bonus", "luck")),
-    ("random-question", ("question",)),
+    ("random-question", ("id", "category", "question")),
     ("random-fun", ("kind", "title", "intro", "label1", "value1", "label2", "value2", "label3", "value3", "footer")),
 ):
     data = json.loads(get("/api/" + endpoint, "application/json"))
@@ -40,6 +41,11 @@ cards = json.loads(get("/api/cards", "application/json"))
 assert len(cards) == 90 and len({row["id"] for row in cards}) == 90
 for series in ("relax", "courage", "idea", "luck", "company", "funny"):
     assert sum(row["series"] == series for row in cards) == 15
+questions = json.loads(get("/api/questions", "application/json"))
+assert len(questions) == 100 and len({row["id"] for row in questions}) == 100
+assert len({row["question"] for row in questions}) == 100
+for category in ("imagination", "life", "choice", "objects"):
+    assert sum(row["category"] == category for row in questions) == 25
 answers = json.loads(get("/api/book-answers", "application/json"))
 assert len(answers) == 200 and len({row["answer"] for row in answers}) == 200
 assert all(isinstance(row["answer"], str) and row["answer"].strip() for row in answers)

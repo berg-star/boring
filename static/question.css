@@ -1,0 +1,82 @@
+.question-picker {
+  margin: 0 0 22px;
+}
+.question-picker-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 12px;
+}
+.question-picker-heading h2 {
+  font-size: 17px;
+  margin: 0;
+}
+.question-picker-heading > span {
+  font-size: 12px;
+  color: var(--muted);
+}
+.question-themes {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 8px;
+}
+.question-themes button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 46px;
+  padding: 10px 8px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--surface);
+  color: var(--text);
+  font-size: 14px;
+}
+.question-themes button span {
+  font-size: 11px;
+  opacity: 0.7;
+}
+.question-themes button[aria-pressed="true"] {
+  background: var(--lime);
+  color: #182215;
+  border-color: var(--lime);
+}
+.question-themes button:disabled {
+  opacity: 0.65;
+  cursor: wait;
+}
+.question-theme-label {
+  display: inline-block;
+  margin-top: 14px;
+  padding: 5px 12px;
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  font-size: 12px;
+  color: var(--lime);
+}
+.question-theme-label[data-category="imagination"] {
+  color: var(--lavender);
+}
+.question-theme-label[data-category="life"] {
+  color: var(--peach);
+}
+.question-theme-label[data-category="choice"] {
+  color: var(--pink);
+}
+.question-theme-label[data-category="objects"] {
+  color: var(--blue);
+}
+@media (max-width: 600px) {
+  .question-themes {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .question-themes button:first-child {
+    grid-column: 1/-1;
+  }
+  .question-picker-heading {
+    gap: 6px;
+  }
+}
