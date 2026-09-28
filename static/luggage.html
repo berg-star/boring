@@ -38,7 +38,7 @@
           <p>把小快乐装好，换个地方接着玩。</p>
         </div>
         <p class="luggage-intro">
-          换手机、换浏览器，或准备清理网站数据时，先导出一份行李箱。到新设备打开这个网站，再导入同一份文件。
+          换手机、换浏览器，或准备清理网站数据时，先打包一份行李箱。可以下载文件，也可以复制存档文字，到新设备再恢复。
         </p>
         <span id="luggage-count" class="luggage-count">正在整理行李……</span>
         <section class="luggage-panel" aria-labelledby="inventory-title">
@@ -48,9 +48,34 @@
           <p id="inventory-note" class="luggage-help"></p>
           <div class="luggage-actions">
             <button id="export-luggage" class="primary" type="button">一键导出行李箱 ↓</button>
+            <button id="export-text" class="secondary" type="button">复制存档 · 微信搬家</button>
             <a id="backup-download" hidden>再次下载这份行李箱 ↓</a>
           </div>
-          <p>文件保存在你的设备里，不会自动同步。玩了一阵子后，可以再导出一份新的。</p>
+          <p class="luggage-transfer-note">
+            微信和外部浏览器各自保存记录。微信里下载不了时，请在微信里的这个页面复制存档，再到浏览器粘贴恢复。
+          </p>
+          <div id="text-export-panel" class="luggage-text-panel" hidden>
+            <h3>把这份存档带出去</h3>
+            <p id="text-export-summary"></p>
+            <label for="export-text-value">完整存档文字</label>
+            <textarea
+              id="export-text-value"
+              rows="6"
+              readonly
+              spellcheck="false"
+              autocomplete="off"
+              autocapitalize="off"
+            ></textarea>
+            <div class="luggage-actions">
+              <button id="copy-prepared-text" class="secondary" type="button">再复制一次</button>
+              <button id="select-export-text" class="secondary" type="button">全选存档文字</button>
+            </div>
+            <p id="text-copy-status" role="status" aria-live="polite"></p>
+            <p>
+              复制后，可以先粘贴到手机备忘录保存。再用外部浏览器打开本网站，在下方“粘贴存档文字”中恢复。请复制整段；继续玩后需要重新生成新的存档。
+            </p>
+          </div>
+          <p>备份保存在你的设备里，不会自动同步。玩了一阵子后，可以再备份一份新的。</p>
         </section>
         <section class="luggage-panel" aria-labelledby="import-title">
           <h2 id="import-title">带着行李回来了？</h2>
@@ -60,6 +85,22 @@
           <p class="luggage-help">
             文件仅在当前浏览器里读取，不上传服务器。恢复前可以先导出当前记录，留一份退路。
           </p>
+          <details id="text-import" class="luggage-text-panel">
+            <summary>粘贴存档文字 · 从微信搬过来</summary>
+            <label for="import-text-value">在这里粘贴完整的存档文字</label>
+            <textarea
+              id="import-text-value"
+              rows="6"
+              spellcheck="false"
+              autocomplete="off"
+              autocapitalize="off"
+              placeholder="粘贴刚才复制的整段存档，然后检查内容"
+            ></textarea>
+            <div class="luggage-actions">
+              <button id="check-import-text" class="primary" type="button">检查粘贴的存档</button>
+            </div>
+            <p>先检查内容，再勾选和确认恢复。粘贴不会直接覆盖当前记录。</p>
+          </details>
         </section>
         <p id="luggage-status" role="status" aria-live="polite"></p>
         <section id="restore-preview" class="luggage-panel" hidden aria-labelledby="restore-title">

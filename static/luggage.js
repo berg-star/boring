@@ -31,7 +31,8 @@
       const items = inventory();
       $("luggage-count").textContent =
         "可以带走 " + items.filter((item) => item.valid).length + " 项记录";
-      $("export-luggage").disabled = busy || !items.some((item) => item.valid);
+      $("export-luggage").disabled = $("export-text").disabled =
+        busy || !items.some((item) => item.valid);
       const grid = $("luggage-inventory");
       grid.replaceChildren();
       for (const item of items) {
@@ -52,7 +53,7 @@
         : "备份只带走已经保存的记录，不会为没玩过的功能创建进度。";
       return items;
     } catch {
-      $("export-luggage").disabled = true;
+      $("export-luggage").disabled = $("export-text").disabled = true;
       $("luggage-count").textContent = "暂时无法读取本地存档";
       $("inventory-note").textContent =
         "这个浏览器不允许读取存储，请在允许网站保存数据的浏览器中打开。";
@@ -85,6 +86,81 @@
       }
     }, 60000);
   }
+  function pack() {
+    const items = inventory(),
+      records = items
+        .filter((item) => item.valid)
+        .map((item) => ({ key: item.key, value: item.raw }));
+    if (!records.length) throw Error("还没有可以导出的有效记录，先去玩一会儿吧。");
+    const text = JSON.stringify(
+      { format: schema.FORMAT, version: 1, exportedAt: new Date().toISOString(), records },
+      null,
+      2,
+    );
+    if (new Blob([text]).size > schema.MAX_FILE)
+      throw Error("存档超过 8 MB，暂时无法打包；当前记录没有改变。");
+    return { text, records, skipped: items.some((item) => item.raw !== null && !item.valid) };
+  }
+  function selectText() {
+    const field = $("export-text-value");
+    field.focus({ preventScroll: true });
+    field.select();
+    field.setSelectionRange(0, field.value.length);
+    $("text-copy-status").textContent =
+      "已全选。请长按存档文字，使用手机的“复制”，再到浏览器粘贴恢复。";
+  }
+  async function copyText() {
+    const text = $("export-text-value").value;
+    if (!text || busy) return;
+    try {
+      if (!navigator.clipboard?.writeText) throw Error();
+      await navigator.clipboard.writeText(text);
+      $("text-copy-status").textContent =
+        "已复制完整存档。到外部浏览器打开本网站，选择“粘贴存档文字”恢复。";
+    } catch {
+      selectText();
+      $("text-copy-status").textContent =
+        "自动复制不可用，已全选存档文字。请长按后选择“复制”；也可以先粘贴到备忘录保存。";
+    }
+  }
+  $("copy-prepared-text").addEventListener("click", copyText);
+  $("select-export-text").addEventListener("click", selectText);
+  $("export-text").addEventListener("click", async () => {
+    if (busy) return;
+    busy = true;
+    refresh();
+    try {
+      const backup = await withLocks(
+        schema.registry.map((item) => item.key),
+        pack,
+      );
+      $("export-text-value").value = backup.text;
+      $("text-export-summary").textContent =
+        "这段文字包含 " +
+        backup.records.length +
+        " 项记录：" +
+        backup.records
+          .map((record) => schema.registry.find((entry) => entry.key === record.key).name)
+          .join("、") +
+        "。" +
+        (backup.skipped ? " 无法读取的记录未加入备份。" : "");
+      $("text-export-panel").hidden = false;
+      $("text-copy-status").textContent = "";
+      $("text-export-panel").scrollIntoView({ block: "start", behavior: "auto" });
+      status("已打包当前页面的 " + backup.records.length + " 项记录，复制后再到其他浏览器恢复。");
+    } catch (error) {
+      status(
+        error instanceof DOMException
+          ? "浏览器暂时无法读取存档，请检查保存权限后重试。"
+          : error.message || "暂时无法打包存档，请重试。",
+      );
+      return;
+    } finally {
+      busy = false;
+      refresh();
+    }
+    await copyText();
+  });
   $("export-luggage").addEventListener("click", async () => {
     if (busy) return;
     busy = true;
@@ -93,26 +169,13 @@
       await withLocks(
         schema.registry.map((item) => item.key),
         () => {
-          const items = inventory(),
-            records = items
-              .filter((item) => item.valid)
-              .map((item) => ({ key: item.key, value: item.raw }));
-          if (!records.length) throw Error("还没有可以导出的有效记录，先去玩一会儿吧。");
-          const text = JSON.stringify(
-            { format: schema.FORMAT, version: 1, exportedAt: new Date().toISOString(), records },
-            null,
-            2,
-          );
-          if (new Blob([text]).size > schema.MAX_FILE)
-            throw Error("存档超过 8 MB，暂时无法打包；当前记录没有改变。");
+          const { text, records, skipped } = pack();
           download(text);
           status(
             "已准备好 " +
               records.length +
               " 项记录的行李箱，请保存这个 JSON 文件。" +
-              (items.some((item) => item.raw !== null && !item.valid)
-                ? " 无法读取的记录未加入备份，原始数据仍保留。"
-                : ""),
+              (skipped ? " 无法读取的记录未加入备份，原始数据仍保留。" : ""),
           );
         },
       );
@@ -177,29 +240,44 @@
     $("restore-success").hidden = true;
     selection();
   }
-  $("import-file").addEventListener("change", async (event) => {
-    const file = event.target.files[0];
-    event.target.value = "";
-    if (!file || busy) return;
+  async function stageArchive(read, filename) {
+    if (busy) return;
     const revision = ++fileRevision;
     staged = null;
     $("restore-preview").hidden = true;
     $("restore-success").hidden = true;
-    status("正在检查存档文件……");
+    status("正在检查存档文件或文字……");
     try {
-      if (file.size > schema.MAX_FILE) throw Error("请选择不超过 8 MB 的存档文件。");
-      const text = await file.text();
+      const text = await read();
       if (revision !== fileRevision) return;
-      staged = { ...schema.archive(text), filename: file.name };
+      staged = { ...schema.archive(text), filename };
       preview();
-      status("文件检查通过。先核对备份与当前记录，再选择要恢复的项目。");
+      status(
+        "检查通过：这份备份有 " + staged.records.length + " 项记录。先核对，再选择要恢复的项目。",
+      );
       $("restore-title").focus({ preventScroll: true });
       $("restore-preview").scrollIntoView({ block: "start", behavior: "auto" });
     } catch (error) {
       if (revision !== fileRevision) return;
       staged = null;
-      status((error.message || "无法读取存档文件。") + " 当前记录没有改变。");
+      status((error.message || "无法读取存档。") + " 当前记录没有改变。");
     }
+  }
+  $("import-file").addEventListener("change", (event) => {
+    const file = event.target.files[0];
+    event.target.value = "";
+    if (!file || busy) return;
+    stageArchive(() => {
+      if (file.size > schema.MAX_FILE) throw Error("请选择不超过 8 MB 的存档文件。");
+      return file.text();
+    }, file.name);
+  });
+  $("check-import-text").addEventListener("click", () => {
+    const text = $("import-text-value").value;
+    stageArchive(() => {
+      if (!text.trim()) throw Error("请先粘贴完整的存档文字。");
+      return text;
+    }, "粘贴的存档文字");
   });
   $("review-restore").addEventListener("click", () => {
     if (!staged || busy || !selected().length) return;
@@ -232,6 +310,10 @@
     $("apply-restore").disabled = true;
     $("cancel-import").disabled = true;
     $("import-file").disabled = true;
+    $("check-import-text").disabled = true;
+    $("import-text-value").disabled = true;
+    $("copy-prepared-text").disabled = true;
+    $("select-export-text").disabled = true;
     refresh();
     try {
       await withLocks(
@@ -312,6 +394,10 @@
       $("apply-restore").disabled = false;
       $("cancel-import").disabled = false;
       $("import-file").disabled = false;
+      $("check-import-text").disabled = false;
+      $("import-text-value").disabled = false;
+      $("copy-prepared-text").disabled = false;
+      $("select-export-text").disabled = false;
       refresh();
       if (staged) $("review-restore").disabled = !selected().length;
     }

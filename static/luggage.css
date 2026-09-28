@@ -198,3 +198,77 @@
 [hidden] {
   display: none !important;
 }
+
+.luggage-transfer-note {
+  padding: 12px 14px;
+  border-left: 3px solid var(--lime);
+  background: #b9f87908;
+  border-radius: 8px;
+}
+.luggage-text-panel {
+  margin-top: 18px;
+  padding: 16px;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  min-width: 0;
+}
+.luggage-text-panel h3 {
+  margin: 0;
+  font-size: 17px;
+}
+.luggage-text-panel p {
+  font-size: 13px;
+  line-height: 1.8;
+  color: var(--muted);
+  overflow-wrap: anywhere;
+}
+.luggage-text-panel label {
+  display: block;
+  margin: 14px 0 8px;
+  font-size: 13px;
+  color: var(--muted);
+}
+.luggage-text-panel textarea {
+  display: block;
+  width: 100%;
+  min-height: 150px;
+  max-height: 420px;
+  resize: vertical;
+  box-sizing: border-box;
+  padding: 12px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  color: var(--text);
+  background: var(--bg);
+  font-size: 16px;
+  line-height: 1.5;
+  font-family: monospace;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  user-select: text;
+  -webkit-user-select: text;
+}
+.luggage-text-panel summary {
+  min-height: 44px;
+  cursor: pointer;
+  color: var(--lime);
+  font-size: 14px;
+  line-height: 1.8;
+}
+.luggage-text-panel summary::marker {
+  color: var(--lime);
+}
+#text-copy-status {
+  color: var(--lime);
+}
+@media (max-width: 600px) {
+  .luggage-text-panel {
+    padding: 12px;
+  }
+  .luggage-text-panel .luggage-actions button {
+    flex-basis: 100%;
+  }
+  .luggage-actions > #export-text {
+    flex-basis: 100%;
+  }
+}
