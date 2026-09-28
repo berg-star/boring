@@ -116,7 +116,7 @@
       if (!navigator.clipboard?.writeText) throw Error();
       await navigator.clipboard.writeText(text);
       $("text-copy-status").textContent =
-        "已复制完整存档。到外部浏览器打开本网站，选择“粘贴存档文字”恢复。";
+        "已复制完整存档。到外部浏览器打开本网站，展开“从存档文字恢复”后粘贴并检查，再核对项目数量。";
     } catch {
       selectText();
       $("text-copy-status").textContent =

@@ -38,22 +38,71 @@
           <p>把小快乐装好，换个地方接着玩。</p>
         </div>
         <p class="luggage-intro">
-          换手机、换浏览器，或准备清理网站数据时，先打包一份行李箱。可以下载文件，也可以复制存档文字，到新设备再恢复。
+          行李箱把这个浏览器里的进度打包起来。换手机、换浏览器时，带着备份恢复，就能接着玩。
         </p>
+        <section class="luggage-panel luggage-storage-guide" aria-labelledby="storage-guide-title">
+          <h2 id="storage-guide-title">同一个网站，记录各自保存</h2>
+          <p>
+            在微信里打开链接，和在手机浏览器、Chrome 或 Edge
+            里打开，访问的都是无聊研究所。区别在于：进度保存在各自的浏览器里，网址相同也不会自动同步。
+          </p>
+          <dl class="luggage-storage-contexts">
+            <div>
+              <dt>在微信里玩</dt>
+              <dd>
+                宠物、星球和收藏等记录保存在微信内置浏览器里。切到外部浏览器时，它们不会自动跟过去。
+              </dd>
+            </div>
+            <div>
+              <dt>在外部浏览器里玩</dt>
+              <dd>
+                读取这个浏览器自己的记录。换浏览器、换设备，或切换到本地测试网址时，可能看到另一份进度。
+              </dd>
+            </div>
+          </dl>
+          <p class="luggage-transfer-note">
+            <strong>先在有原始进度的地方备份，再到准备继续玩的地方恢复。</strong>
+            如果从微信跳到外部浏览器后才导出，打包的就是外部浏览器里的记录。
+          </p>
+        </section>
         <span id="luggage-count" class="luggage-count">正在整理行李……</span>
         <section class="luggage-panel" aria-labelledby="inventory-title">
           <h2 id="inventory-title">现在有什么可以带走？</h2>
           <p>宠物、收藏、画作、星球，以及你习惯的玩法设置。</p>
           <div id="luggage-inventory"></div>
           <p id="inventory-note" class="luggage-help"></p>
-          <div class="luggage-actions">
-            <button id="export-luggage" class="primary" type="button">一键导出行李箱 ↓</button>
-            <button id="export-text" class="secondary" type="button">复制存档 · 微信搬家</button>
-            <a id="backup-download" hidden>再次下载这份行李箱 ↓</a>
+          <div class="luggage-export-methods">
+            <article class="luggage-method" aria-labelledby="file-backup-title">
+              <span class="luggage-method-tag">方式一 · 适合外部浏览器</span>
+              <h3 id="file-backup-title">下载文件备份</h3>
+              <p>适合能正常下载文件的手机或电脑浏览器，也适合保存较大的画作存档。</p>
+              <ol>
+                <li>在有原始进度的浏览器里，点击下方按钮。</li>
+                <li>保存下载的行李箱文件，留意导出的时间和记录数量。</li>
+                <li>到新设备或新浏览器打开行李箱，选择“从文件恢复”，核对后确认。</li>
+              </ol>
+              <div class="luggage-actions">
+                <button id="export-luggage" class="primary" type="button">一键导出行李箱 ↓</button>
+                <a id="backup-download" hidden>再次下载这份行李箱 ↓</a>
+              </div>
+            </article>
+            <article class="luggage-method" aria-labelledby="text-backup-title">
+              <span class="luggage-method-tag">方式二 · 适合微信搬家</span>
+              <h3 id="text-backup-title">复制文字搬家</h3>
+              <p>微信里下载不了文件时，用复制把当前微信里的进度带出去。其他浏览器也可以使用。</p>
+              <ol>
+                <li>留在有原始进度的微信页面，点击下方按钮。</li>
+                <li>复制完整存档。自动复制失败时，全选文字后长按复制；也可先粘贴到备忘录保存。</li>
+                <li>再到外部浏览器打开行李箱，展开“从存档文字恢复”，粘贴并检查。</li>
+                <li>核对记录数量和内容，再确认恢复。恢复后可以在外部浏览器下载文件备份。</li>
+              </ol>
+              <div class="luggage-actions">
+                <button id="export-text" class="secondary" type="button">
+                  复制存档 · 微信搬家
+                </button>
+              </div>
+            </article>
           </div>
-          <p class="luggage-transfer-note">
-            微信和外部浏览器各自保存记录。微信里下载不了时，请在微信里的这个页面复制存档，再到浏览器粘贴恢复。
-          </p>
           <div id="text-export-panel" class="luggage-text-panel" hidden>
             <h3>把这份存档带出去</h3>
             <p id="text-export-summary"></p>
@@ -72,21 +121,28 @@
             </div>
             <p id="text-copy-status" role="status" aria-live="polite"></p>
             <p>
-              复制后，可以先粘贴到手机备忘录保存。再用外部浏览器打开本网站，在下方“粘贴存档文字”中恢复。请复制整段；继续玩后需要重新生成新的存档。
+              先复制这整段文字，再切换到目标浏览器，在下方“从存档文字恢复”中粘贴。导入预览的项目数量应与上面的数量一致；继续玩后，需要重新生成备份。
             </p>
           </div>
-          <p>备份保存在你的设备里，不会自动同步。玩了一阵子后，可以再备份一份新的。</p>
+          <p>
+            文件和文字保存的是备份时的进度。之后两边继续玩，各自的变化仍分别保存；想再次搬家时，请生成一份新备份。
+          </p>
         </section>
         <section class="luggage-panel" aria-labelledby="import-title">
           <h2 id="import-title">带着行李回来了？</h2>
-          <p>选择导出的 JSON 文件，先检查、再核对、最后确认恢复。也支持以前单独导出的宠物备份。</p>
-          <label for="import-file" class="luggage-help">选择行李箱文件（不超过 8 MB）</label>
-          <input id="import-file" type="file" accept=".json,application/json" />
-          <p class="luggage-help">
-            文件仅在当前浏览器里读取，不上传服务器。恢复前可以先导出当前记录，留一份退路。
+          <p>
+            请在准备继续玩的浏览器里恢复。下面分别是文件和文字入口，两种方式都会先检查、再预览，最后由你确认替换。
           </p>
+          <div class="luggage-text-panel luggage-file-import">
+            <h3>从文件恢复</h3>
+            <p>手里有下载的行李箱文件，就在这里选择。也支持以前单独导出的宠物备份。</p>
+            <label for="import-file" class="luggage-help">选择行李箱文件（不超过 8 MB）</label>
+            <input id="import-file" type="file" accept=".json,application/json" />
+            <p class="luggage-help">选择文件后，会显示备份里有哪些项目，以及这里原来的进度。</p>
+          </div>
           <details id="text-import" class="luggage-text-panel">
-            <summary>粘贴存档文字 · 从微信搬过来</summary>
+            <summary>从存档文字恢复 · 微信搬家用</summary>
+            <p>已经在微信或其他浏览器里复制了存档，就展开这里，粘贴完整文字。</p>
             <label for="import-text-value">在这里粘贴完整的存档文字</label>
             <textarea
               id="import-text-value"
@@ -99,7 +155,7 @@
             <div class="luggage-actions">
               <button id="check-import-text" class="primary" type="button">检查粘贴的存档</button>
             </div>
-            <p>先检查内容，再勾选和确认恢复。粘贴不会直接覆盖当前记录。</p>
+            <p>核对项目数量和进度，再勾选、确认恢复。粘贴和检查不会直接覆盖当前记录。</p>
           </details>
         </section>
         <p id="luggage-status" role="status" aria-live="polite"></p>
@@ -129,9 +185,29 @@
             <a class="secondary" href="/card.html#collection">看看收藏册</a>
           </div>
         </section>
-        <p class="luggage-help">
-          这里只备份已经保存的进度。进行中的动画、当前抽取结果和没有保存的操作不会装进行李箱。清除网站数据后，网页不能替你找回已经删除的文件，请把备份放在自己找得到的地方。
-        </p>
+        <details class="luggage-panel luggage-faq">
+          <summary>关于记录数量、复制长度和恢复范围</summary>
+          <dl>
+            <dt>为什么列表里有很多类别，备份却只有几项？</dt>
+            <dd>
+              页面会列出所有支持的类别，只有标着“已装好”的才会打包。“空位”表示这里还没有这项存档；“未加入备份”表示记录暂时无法读取。导入时只会显示备份中实际包含的项目。
+            </dd>
+            <dt>复制的文字会不会不完整？</dt>
+            <dd>
+              画作较多时，存档文字会变长。请复制整段，避免在聊天或备忘录中转时漏掉内容。文件和文字都支持不超过
+              8 MB
+              的备份，但手机剪贴板不一定能复制这么多；截断或不符合格式的文字会被检查拦下。确认恢复前，还要对照导出与导入的项目数量。
+            </dd>
+            <dt>恢复会合并两边的进度吗？</dt>
+            <dd>
+              恢复会用备份替换勾选项目的记录，不合并两边进度。未勾选的项目、备份没有的项目保持原样。这里已经有想保留的进度时，先备份当前记录，再恢复另一份。
+            </dd>
+            <dt>备份包含什么，应该怎么保存？</dt>
+            <dd>
+              只包含已经保存的进度；进行中的动画、当前抽取结果和临时操作不打包。备份文件和文字只在你的设备里处理，不上传服务器，也不自动同步。请把备份放在找得到的地方，清除网站数据后需要靠它恢复。
+            </dd>
+          </dl>
+        </details>
       </main>
       <footer>
         <span>✳ 无聊研究所 / 快乐不必有意义。</span>
