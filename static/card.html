@@ -56,6 +56,16 @@
               <span id="card-series"></span>
               <span id="card-rarity"></span>
             </div>
+            <p id="card-encounter" class="card-encounter" hidden></p>
+            <div id="series-celebration" class="series-celebration" role="status" hidden>
+              <div>
+                <strong id="series-complete-title"></strong>
+                <p id="series-complete-message"></p>
+              </div>
+              <button id="close-series-celebration" type="button" aria-label="收起集齐庆祝">
+                ×
+              </button>
+            </div>
             <div id="card-symbol" aria-hidden="true"></div>
             <p id="card-id"></p>
             <h2 id="keyword"></h2>
@@ -125,6 +135,8 @@
             <span id="collection-count">已收集 0 / 90</span>
           </summary>
           <p class="help">抽到即收集，喜欢的卡可以再点亮爱心。查看旧卡不会增加抽卡次数。</p>
+          <div id="collection-progress" role="group" aria-label="系列收集进度"></div>
+          <p class="collection-progress-help">点击系列查看对应卡片，慢慢遇见就好。</p>
           <div class="collection-controls">
             <label>
               系列

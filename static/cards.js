@@ -82,12 +82,12 @@
       return memory;
     }
   }
-  function persist(change) {
+  function persist(change, afterCommit = () => {}) {
     writes = writes
       .then(() => {
         const commit = () => {
           memory = read();
-          change(memory);
+          const outcome = change(memory);
           if (!blocked)
             try {
               localStorage.setItem(KEY, JSON.stringify(memory));
@@ -97,6 +97,7 @@
             }
           renderCollection();
           updateFavorite();
+          afterCommit(outcome);
         };
         return navigator.locks?.request ? navigator.locks.request(KEY, commit) : commit();
       })
@@ -124,6 +125,8 @@
     $("favorite").disabled = !current || busy || !!pending;
   }
   function display(card) {
+    $("card-encounter").hidden = true;
+    $("series-celebration").hidden = true;
     current = card;
     pending = null;
     clearImage();
@@ -169,6 +172,7 @@
   }
   async function draw() {
     if (busy) return;
+    $("series-celebration").hidden = true;
     busy = true;
     pending = null;
     clearImage();
@@ -202,17 +206,44 @@
   $("draw").addEventListener("click", draw);
   $("card-back").addEventListener("click", () => {
     if (!pending || busy) return;
-    const card = pending,
-      isNew = !memory.owned.includes(card.id);
+    const card = pending;
     display(card);
+    const displayedRevision = revision;
     $("draw").disabled = false;
     $("draw").textContent = "再抽一张 ✧";
-    $("card-status").textContent = isNew
-      ? "新卡已收入收藏册。"
-      : "又遇见了这张卡，收藏册不会重复计数。";
-    persist((s) => {
-      if (!s.owned.includes(card.id)) s.owned.push(card.id);
-    });
+    persist(
+      (s) => {
+        const isNew = !s.owned.includes(card.id);
+        const before = seriesCount(s, card.series);
+        if (isNew) s.owned.push(card.id);
+        const count = seriesCount(s, card.series);
+        return {
+          isNew,
+          count,
+          completed: isNew && before < CARDS_PER_SERIES && count === CARDS_PER_SERIES,
+        };
+      },
+      ({ isNew, count, completed }) => {
+        if (revision !== displayedRevision || current?.id !== card.id || pending) return;
+        $("card-encounter").textContent = isNew ? "✧ 第一次遇见" : "↻ 老朋友又来了";
+        $("card-encounter").dataset.encounter = isNew ? "new" : "repeat";
+        $("card-encounter").hidden = false;
+        $("card-status").textContent =
+          (isNew ? "第一次遇见，已收入收藏册。" : "老朋友又来了，收藏册不会重复计数。") +
+          series[card.series][0] +
+          "系列 " +
+          count +
+          " / " +
+          CARDS_PER_SERIES +
+          "。";
+        if (completed) {
+          $("series-complete-title").textContent = "✧ " + series[card.series][0] + "系列，集齐啦！";
+          $("series-complete-message").textContent =
+            CARDS_PER_SERIES + " 位" + series[card.series][0] + "系列的朋友，都在这里了。";
+          $("series-celebration").hidden = false;
+        }
+      },
+    );
     window.BoringAchievements?.record("card");
     $("draw").focus();
   });
@@ -226,7 +257,61 @@
         : [...s.favorites, id];
     });
   });
+  function seriesCount(state, key) {
+    return state.owned.filter((id) => id.startsWith(key + "-")).length;
+  }
+  function renderProgress() {
+    const progress = $("collection-progress");
+    if (!progress.childElementCount) {
+      for (const [key, [name, symbol, color]] of Object.entries(series)) {
+        const button = document.createElement("button");
+        button.type = "button";
+        button.className = "series-progress";
+        button.dataset.progressSeries = key;
+        button.style.setProperty("--series-tint", color);
+        const title = document.createElement("strong"),
+          count = document.createElement("small"),
+          bar = document.createElement("progress");
+        title.textContent = symbol + " " + name;
+        count.className = "series-progress-count";
+        bar.max = CARDS_PER_SERIES;
+        bar.setAttribute("aria-label", name + "系列收集进度");
+        button.append(title, count, bar);
+        button.addEventListener("click", () => {
+          $("collection-series").value = key;
+          renderCollection();
+        });
+        progress.append(button);
+      }
+    }
+    for (const button of progress.children) {
+      const key = button.dataset.progressSeries,
+        count = seriesCount(memory, key),
+        complete = count === CARDS_PER_SERIES;
+      button.querySelector("small").textContent =
+        count + " / " + CARDS_PER_SERIES + (complete ? " · 已集齐" : "");
+      button.querySelector("progress").value = count;
+      button.querySelector("progress").textContent = count + " / " + CARDS_PER_SERIES;
+      button.dataset.complete = String(complete);
+      button.setAttribute("aria-pressed", String($("collection-series").value === key));
+      button.setAttribute(
+        "aria-label",
+        "查看" +
+          series[key][0] +
+          "系列，已收集 " +
+          count +
+          " / " +
+          CARDS_PER_SERIES +
+          (complete ? "，已集齐" : ""),
+      );
+    }
+  }
+  $("close-series-celebration").addEventListener("click", () => {
+    $("series-celebration").hidden = true;
+    $("draw").focus({ preventScroll: true });
+  });
   function renderCollection() {
+    renderProgress();
     $("collection-count").textContent =
       `已收集 ${memory.owned.length} / ${CARD_COUNT} · 收藏 ${memory.favorites.length}`;
     $("collection-storage").textContent =
@@ -261,6 +346,9 @@
       button.addEventListener("click", () => {
         if (busy || pending) return;
         display(card);
+        $("card-encounter").textContent = "♡ 收藏里的老朋友";
+        $("card-encounter").dataset.encounter = "collection";
+        $("card-encounter").hidden = false;
         $("card-status").textContent = "正在翻看收藏里的老朋友。";
         $("draw").textContent = "再抽一张 ✧";
         $("draw").disabled = false;
