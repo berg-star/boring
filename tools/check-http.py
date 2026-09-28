@@ -37,9 +37,9 @@ for endpoint, fields in (
     data = json.loads(get("/api/" + endpoint, "application/json"))
     assert all(field in data for field in fields), endpoint
 cards = json.loads(get("/api/cards", "application/json"))
-assert len(cards) == 36 and len({row["id"] for row in cards}) == 36
+assert len(cards) == 90 and len({row["id"] for row in cards}) == 90
 for series in ("relax", "courage", "idea", "luck", "company", "funny"):
-    assert sum(row["series"] == series for row in cards) == 6
+    assert sum(row["series"] == series for row in cards) == 15
 answers = json.loads(get("/api/book-answers", "application/json"))
 assert len(answers) == 200 and len({row["answer"] for row in answers}) == 200
 assert all(isinstance(row["answer"], str) and row["answer"].strip() for row in answers)

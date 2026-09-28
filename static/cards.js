@@ -10,6 +10,8 @@
     company: ["陪伴", "♡", "#f1b8c7"],
     funny: ["搞怪", "☺", "#a7d9e8"],
   };
+  const CARDS_PER_SERIES = 15,
+    CARD_COUNT = Object.keys(series).length * CARDS_PER_SERIES;
   const fields = [
     "id",
     "series",
@@ -42,7 +44,8 @@
       fields.some((k) => typeof card[k] !== "string" || !card[k].trim() || card[k].length > 200) ||
       !Object.hasOwn(series, card.series) ||
       !["R", "SR", "SSR"].includes(card.rarity) ||
-      !new RegExp("^" + card.series + "-0[1-6]$").test(card.id) ||
+      !validId(card.id) ||
+      !card.id.startsWith(card.series + "-") ||
       !Number.isFinite(card.luck) ||
       card.luck < 0 ||
       card.luck > 100
@@ -51,7 +54,7 @@
     return card;
   }
   const validId = (id) =>
-    typeof id === "string" && /^(relax|courage|idea|luck|company|funny)-0[1-6]$/.test(id);
+    typeof id === "string" && /^(relax|courage|idea|luck|company|funny)-(0[1-9]|1[0-5])$/.test(id);
   function read() {
     if (blocked) return memory;
     try {
@@ -62,8 +65,8 @@
         data.version !== 1 ||
         !Array.isArray(data.owned) ||
         !Array.isArray(data.favorites) ||
-        data.owned.length > 36 ||
-        data.favorites.length > 36 ||
+        data.owned.length > CARD_COUNT ||
+        data.favorites.length > CARD_COUNT ||
         [...data.owned, ...data.favorites].some((id) => !validId(id)) ||
         data.favorites.some((id) => !data.owned.includes(id))
       )
@@ -225,7 +228,7 @@
   });
   function renderCollection() {
     $("collection-count").textContent =
-      `已收集 ${memory.owned.length} / 36 · 收藏 ${memory.favorites.length}`;
+      `已收集 ${memory.owned.length} / ${CARD_COUNT} · 收藏 ${memory.favorites.length}`;
     $("collection-storage").textContent =
       storageMessage || "已保存在这个浏览器；收藏不会同步到其他设备。";
     if (!catalog) return;
@@ -282,9 +285,15 @@
     $("collection-retry").hidden = true;
     try {
       const data = await request("/api/cards");
-      if (!Array.isArray(data) || data.length !== 36) throw Error("Invalid catalog");
+      if (!Array.isArray(data) || data.length !== CARD_COUNT) throw Error("Invalid catalog");
       data.forEach(validate);
-      if (new Set(data.map((c) => c.id)).size !== 36) throw Error("Duplicate IDs");
+      if (new Set(data.map((c) => c.id)).size !== CARD_COUNT) throw Error("Duplicate IDs");
+      if (
+        Object.keys(series).some(
+          (key) => data.filter((card) => card.series === key).length !== CARDS_PER_SERIES,
+        )
+      )
+        throw Error("Incomplete series");
       catalog = data;
       $("collection-error").textContent = "";
       renderCollection();
@@ -364,6 +373,7 @@
       line(card.skill, 32, color, 5, false, true);
       line(card.skillText, 27, "#e6ece7", 30);
       const skillBottom = y - 18;
+      y += 20;
       for (const [tag, value] of [
         ["今日宜", card.good],
         ["今日忌", card.avoid],

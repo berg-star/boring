@@ -1,25 +1,213 @@
-const {chromium}=require('playwright');const assert=require('node:assert/strict');const fs=require('node:fs');
-const base=process.env.TEST_BASE||'http://127.0.0.1:18080',KEY='boring-lab-cards-v1';const cards=JSON.parse(fs.readFileSync('data/cards.json','utf8'));
-(async()=>{const b=await chromium.launch({channel:'chrome',headless:true});try{
- const context=await b.newContext({viewport:{width:1200,height:1100},reducedMotion:'reduce'});const p=await context.newPage();const errors=[];p.on('pageerror',e=>errors.push(e.message));
- const api=await p.request.get(base+'/api/cards');assert.equal(api.status(),200);assert.equal((await api.json()).length,36);
- let card=cards[0];await p.route('**/api/random-card',r=>r.fulfill({json:card}));await p.goto(base+'/card.html');assert.equal(await p.locator('#result').isVisible(),false);assert.equal(await p.locator('#favorite').isDisabled(),true);
- const reveal=async()=>{await p.locator('#draw').click();await p.locator('#card-back').click();await p.waitForFunction(id=>document.querySelector('#card-id').textContent.includes(id.toUpperCase()),card.id);};
- await p.locator('#draw').click();await p.waitForFunction(()=>!document.querySelector('#card-back').disabled);assert.equal(await p.evaluate(k=>localStorage.getItem(k),KEY),null,'not owned before reveal');await p.locator('#card-back').click();
- await p.waitForFunction(k=>JSON.parse(localStorage.getItem(k)).owned.length===1,KEY);await p.locator('#favorite').click();await p.waitForFunction(k=>JSON.parse(localStorage.getItem(k)).favorites.length===1,KEY);
- await reveal();await p.waitForTimeout(50);assert.equal(await p.evaluate(k=>JSON.parse(localStorage.getItem(k)).owned.length,KEY),1,'duplicate not collected twice');
- await p.locator('#open-collection').click();await p.waitForSelector('.collection-card');assert.equal(await p.locator('.collection-card').count(),36);assert.equal(await p.locator('.collection-card.owned').count(),1);await p.locator('#collection-filter').selectOption('favorite');assert.equal(await p.locator('.collection-card').count(),1);
- await p.reload();await p.locator('#open-collection').click();await p.waitForSelector('.collection-card.owned');await p.locator('.collection-card.owned').click();assert.equal(await p.locator('#keyword').textContent(),cards[0].keyword);assert.equal(await p.locator('#favorite').getAttribute('aria-pressed'),'true');
- const achievedBefore=await p.evaluate(()=>JSON.parse(localStorage.getItem('boring-lab-achievements-v1')).cards);await p.locator('.collection-card.owned').click();assert.equal(await p.evaluate(()=>JSON.parse(localStorage.getItem('boring-lab-achievements-v1')).cards),achievedBefore,'viewing collection is not drawing');
- await p.locator('#collection').evaluate(el=>el.open=false);
- for(const row of cards){card=row;await reveal();assert.equal(await p.locator('#card-skill-text').textContent(),row.skillText);assert.equal(await p.locator('#card-bonus').textContent(),row.bonus);await p.locator('#share-card').click();await p.waitForFunction(()=>!document.querySelector('#card-image').hidden&&document.querySelector('#share-preview').complete&&document.querySelector('#share-preview').naturalWidth===900);const height=await p.locator('#share-preview').evaluate(el=>el.naturalHeight);assert.ok(height>900&&height<=1600,'export fits '+row.id);if(row.id==='relax-01'){const download=p.waitForEvent('download');await p.locator('#download-card').click();await(await download).saveAs('.qa/card-share.png');}}
- await p.waitForFunction(k=>JSON.parse(localStorage.getItem(k)).owned.length===36,KEY);
- await p.locator('#open-collection').click();await p.waitForSelector('.collection-card');await p.locator('#collection-series').selectOption('idea');await p.locator('#collection-filter').selectOption('owned');assert.equal(await p.locator('.collection-card').count(),6);await p.locator('#collection-series').selectOption('all');await p.locator('#collection-filter').selectOption('favorite');assert.equal(await p.locator('.collection-card').count(),1);
- await p.unroute('**/api/random-card');await p.route('**/api/random-card',r=>r.fulfill({status:503,body:'unavailable'}));await p.locator('#draw').click();await p.waitForFunction(()=>!document.querySelector('#draw').disabled);assert.ok(await p.locator('#api-error').textContent());assert.equal(await p.locator('#keyword').textContent(),card.keyword);
- await p.unroute('**/api/random-card');await p.route('**/api/random-card',r=>r.fulfill({json:{...card,series:'bad'}}));await p.locator('#draw').click();await p.waitForFunction(()=>!document.querySelector('#draw').disabled);assert.ok(await p.locator('#api-error').textContent());
- await p.unroute('**/api/random-card');card=cards[0];await p.route('**/api/random-card',r=>r.fulfill({json:card}));await reveal();assert.equal(await p.locator('#api-error').textContent(),'');
- for(const width of [320,390,768]){await p.setViewportSize({width,height:1000});await p.locator('#collection').evaluate(el=>el.open=true);await p.locator('#collection-filter').selectOption('all');for(const type of ['relax','courage','idea','luck','company','funny']){card=cards.find(c=>c.series===type);await reveal();assert.ok(await p.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));}if(width===390){await p.locator('#collection').evaluate(el=>el.open=false);await p.screenshot({path:'.qa/daily-card-mobile.png',fullPage:true,animations:'disabled'});}}
- await p.evaluate(k=>localStorage.setItem(k,'broken'),KEY);await p.reload();assert.equal(await p.evaluate(k=>localStorage.getItem(k),KEY),'broken');await reveal();assert.equal(await p.evaluate(k=>localStorage.getItem(k),KEY),'broken');assert.ok((await p.locator('#collection-storage').textContent()).includes('未覆盖'));
- const blocked=await b.newContext();await blocked.addInitScript(()=>{Storage.prototype.setItem=()=>{throw Error('blocked')};});const q=await blocked.newPage();await q.goto(base+'/card.html');await q.locator('#draw').click();await q.locator('#card-back').click();await q.waitForFunction(()=>document.querySelector('#collection-storage').textContent.includes('无法保存'));await blocked.close();
- assert.deepEqual(errors,[]);console.log('PASS cards: all 36 full cards/exports, flip-gated collection, favorites/filter/reload, no duplicate count, old-card view not achievement, API failures/retry, mobile, corrupt and blocked storage');
-}finally{await b.close();}})().catch(e=>{console.error(e);process.exit(1)});
+const { chromium } = require("playwright");
+const assert = require("node:assert/strict");
+const fs = require("node:fs");
+const base = process.env.TEST_BASE || "http://127.0.0.1:18080",
+  KEY = "boring-lab-cards-v1";
+const cards = JSON.parse(fs.readFileSync("data/cards.json", "utf8"));
+(async () => {
+  const b = await chromium.launch({ channel: "chrome", headless: true });
+  try {
+    const context = await b.newContext({
+      viewport: { width: 1200, height: 1100 },
+      reducedMotion: "reduce",
+    });
+    const p = await context.newPage();
+    const errors = [];
+    p.on("pageerror", (e) => errors.push(e.message));
+    const api = await p.request.get(base + "/api/cards");
+    assert.equal(api.status(), 200);
+    assert.equal((await api.json()).length, cards.length);
+    let card = cards[0];
+    await p.route("**/api/random-card", (r) => r.fulfill({ json: card }));
+    await p.goto(base + "/card.html");
+    assert.equal(await p.locator("#result").isVisible(), false);
+    assert.equal(await p.locator("#favorite").isDisabled(), true);
+    const reveal = async () => {
+      await p.locator("#draw").click();
+      await p.locator("#card-back").click();
+      await p.waitForFunction(
+        (id) => document.querySelector("#card-id").textContent.includes(id.toUpperCase()),
+        card.id,
+      );
+    };
+    await p.locator("#draw").click();
+    await p.waitForFunction(() => !document.querySelector("#card-back").disabled);
+    assert.equal(
+      await p.evaluate((k) => localStorage.getItem(k), KEY),
+      null,
+      "not owned before reveal",
+    );
+    await p.locator("#card-back").click();
+    await p.waitForFunction((k) => JSON.parse(localStorage.getItem(k)).owned.length === 1, KEY);
+    await p.locator("#favorite").click();
+    await p.waitForFunction((k) => JSON.parse(localStorage.getItem(k)).favorites.length === 1, KEY);
+    await reveal();
+    await p.waitForTimeout(50);
+    assert.equal(
+      await p.evaluate((k) => JSON.parse(localStorage.getItem(k)).owned.length, KEY),
+      1,
+      "duplicate not collected twice",
+    );
+    await p.locator("#open-collection").click();
+    await p.waitForSelector(".collection-card");
+    assert.equal(await p.locator(".collection-card").count(), cards.length);
+    assert.equal(await p.locator(".collection-card.owned").count(), 1);
+    await p.locator("#collection-filter").selectOption("favorite");
+    assert.equal(await p.locator(".collection-card").count(), 1);
+    await p.reload();
+    await p.locator("#open-collection").click();
+    await p.waitForSelector(".collection-card.owned");
+    await p.locator(".collection-card.owned").click();
+    assert.equal(await p.locator("#keyword").textContent(), cards[0].keyword);
+    assert.equal(await p.locator("#favorite").getAttribute("aria-pressed"), "true");
+    const achievedBefore = await p.evaluate(
+      () => JSON.parse(localStorage.getItem("boring-lab-achievements-v1")).cards,
+    );
+    await p.locator(".collection-card.owned").click();
+    assert.equal(
+      await p.evaluate(() => JSON.parse(localStorage.getItem("boring-lab-achievements-v1")).cards),
+      achievedBefore,
+      "viewing collection is not drawing",
+    );
+    await p.locator("#collection").evaluate((el) => (el.open = false));
+    for (const row of cards) {
+      card = row;
+      await reveal();
+      assert.equal(await p.locator("#card-skill-text").textContent(), row.skillText);
+      assert.equal(await p.locator("#card-bonus").textContent(), row.bonus);
+      await p.locator("#share-card").click();
+      await p.waitForFunction(
+        () =>
+          !document.querySelector("#card-image").hidden &&
+          document.querySelector("#share-preview").complete &&
+          document.querySelector("#share-preview").naturalWidth === 900,
+      );
+      const height = await p.locator("#share-preview").evaluate((el) => el.naturalHeight);
+      assert.ok(height > 900 && height <= 1600, "export fits " + row.id);
+      if (row.id === "relax-01") {
+        const download = p.waitForEvent("download");
+        await p.locator("#download-card").click();
+        await (await download).saveAs(".qa/card-share.png");
+      }
+    }
+    await p.waitForFunction((k) => JSON.parse(localStorage.getItem(k)).owned.length === 90, KEY);
+    await p.locator("#open-collection").click();
+    await p.waitForSelector(".collection-card");
+    await p.locator("#collection-series").selectOption("idea");
+    await p.locator("#collection-filter").selectOption("owned");
+    assert.equal(await p.locator(".collection-card").count(), 15);
+    await p.locator("#collection-series").selectOption("all");
+    await p.locator("#collection-filter").selectOption("favorite");
+    assert.equal(await p.locator(".collection-card").count(), 1);
+    await p.unroute("**/api/random-card");
+    await p.route("**/api/random-card", (r) => r.fulfill({ status: 503, body: "unavailable" }));
+    await p.locator("#draw").click();
+    await p.waitForFunction(() => !document.querySelector("#draw").disabled);
+    assert.ok(await p.locator("#api-error").textContent());
+    assert.equal(await p.locator("#keyword").textContent(), card.keyword);
+    await p.unroute("**/api/random-card");
+    await p.route("**/api/random-card", (r) => r.fulfill({ json: { ...card, series: "bad" } }));
+    await p.locator("#draw").click();
+    await p.waitForFunction(() => !document.querySelector("#draw").disabled);
+    assert.ok(await p.locator("#api-error").textContent());
+    await p.unroute("**/api/random-card");
+    card = cards[0];
+    await p.route("**/api/random-card", (r) => r.fulfill({ json: card }));
+    await reveal();
+    assert.equal(await p.locator("#api-error").textContent(), "");
+    for (const width of [320, 390, 768]) {
+      await p.setViewportSize({ width, height: 1000 });
+      await p.locator("#collection").evaluate((el) => (el.open = true));
+      await p.locator("#collection-filter").selectOption("all");
+      for (const type of ["relax", "courage", "idea", "luck", "company", "funny"]) {
+        card = cards.find((c) => c.series === type);
+        await reveal();
+        assert.ok(await p.evaluate(() => document.documentElement.scrollWidth <= innerWidth));
+      }
+      if (width === 390) {
+        await p.locator("#collection").evaluate((el) => (el.open = false));
+        await p.screenshot({
+          path: ".qa/daily-card-mobile.png",
+          fullPage: true,
+          animations: "disabled",
+        });
+      }
+    }
+    await p.evaluate((k) => localStorage.setItem(k, "broken"), KEY);
+    await p.reload();
+    assert.equal(await p.evaluate((k) => localStorage.getItem(k), KEY), "broken");
+    await reveal();
+    assert.equal(await p.evaluate((k) => localStorage.getItem(k), KEY), "broken");
+    assert.ok((await p.locator("#collection-storage").textContent()).includes("未覆盖"));
+    const legacy = await b.newContext({ reducedMotion: "reduce" });
+    const oldIds = cards.filter((row) => Number(row.id.split("-").pop()) <= 6).map((row) => row.id);
+    const oldCollection = { version: 1, owned: oldIds, favorites: ["relax-01", "funny-06"] };
+    await legacy.addInitScript(
+      ({ key, data }) => {
+        if (!localStorage.getItem(key)) localStorage.setItem(key, JSON.stringify(data));
+      },
+      { key: KEY, data: oldCollection },
+    );
+    const migrated = await legacy.newPage();
+    await migrated.goto(base + "/card.html");
+    await migrated.locator("#open-collection").click();
+    await migrated.waitForSelector(".collection-card");
+    assert.equal(await migrated.locator(".collection-card").count(), 90);
+    assert.equal(await migrated.locator(".collection-card.owned").count(), 36);
+    assert.deepEqual(
+      await migrated.evaluate((k) => JSON.parse(localStorage.getItem(k)), KEY),
+      oldCollection,
+      "old collection unchanged on load",
+    );
+    const newest = cards.find((row) => row.id === "funny-15");
+    await migrated.route("**/api/random-card", (r) => r.fulfill({ json: newest }));
+    await migrated.locator("#draw").click();
+    await migrated.locator("#card-back").click();
+    await migrated.waitForFunction(
+      (k) => JSON.parse(localStorage.getItem(k)).owned.length === 37,
+      KEY,
+    );
+    await migrated.locator("#favorite").click();
+    await migrated.waitForFunction(
+      (k) => JSON.parse(localStorage.getItem(k)).favorites.length === 3,
+      KEY,
+    );
+    await migrated.reload();
+    await migrated.locator("#open-collection").click();
+    await migrated.waitForSelector(".collection-card.owned");
+    assert.equal(await migrated.locator(".collection-card.owned").count(), 37);
+    const restored = await migrated.evaluate((k) => JSON.parse(localStorage.getItem(k)), KEY);
+    assert.deepEqual(restored.owned, [...oldIds, newest.id]);
+    assert.deepEqual(restored.favorites, [...oldCollection.favorites, newest.id]);
+    await migrated.route("**/api/random-card", (r) =>
+      r.fulfill({ json: { ...newest, id: "funny-16" } }),
+    );
+    await migrated.locator("#draw").click();
+    await migrated.waitForFunction(() => !document.querySelector("#draw").disabled);
+    assert.ok(await migrated.locator("#api-error").textContent(), "reject out-of-range card");
+    await legacy.close();
+    const blocked = await b.newContext();
+    await blocked.addInitScript(() => {
+      Storage.prototype.setItem = () => {
+        throw Error("blocked");
+      };
+    });
+    const q = await blocked.newPage();
+    await q.goto(base + "/card.html");
+    await q.locator("#draw").click();
+    await q.locator("#card-back").click();
+    await q.waitForFunction(() =>
+      document.querySelector("#collection-storage").textContent.includes("无法保存"),
+    );
+    await blocked.close();
+    assert.deepEqual(errors, []);
+    console.log(
+      "PASS cards: all 90 full cards/exports, flip-gated collection, favorites/filter/reload, no duplicate count, old-card view not achievement, API failures/retry, mobile, legacy 36-card migration and new ID persistence, corrupt and blocked storage",
+    );
+  } finally {
+    await b.close();
+  }
+})().catch((e) => {
+  console.error(e);
+  process.exit(1);
+});
