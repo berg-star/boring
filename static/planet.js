@@ -157,6 +157,7 @@
     MAX_PLANTS = 80;
   let storageBlocked = false,
     undo = null,
+    undoTimer = null,
     lastDraw = 0,
     lastSim = 0,
     cloudPoint = null;
@@ -172,13 +173,41 @@
       Math.abs(Math.hypot(p.x, p.y, p.z) - 1) < 0.02
     );
   }
+  function updateUndo() {
+    clearTimeout(undoTimer);
+    undoTimer = null;
+    const remaining = undo ? Math.max(0, undo.until - Date.now()) : 0;
+    document.getElementById("planet-undo").hidden = remaining === 0;
+    document.getElementById("undo-plant").hidden = remaining === 0;
+    if (remaining === 0) {
+      undo = null;
+      return;
+    }
+    document.getElementById("undo-seconds").textContent = Math.ceil(remaining / 1000) + " 秒";
+    if (!document.hidden) undoTimer = setTimeout(updateUndo, Math.min(250, remaining));
+  }
+  const toolHints = {
+    explore: ["随便点点", "拖动旋转星球；轻点居民、树木、海水或火山，看看会发生什么。"],
+    tree: ["种点东西", "轻点绿色陆地上的空位种苗，不能种在水里；拖动可以旋转星球。"],
+    dig: ["小铲子", "轻点树根或树冠铲除植物；8 秒内可用画布下方的按钮撤销。拖动仍可旋转。"],
+    rain: ["下场雨", "按住星球拖动小云，松手在落点下雨；可在下方选择普通雨或爆米花。"],
+    volcano: ["火山喷嚏", "轻点星球，火山就会打喷嚏；拖动仍可旋转。"],
+  };
+  function updateToolHint() {
+    const [name, hint] = toolHints[tool];
+    document.getElementById("planet-tool-name").textContent = "当前：" + name;
+    document.getElementById("planet-tool-hint").textContent = hint;
+  }
+  addEventListener("pagehide", () => clearTimeout(undoTimer));
+  addEventListener("pageshow", updateUndo);
   let previousStatus = "";
   function status() {
     const signature = [
       trees.length,
       residents.length,
       storageBlocked,
-      !!undo && Date.now() <= undo.until,
+      undo?.until || 0,
+      !!undo && Date.now() < undo.until,
     ].join(":");
     if (signature === previousStatus) return;
     previousStatus = signature;
@@ -188,7 +217,7 @@
     document.getElementById("planet-save").textContent = storageBlocked
       ? "本次可继续玩，但存储不可用或旧记录损坏，暂不覆盖旧记录。"
       : "星球自动保存在当前浏览器，清除网站数据会丢失。";
-    document.getElementById("undo-plant").hidden = !undo || Date.now() > undo.until;
+    updateUndo();
   }
   function saveWorld() {
     if (!storageBlocked)
@@ -1077,7 +1106,7 @@
         .filter((t) => project(t.t).z > 0.08 && t.d < 0.2)
         .sort((a, b) => a.d - b.d)[0];
       if (!target) {
-        message.textContent = "这里没有植物。点树木或蘑菇的根部，就能铲掉。";
+        message.textContent = "这里没有植物。轻点树根或树冠，就能铲掉。";
         return;
       }
       if (ufo?.tree && ufo.target === target.t) {
@@ -1089,9 +1118,8 @@
       residents.forEach((r) => {
         if (near(r.p, target.t) < 0.65) residentMood(r, "咦，我的树呢？");
       });
-      message.textContent = "噗，空出一个位置。铲错了？8 秒内可以撤销。";
+      message.textContent = "噗，空出一个位置。铲错了？点画布下方的“撤销铲除”，8 秒内可放回。";
       p = target.t;
-      setTimeout(status, 8100);
     } else if (kind === "volcano") {
       yaw = -Math.atan2(volcano.x, volcano.z);
       pitch = Math.asin(volcano.y);
@@ -1136,7 +1164,7 @@
     addEffect(kind, p);
   }
   document.getElementById("undo-plant").addEventListener("click", () => {
-    if (!undo || Date.now() > undo.until) {
+    if (!undo || Date.now() >= undo.until) {
       undo = null;
       status();
       return;
@@ -1254,12 +1282,8 @@
         b.classList.toggle("active", b === button);
         b.setAttribute("aria-pressed", String(b === button));
       });
-      message.textContent =
-        tool === "rain"
-          ? "按住星球拖动小云，松手在这里下雨。"
-          : tool === "dig"
-            ? "点植物铲除，8 秒内可撤销；拖动仍能旋转星球。"
-            : "选好啦，点一下星球试试。";
+      updateToolHint();
+      message.textContent = "已切换到“" + toolHints[tool][0] + "”，按画布下方的提示试试吧。";
       document.getElementById("seed-controls").hidden = tool !== "tree";
       document.getElementById("weather-controls").hidden = tool !== "rain";
     }),
@@ -1284,6 +1308,7 @@
   document.querySelector(".planet-room").classList.toggle("is-night", night);
   document.getElementById("night").setAttribute("aria-pressed", String(night));
   document.getElementById("night").textContent = night ? "切到白天 ☀" : "切到夜晚 ☾";
+  updateToolHint();
   saveWorld();
   function resize() {
     const dpr = Math.min(devicePixelRatio || 1, 2);
@@ -1294,6 +1319,7 @@
   }
   addEventListener("resize", resize);
   document.addEventListener("visibilitychange", () => {
+    updateUndo();
     if (document.hidden) {
       cancelAnimationFrame(frame);
       frame = 0;

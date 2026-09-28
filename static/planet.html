@@ -53,17 +53,36 @@
               </button>
             </div>
           </div>
-          <canvas
-            id="planet"
-            width="600"
-            height="560"
-            tabindex="0"
-            role="img"
-            aria-label="可互动的小星球。拖动旋转，点击探索；键盘方向键旋转，回车在中心触发所选事件。"
-          >
-            你的浏览器暂不支持画布，请使用新版浏览器。
-          </canvas>
-          <p class="planet-hint">拖动转一转 · 轻点有惊喜</p>
+          <div class="planet-stage">
+            <canvas
+              id="planet"
+              width="600"
+              height="560"
+              tabindex="0"
+              role="img"
+              aria-describedby="planet-tool-hint"
+              aria-label="可互动的小星球。拖动旋转，点击探索；键盘方向键旋转，回车在中心触发所选事件。"
+            >
+              你的浏览器暂不支持画布，请使用新版浏览器。
+            </canvas>
+            <div id="planet-undo" class="planet-undo" hidden>
+              <span>刚铲除一株植物</span>
+              <button
+                id="undo-plant"
+                class="primary"
+                type="button"
+                hidden
+                aria-label="撤销刚才的铲除"
+              >
+                撤销铲除
+                <span id="undo-seconds" aria-hidden="true">8 秒</span>
+              </button>
+            </div>
+          </div>
+          <div class="planet-hint" aria-live="polite" aria-atomic="true">
+            <strong id="planet-tool-name">当前：随便点点</strong>
+            <p id="planet-tool-hint">拖动旋转星球；轻点居民、树木、海水或火山，看看会发生什么。</p>
+          </div>
           <p id="planet-message" role="status">这座火山看起来有点鼻子痒。</p>
         </section>
         <div class="filters planet-tools" role="group" aria-label="探索方式">
@@ -95,7 +114,6 @@
           <button id="call-meteor" class="secondary" type="button">来颗流星</button>
           <button id="catch-meteor" class="primary" type="button" hidden>抓住流星许愿</button>
           <button id="hatch-egg" class="secondary" type="button" hidden>点开神秘蛋</button>
-          <button id="undo-plant" class="secondary" type="button" hidden>撤销刚才的铲除</button>
           <button id="surprise-event" class="primary" type="button">星球，整点活 ↗</button>
         </div>
         <p class="help">
