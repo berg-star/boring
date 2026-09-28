@@ -123,6 +123,7 @@
     }
   }
   soundButton.addEventListener("click", () => {
+    if (window.BoringStorage && !window.BoringStorage.canWrite()) return;
     soundOn = !soundOn;
     stopSound();
     soundLabel();
@@ -231,6 +232,7 @@
     updateUndo();
   }
   function saveWorld() {
+    if (window.BoringStorage && !window.BoringStorage.canWrite()) return;
     if (!storageBlocked)
       try {
         localStorage.setItem(

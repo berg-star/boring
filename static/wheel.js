@@ -42,6 +42,7 @@ function list() {
   return state.lists[s];
 }
 function save() {
+  if (window.BoringStorage && !window.BoringStorage.canWrite()) return;
   if (writable) try { localStorage.setItem(key,JSON.stringify({version:1,...state})); } catch { writable=false; }
   $("save-status").textContent=writable?"已自动保存在此浏览器，清除网站数据会重置。":"浏览器存储不可用或旧记录损坏；本次仍可玩，暂不覆盖原记录。";
 }

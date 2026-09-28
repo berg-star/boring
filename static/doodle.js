@@ -104,6 +104,7 @@
     $("doodle-error").textContent = message;
   }
   function save() {
+    if (window.BoringStorage && !window.BoringStorage.canWrite()) return;
     if (!blocked)
       try {
         localStorage.setItem(KEY, JSON.stringify({ version: 1, strokes }));

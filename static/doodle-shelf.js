@@ -50,6 +50,7 @@ window.createDoodleShelf = function ({ validate, paint, getStrokes, open }) {
     chain = chain
       .then(() => {
         const commit = () => {
+          if (window.BoringStorage && !window.BoringStorage.canWrite()) return;
           try {
             const next = read();
             if (!change(next)) return;

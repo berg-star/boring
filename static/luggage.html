@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description" content="把无聊研究所里的小快乐装进行李箱，备份、搬家，再接着玩。" />
+    <title>我的行李箱 · 无聊研究所</title>
+    <link
+      rel="icon"
+      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40'%3E%3Crect width='40' height='40' rx='12' fill='%23b9f879'/%3E%3Ctext x='7' y='29' font-size='28'%3E✳%3C/text%3E%3C/svg%3E"
+    />
+    <link rel="stylesheet" href="/static/style.css" />
+    <link rel="stylesheet" href="/static/achievements.css" />
+    <link rel="stylesheet" href="/static/luggage.css" />
+    <script defer src="/static/achievements.js"></script>
+    <script defer src="/static/main.js"></script>
+    <script defer src="/static/wheel-presets.js"></script>
+    <script defer src="/static/luggage-schema.js"></script>
+    <script defer src="/static/luggage.js"></script>
+  </head>
+  <body>
+    <div class="site-shell">
+      <header class="header">
+        <a class="brand" href="/">
+          <span class="brand-mark">✳</span>
+          <span>
+            无聊研究所
+            <small>BORING LAB.</small>
+          </span>
+        </a>
+        <a class="header-link" href="/#playground">全部玩法 ↗</a>
+      </header>
+      <main class="game-main luggage-main">
+        <a class="back" href="/#playground">← 回游乐场</a>
+        <div class="game-heading">
+          <p class="eyebrow">TAKE YOUR LITTLE JOYS WITH YOU</p>
+          <h1>我的行李箱</h1>
+          <p>把小快乐装好，换个地方接着玩。</p>
+        </div>
+        <p class="luggage-intro">
+          换手机、换浏览器，或准备清理网站数据时，先导出一份行李箱。到新设备打开这个网站，再导入同一份文件。
+        </p>
+        <span id="luggage-count" class="luggage-count">正在整理行李……</span>
+        <section class="luggage-panel" aria-labelledby="inventory-title">
+          <h2 id="inventory-title">现在有什么可以带走？</h2>
+          <p>宠物、收藏、画作、星球，以及你习惯的玩法设置。</p>
+          <div id="luggage-inventory"></div>
+          <p id="inventory-note" class="luggage-help"></p>
+          <div class="luggage-actions">
+            <button id="export-luggage" class="primary" type="button">一键导出行李箱 ↓</button>
+            <a id="backup-download" hidden>再次下载这份行李箱 ↓</a>
+          </div>
+          <p>文件保存在你的设备里，不会自动同步。玩了一阵子后，可以再导出一份新的。</p>
+        </section>
+        <section class="luggage-panel" aria-labelledby="import-title">
+          <h2 id="import-title">带着行李回来了？</h2>
+          <p>选择导出的 JSON 文件，先检查、再核对、最后确认恢复。也支持以前单独导出的宠物备份。</p>
+          <label for="import-file" class="luggage-help">选择行李箱文件（不超过 8 MB）</label>
+          <input id="import-file" type="file" accept=".json,application/json" />
+          <p class="luggage-help">
+            文件仅在当前浏览器里读取，不上传服务器。恢复前可以先导出当前记录，留一份退路。
+          </p>
+        </section>
+        <p id="luggage-status" role="status" aria-live="polite"></p>
+        <section id="restore-preview" class="luggage-panel" hidden aria-labelledby="restore-title">
+          <h2 id="restore-title" tabindex="-1">核对这份行李</h2>
+          <p id="restore-file"></p>
+          <div id="restore-items"></div>
+          <p id="restore-selection"></p>
+          <div class="luggage-actions">
+            <button id="review-restore" class="primary" type="button">恢复勾选的记录</button>
+            <button id="cancel-import" class="secondary" type="button">取消导入</button>
+          </div>
+          <div id="restore-confirmation" hidden>
+            <h3>确认替换这些记录？</h3>
+            <p id="restore-confirm-count"></p>
+            <div class="luggage-actions">
+              <button id="apply-restore" class="primary" type="button">确认恢复</button>
+              <button id="cancel-confirm" class="secondary" type="button">再看一眼</button>
+            </div>
+          </div>
+        </section>
+        <section id="restore-success" class="luggage-panel" hidden>
+          <h2 id="restore-success-title" tabindex="-1">行李放好了，继续玩吧。</h2>
+          <p id="restore-success-copy"></p>
+          <div class="luggage-actions">
+            <a class="primary" href="/#playground">回游乐场 ↗</a>
+            <a class="secondary" href="/card.html#collection">看看收藏册</a>
+          </div>
+        </section>
+        <p class="luggage-help">
+          这里只备份已经保存的进度。进行中的动画、当前抽取结果和没有保存的操作不会装进行李箱。清除网站数据后，网页不能替你找回已经删除的文件，请把备份放在自己找得到的地方。
+        </p>
+      </main>
+      <footer>
+        <span>✳ 无聊研究所 / 快乐不必有意义。</span>
+        <span>JUST FOR FUN. © 2026</span>
+      </footer>
+    </div>
+  </body>
+</html>

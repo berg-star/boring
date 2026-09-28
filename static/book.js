@@ -19,7 +19,7 @@
    const t=audio.currentTime;gain.gain.setValueAtTime(0,t);gain.gain.linearRampToValueAtTime(.2,t+.07);gain.gain.exponentialRampToValueAtTime(.0001,t+.43);s.connect(filter);filter.connect(gain);gain.connect(audio.destination);s.onended=()=>{s.disconnect();filter.disconnect();gain.disconnect();if(source===s)source=null;};s.start(t);s.stop(t+.45);
   }catch(_){}
  }
- $('book-sound').addEventListener('click',()=>{soundOn=!soundOn;if(!soundOn)stopSound();else unlockSound();soundLabel();try{localStorage.setItem('boring-lab-book-sound',soundOn?'on':'off');}catch(_){}});soundLabel();
+ $('book-sound').addEventListener('click',()=>{if (window.BoringStorage && !window.BoringStorage.canWrite()) return;soundOn=!soundOn;if(!soundOn)stopSound();else unlockSound();soundLabel();try{localStorage.setItem('boring-lab-book-sound',soundOn?'on':'off');}catch(_){}});soundLabel();
  function delay(ms){return new Promise(resolve=>setTimeout(resolve,reduced.matches?0:ms));}
  async function load(){
   if(answers)return;

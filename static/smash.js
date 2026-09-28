@@ -49,6 +49,7 @@
     $("haptic").setAttribute("aria-pressed", String(vibration));
   }
   function save() {
+    if (window.BoringStorage && !window.BoringStorage.canWrite()) return;
     try {
       localStorage.setItem(KEY, JSON.stringify({ sound, vibration, regenerate }));
     } catch {

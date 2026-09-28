@@ -86,6 +86,7 @@
     writes = writes
       .then(() => {
         const commit = () => {
+          if (window.BoringStorage && !window.BoringStorage.canWrite()) return;
           memory = read();
           const outcome = change(memory);
           if (!blocked)

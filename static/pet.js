@@ -20,6 +20,7 @@
     return {version:1,name:'小东西',color:pick(5),shape:pick(3),personality:pick(4),food:65,joy:75,weight:25,born:now,updated:now,awayUntil:0};
   }
   function save() {
+    if (window.BoringStorage && !window.BoringStorage.canWrite()) return;
     if (blocked) { $('save-status').textContent='旧存档无法读取，暂未覆盖。可导出当前宠物备份，或导入有效存档恢复。'; return; }
     try { localStorage.setItem(KEY,JSON.stringify(state)); $('save-status').textContent='已自动保存在这个浏览器 ♡'; }
     catch (_) { $('save-status').textContent='浏览器无法保存，关闭后可能丢失。请导出存档备份。'; }

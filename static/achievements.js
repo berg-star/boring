@@ -49,6 +49,7 @@
   }
  }
  function commit(change){
+  if (window.BoringStorage && !window.BoringStorage.canWrite()) return;
   memory=read();change(memory);const newly=[];
   for(const item of catalog)if(!memory.unlocked[item[0]]&&item[4](memory)){memory.unlocked[item[0]]=Date.now();newly.push(item);}
   if(!blocked)try{localStorage.setItem(KEY,JSON.stringify(memory));}catch(_){blocked=true;warning='浏览器无法保存成就，离开页面后可能丢失。';}
