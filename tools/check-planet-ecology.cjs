@@ -110,6 +110,7 @@ const base = process.env.TEST_BASE || "http://127.0.0.1:18080",
     assert.equal(Number(await m.locator("#planet").getAttribute("data-tree-count")), count - 1);
     await m.locator("#undo-plant").tap();
     assert.equal(Number(await m.locator("#planet").getAttribute("data-tree-count")), count);
+    await m.locator("#planet-more > summary").tap();
     await m.locator('[data-tool="rain"]').tap();
     await m.locator("#planet").scrollIntoViewIfNeeded();
     const rb = await m.locator("#planet").boundingBox(),

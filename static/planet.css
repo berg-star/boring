@@ -161,3 +161,119 @@
 [hidden] {
   display: none !important;
 }
+
+.planet-rotate-help {
+  margin: 10px 0 0;
+  text-align: center;
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.7;
+}
+.planet-quick-action {
+  margin: 18px 0;
+}
+.planet-more {
+  margin: 20px 0;
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  background: var(--surface);
+}
+.planet-more summary {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 16px 18px;
+  cursor: pointer;
+  list-style: none;
+}
+.planet-more summary::-webkit-details-marker {
+  display: none;
+}
+.planet-more summary::after {
+  content: "+";
+  font-size: 22px;
+  color: var(--lime);
+}
+.planet-more[open] summary::after {
+  content: "−";
+}
+.planet-more summary > span:first-child {
+  flex: 1;
+}
+.planet-more small {
+  display: block;
+  margin-top: 4px;
+  font-size: 12px;
+  color: var(--muted);
+  font-weight: normal;
+}
+#planet-more-state {
+  color: var(--lime);
+  font-size: 12px;
+}
+.planet-more-body {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+  padding: 0 18px 18px;
+}
+.planet-more-body section {
+  min-width: 0;
+  border-top: 1px solid var(--border);
+  padding-top: 16px;
+}
+.planet-more-body h2 {
+  font-size: 15px;
+  margin: 0 0 12px;
+}
+.planet-extra-tools {
+  margin: 0;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.planet-more .planet-seeds {
+  justify-content: flex-start;
+  gap: 8px;
+  margin: 12px 0;
+}
+.planet-more .planet-seeds select {
+  width: 100%;
+}
+.planet-more .help {
+  margin: 12px 0 0;
+  font-size: 12px;
+  line-height: 1.7;
+}
+.planet-visitor-tools {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.planet-visitor-tools button,
+.planet-event-actions button,
+.planet-extra-tools button {
+  min-height: 44px;
+  font-size: 13px;
+  padding: 10px 13px;
+}
+.planet-event-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+  margin: 14px 15px 0;
+}
+@media (max-width: 600px) {
+  .planet-more-body {
+    grid-template-columns: 1fr;
+    gap: 18px;
+  }
+  .planet-more summary {
+    padding: 14px;
+  }
+  .planet-more-body {
+    padding: 0 14px 14px;
+  }
+}

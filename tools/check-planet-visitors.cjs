@@ -102,6 +102,7 @@ const base = process.env.TEST_BASE || "http://127.0.0.1:18080",
     });
     m.on("pageerror", (e) => errors.push(e.message));
     await m.goto(base + "/planet.html");
+    await m.locator("#planet-more > summary").tap();
     await m.locator("#call-egg").tap();
     assert.equal(await m.locator("#hatch-egg").isVisible(), true);
     await m.locator("#hatch-egg").tap();

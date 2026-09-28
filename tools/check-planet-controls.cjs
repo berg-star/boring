@@ -25,6 +25,11 @@ const base = process.env.TEST_BASE || "http://127.0.0.1:18080";
         ["volcano", "火山"],
         ["explore", "居民"],
       ]) {
+        if (
+          (tool === "rain" || tool === "volcano") &&
+          !(await p.locator("#planet-more").evaluate((el) => el.open))
+        )
+          await p.locator("#planet-more > summary").click();
         await p.locator("[data-tool=" + tool + "]").click();
         assert.match(await p.locator("#planet-tool-hint").textContent(), new RegExp(text));
       }

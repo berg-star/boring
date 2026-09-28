@@ -139,6 +139,15 @@
   });
   addEventListener("pagehide", stopSound);
   soundLabel();
+  const mobileLayout = matchMedia("(max-width: 600px)");
+  let panelIsMobile = null;
+  function updatePanelLayout() {
+    if (panelIsMobile === mobileLayout.matches) return;
+    panelIsMobile = mobileLayout.matches;
+    document.getElementById("planet-more").open = !panelIsMobile;
+  }
+  mobileLayout.addEventListener("change", updatePanelLayout);
+  updatePanelLayout();
   const reduced = matchMedia("(prefers-reduced-motion: reduce)");
   let yaw = 0,
     pitch = -0.08,
@@ -190,13 +199,15 @@
     explore: ["随便点点", "拖动旋转星球；轻点居民、树木、海水或火山，看看会发生什么。"],
     tree: ["种点东西", "轻点绿色陆地上的空位种苗，不能种在水里；拖动可以旋转星球。"],
     dig: ["小铲子", "轻点树根或树冠铲除植物；8 秒内可用画布下方的按钮撤销。拖动仍可旋转。"],
-    rain: ["下场雨", "按住星球拖动小云，松手在落点下雨；可在下方选择普通雨或爆米花。"],
+    rain: ["下场雨", "按住星球拖动小云，松手在落点下雨；可在“更多玩法”中选择普通雨或爆米花。"],
     volcano: ["火山喷嚏", "轻点星球，火山就会打喷嚏；拖动仍可旋转。"],
   };
   function updateToolHint() {
     const [name, hint] = toolHints[tool];
     document.getElementById("planet-tool-name").textContent = "当前：" + name;
     document.getElementById("planet-tool-hint").textContent = hint;
+    document.getElementById("planet-more-state").textContent =
+      tool === "rain" || tool === "volcano" ? "使用中：" + name : "";
   }
   addEventListener("pagehide", () => clearTimeout(undoTimer));
   addEventListener("pageshow", updateUndo);
@@ -442,6 +453,7 @@
   let nextVisitor = performance.now() + 35000 + Math.random() * 25000;
   let nextMeteor = performance.now() + 22000 + Math.random() * 18000;
   function eventUI() {
+    document.getElementById("planet-event-actions").hidden = !egg && !meteor;
     document.getElementById("call-ufo").disabled = !!ufo;
     document.getElementById("call-egg").disabled = !!ufo || !!egg || !!guest;
     document.getElementById("hatch-egg").hidden = !egg;
@@ -1311,6 +1323,7 @@
   updateToolHint();
   saveWorld();
   function resize() {
+    updatePanelLayout();
     const dpr = Math.min(devicePixelRatio || 1, 2);
     canvas.width = 600 * dpr;
     canvas.height = 510 * dpr;
