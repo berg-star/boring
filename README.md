@@ -141,7 +141,7 @@ node tools/check-browser.cjs
 
 本地默认监听 `127.0.0.1:18080`，无需设置环境变量。部署到 Render 时，Docker 配置设置 `HOST=0.0.0.0`、`PORT=10000`；运行时可更改 PORT，程序不会写死平台端口。PORT 必须是 1～65535 的整数；HOST 只接受 `127.0.0.1` 或 `0.0.0.0`。错误配置会明确报错并退出。
 
-Render 会从源码构建 Linux 容器，不运行 Windows `.exe`。具体操作见 [Render 上线说明](DEPLOY_RENDER.md)。线上 HTTPS 由 Render 提供，不需要自行配置证书。目前网站已部署到 Railway：https://boring-lab-production.up.railway.app/ 。Railway 同样从 Dockerfile 构建，使用 `/healthz` 检查健康状态。
+Render 会从源码构建 Linux 容器，不运行 Windows `.exe`。具体操作见 [Render 上线说明](DEPLOY_RENDER.md)。线上 HTTPS 由 Render 提供，不需要自行配置证书。目前网站已部署到 Railway：https://boring-lab-play.up.railway.app/ 。Railway 同样从 Dockerfile 构建，使用 `/healthz` 检查健康状态。
 
 浏览器支持 WebMCP 时，首页共用脚本还会注册“打开指定玩法”的可选导航动作；普通浏览器无此能力时自动跳过，不影响游戏。
 
@@ -163,7 +163,7 @@ Render 会从源码构建 Linux 容器，不运行 Windows `.exe`。具体操作
 
 最近 8 道的 ID 仅存入当前浏览器标签页的 `sessionStorage`，刷新可以延续防重复，但题堆重新开始；不作为长期收藏或行李箱存档。关闭标签页通常会清除这份临时记录；存储不可用或损坏时仍可在当前页面正常抽题。微信与外部浏览器分别保存自己的临时记录。
 
-专项验收：`node tools/check-questions.cjs`；线上检查可先设置 `$env:TEST_BASE="https://boring-lab-production.up.railway.app"`。覆盖完整题库、同主题轮换、跨主题防重复、刷新、存储受限、失败重试和手机布局。
+专项验收：`node tools/check-questions.cjs`；线上检查可先设置 `$env:TEST_BASE="https://boring-lab-play.up.railway.app"`。覆盖完整题库、同主题轮换、跨主题防重复、刷新、存储受限、失败重试和手机布局。
 
 ## 真心话
 
