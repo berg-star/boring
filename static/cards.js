@@ -475,7 +475,7 @@
       y += 32;
       line("快乐不必有意义。", 29, color, 7, false, true);
       line("来这里，抽一张属于你的今日画风。", 23, "#c5d0c8", 10);
-      line("boring-lab-production.up.railway.app/card.html", 23, "#aebdb3", 0);
+      line(location.host + "/card.html", 23, "#aebdb3", 0);
       // Measure first, then allocate the exact height: long cards never get cropped.
       canvas.height = Math.ceil(y + 52);
       const background = ctx.createLinearGradient(0, 0, 900, canvas.height);
