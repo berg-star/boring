@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="description" content="两个人，两部手机，同时等信号，比谁反应更快。" />
+  <title>联机反应赛 · 无聊研究所</title>
+  <link rel="stylesheet" href="/static/style.css" />
+  <link rel="stylesheet" href="/static/achievements.css" />
+  <link rel="stylesheet" href="/static/tug-online.css" />
+  <link rel="stylesheet" href="/static/reaction-online.css" />
+  <script defer src="/static/achievements.js"></script>
+  <script defer src="/static/main.js"></script>
+  <script defer src="/static/reaction-online.js"></script>
+</head>
+<body>
+<div class="site-shell">
+  <header class="header"><a class="brand" href="/"><span class="brand-mark">✳</span><span>无聊研究所<small>BORING LAB.</small></span></a><a class="header-link" href="/#playground">全部玩法 ↗</a></header>
+  <main class="game-main">
+    <a class="back" href="/#playground">← 回游乐场</a>
+    <div class="game-heading"><p class="eyebrow">EXPERIMENT / 13 · TWO PHONES</p><h1>联机反应赛。</h1><p>一人一部手机，同场等信号。手快的人赢。</p></div>
+    <section class="panel online-room reaction-room" aria-label="双人反应赛房间">
+      <div id="reaction-entry">
+        <h2>叫个朋友来比赛。</h2>
+        <p class="help">创建房间后，把房间码或邀请链接发给朋友。双方点准备，倒数后再随机亮起绿色信号。</p>
+        <div class="online-entry-actions"><button id="reaction-create" class="primary" type="button">创建房间</button><span>或</span>
+          <form id="reaction-join-form"><label for="reaction-code">输入朋友的房间码</label><div><input id="reaction-code" maxlength="6" minlength="6" autocapitalize="characters" autocomplete="off" spellcheck="false" inputmode="text" placeholder="例如 AB3XYZ" required /><button class="secondary" type="submit">加入房间</button></div></form>
+        </div>
+        <p class="online-mode-link">想自己先试试？<a href="/reaction.html">玩单人版 ↗</a></p>
+      </div>
+      <div id="reaction-session" hidden>
+        <div class="online-toolbar"><div><small>房间码</small><strong id="reaction-room-code">······</strong></div><span>双方准备后开始</span></div>
+        <div class="online-share"><label for="reaction-share-link">把这个链接发给朋友</label><div><input id="reaction-share-link" readonly aria-label="邀请链接" /><button id="reaction-copy" class="secondary" type="button">复制链接</button></div></div>
+        <div class="online-players"><span id="reaction-player-left">青柠队 · 等待连接</span><span id="reaction-player-right">蓝莓队 · 等待连接</span></div>
+        <button id="reaction-pad" class="reaction-pad reaction-online-pad waiting" type="button" disabled aria-describedby="reaction-help">
+          <span class="pad-icon" aria-hidden="true">ϟ</span>
+          <strong id="reaction-cue">等待朋友加入</strong>
+          <span id="reaction-hint">双方都准备好才能开始</span>
+        </button>
+        <div class="reaction-results"><span>青柠队 <b id="reaction-left-ms">—</b></span><span>蓝莓队 <b id="reaction-right-ms">—</b></span></div>
+        <p id="reaction-status" class="reaction-status" role="status" aria-live="polite">正在连接房间……</p>
+        <div class="reaction-actions"><button id="reaction-ready" class="primary" type="button" disabled>我准备好了</button><button id="reaction-reconnect" class="secondary" type="button" hidden>重新连接</button><button id="reaction-leave" class="secondary" type="button">离开房间</button></div>
+      </div>
+      <p id="reaction-error" class="online-error" role="alert" hidden></p>
+    </section>
+    <p class="help online-note" id="reaction-help">倒数开始后不要提前按，绿灯亮了才点；抢跑直接判负。服务器记录收到按键的时间，网络和屏幕延迟会影响成绩。断线会结束本局，可以重新准备；网站更新或服务器重启会清空房间。</p>
+  </main>
+  <footer><span>✳ 无聊研究所 / 快乐不必有意义。</span><span>JUST FOR FUN. © 2026</span></footer>
+</div>
+</body>
+</html>

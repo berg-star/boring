@@ -43,6 +43,7 @@
     "smash",
     "tug",
     "tug-online",
+    "reaction-online",
   ];
   const kinds = ["report", "notice", "wanted", "patch", "ad", "invention"];
   const achievementIds = [

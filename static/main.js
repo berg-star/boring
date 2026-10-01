@@ -57,9 +57,10 @@ const gamePages = [
   "doodle.html",
   "smash.html",
   "tug-online.html",
+  "reaction-online.html",
 ];
 function randomGame() {
-  const soloPages = gamePages.filter(page => page !== "tug-online.html");
+  const soloPages = gamePages.filter(page => !page.endsWith("-online.html"));
   location.href = "/" + soloPages[Math.floor(Math.random() * soloPages.length)];
 }
 document
@@ -106,6 +107,7 @@ if (document.modelContext?.registerTool) {
                   "doodle",
                   "smash",
                   "tug-online",
+                  "reaction-online",
                 ],
               },
             },
