@@ -207,7 +207,7 @@ int main(int argc, char* argv[]) try {
         .onmessage([&](crow::websocket::connection& connection, const std::string& text, bool binary) {
             tugRooms.message(connection, text, binary);
         })
-        .onclose([&](crow::websocket::connection& connection, const std::string&, uint16_t) {
+        .onclose([&](crow::websocket::connection& connection, const std::string&) {
             tugRooms.close(connection);
         });
     app.tick(std::chrono::milliseconds(100), [&] { tugRooms.tick(); });

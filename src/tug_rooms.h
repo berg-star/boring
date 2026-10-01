@@ -105,28 +105,28 @@ public:
     }
     void message(Socket& socket, const std::string& text, bool binary) {
         std::lock_guard<std::mutex> lock(mutex_);
-        if (binary || text.size() > 512) { socket.close("Invalid message", 1008); return; }
+        if (binary || text.size() > 512) { socket.close("Invalid message"); return; }
         auto value = crow::json::load(text);
         if (!value || value.t() != crow::json::type::Object || !value.has("type") || value["type"].t() != crow::json::type::String) {
-            socket.close("Invalid message", 1008); return;
+            socket.close("Invalid message"); return;
         }
         const std::string type = value["type"].s();
         auto session = sessions_.find(&socket);
         if (session == sessions_.end()) {
             if (type != "auth" || !value.has("room") || !value.has("token") || value["room"].t() != crow::json::type::String || value["token"].t() != crow::json::type::String) {
-                socket.close("Unauthorized", 1008); return;
+                socket.close("Unauthorized"); return;
             }
             auto it = rooms_.find(std::string(value["room"].s()));
-            if (it == rooms_.end()) { socket.close("Expired room", 1008); return; }
+            if (it == rooms_.end()) { socket.close("Expired room"); return; }
             auto& room = it->second;
             const std::string token = value["token"].s();
             int side = room.tokens[0] == token ? 0 : room.tokens[1] == token && !room.tokens[1].empty() ? 1 : -1;
-            if (side < 0) { socket.close("Unauthorized", 1008); return; }
+            if (side < 0) { socket.close("Unauthorized"); return; }
             // Reloads can connect before the previous socket's close callback arrives.
             if (room.clients[side]) {
                 auto* previous = room.clients[side];
                 sessions_.erase(previous);
-                previous->close("Reconnected elsewhere", 1000);
+                previous->close("Reconnected elsewhere");
             }
             room.clients[side] = &socket;
             room.disconnectedAt[side] = Time{};
@@ -137,7 +137,7 @@ public:
             return;
         }
         auto it = rooms_.find(session->second.room);
-        if (it == rooms_.end()) { socket.close("Expired room", 1008); return; }
+        if (it == rooms_.end()) { socket.close("Expired room"); return; }
         auto& room = it->second;
         const int side = session->second.side;
         const auto now = Clock::now();
@@ -165,7 +165,7 @@ public:
                 if (room.clients[1]) {
                     crow::json::wvalue closed; closed["type"] = "closed"; closed["message"] = "房主已离开，房间关闭。";
                     room.clients[1]->send_text(closed.dump());
-                    room.clients[1]->close("Room closed", 1000);
+                    room.clients[1]->close("Room closed");
                 }
                 rooms_.erase(it);
             } else {
@@ -173,7 +173,7 @@ public:
                 interrupt(room, now);
                 send(room, now);
             }
-            socket.close("Left room", 1000);
+            socket.close("Left room");
         }
     }
     void close(Socket& socket) {
