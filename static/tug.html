@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="description" content="把手机横放，两个人各守一边。踩准节奏，或者疯狂连点，来一场二十秒的拔河。" />
+  <title>双人拔河 · 无聊研究所</title>
+  <link rel="stylesheet" href="/static/style.css" />
+  <link rel="stylesheet" href="/static/achievements.css" />
+  <link rel="stylesheet" href="/static/tug.css" />
+  <script defer src="/static/achievements.js"></script>
+  <script defer src="/static/main.js"></script>
+  <script defer src="/static/tug.js"></script>
+</head>
+<body>
+<div class="site-shell">
+  <header class="header"><a class="brand" href="/"><span class="brand-mark">✳</span><span>无聊研究所<small>BORING LAB.</small></span></a><a class="header-link" href="/#playground">全部玩法 ↗</a></header>
+  <main class="game-main tug-main">
+    <a class="back" href="/#playground">← 回游乐场</a>
+    <div class="game-heading"><p class="eyebrow">EXPERIMENT / 12 · TWO PLAYERS</p><h1>双人拔河。</h1><p>你守左边，我守右边。友谊先放旁边二十秒。</p></div>
+    <section class="panel tug-room" aria-label="双人拔河赛场">
+      <div class="tug-toolbar">
+        <div class="tug-modes" role="group" aria-label="选择玩法"><button class="secondary" data-mode="rhythm" aria-pressed="true">踩准节奏</button><button class="secondary" data-mode="tap" aria-pressed="false">疯狂连点</button></div>
+        <span class="tug-time">剩余 <strong id="tug-time">20.0</strong> 秒</span>
+      </div>
+      <p id="tug-rule" class="help">圆环收拢、按钮亮起时各按一下；越准越有力，每拍只算一次。</p>
+      <div class="tug-arena" id="tug-arena" data-state="idle" data-position="0" data-left="0" data-right="0">
+        <div class="tug-sky"><span>左边 · 青柠队</span><span>右边 · 蓝莓队</span></div>
+        <div class="tug-field" aria-hidden="true">
+          <span class="tug-limit left">← 拉到这里</span><span class="tug-limit right">拉到这里 →</span>
+          <div class="tug-rope"><span id="tug-ribbon" class="tug-ribbon"></span></div>
+          <div class="tug-creature left"><i></i><span>⌣</span></div><div class="tug-creature right"><i></i><span>⌣</span></div>
+          <div class="tug-center-line"></div>
+        </div>
+        <div class="tug-beat" aria-hidden="true"><span id="tug-ring"></span><b id="tug-cue">准备好了吗</b></div>
+        <div class="tug-controls">
+          <div><button class="tug-pull left" id="pull-left" disabled aria-label="青柠队拉绳，键盘 A"><small>青柠队 · A</small><strong>向左拉 ←</strong></button><span id="feedback-left" class="tug-feedback">左边的选手就位</span></div>
+          <div><button class="tug-pull right" id="pull-right" disabled aria-label="蓝莓队拉绳，键盘 L"><small>蓝莓队 · L</small><strong>→ 向右拉</strong></button><span id="feedback-right" class="tug-feedback">右边的选手就位</span></div>
+        </div>
+      </div>
+      <p id="tug-status" class="tug-status" role="status" aria-live="polite">两个人各守一边，拉过自己一侧的线就赢。</p>
+      <div class="tug-actions"><button id="tug-start" class="primary">开始拔河 · 3 秒准备</button><button id="tug-pause" class="secondary" disabled>暂停</button><button id="tug-fullscreen" class="secondary">赛场全屏 ↗</button></div>
+    </section>
+    <p class="help tug-hint">手机横着放更好玩，竖屏也能玩。电脑分别按 A 和 L。按住不会连续得分。<br />切到后台或旋转手机会暂停，双方准备好后再继续。成绩只留在这一局。</p>
+  </main>
+  <footer><span>✳ 无聊研究所 / 快乐不必有意义。</span><span>JUST FOR FUN. © 2026</span></footer>
+</div>
+</body>
+</html>

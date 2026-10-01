@@ -56,9 +56,11 @@ const gamePages = [
   "book.html",
   "doodle.html",
   "smash.html",
+  "tug.html",
 ];
 function randomGame() {
-  location.href = "/" + gamePages[Math.floor(Math.random() * gamePages.length)];
+  const soloPages = gamePages.filter(page => page !== "tug.html");
+  location.href = "/" + soloPages[Math.floor(Math.random() * soloPages.length)];
 }
 document
   .querySelectorAll(".surprise")
@@ -103,6 +105,7 @@ if (document.modelContext?.registerTool) {
                   "book",
                   "doodle",
                   "smash",
+                  "tug",
                 ],
               },
             },

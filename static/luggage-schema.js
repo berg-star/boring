@@ -41,6 +41,7 @@
     "book",
     "doodle",
     "smash",
+    "tug",
   ];
   const kinds = ["report", "notice", "wanted", "patch", "ad", "invention"];
   const achievementIds = [
