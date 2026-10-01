@@ -3,12 +3,13 @@
 #include <algorithm>
 #include <array>
 #include <chrono>
+#include <cmath>
 #include <mutex>
 #include <random>
 #include <string>
 #include <unordered_map>
 
-// 双人同房间反应赛。信号时刻和成绩都以服务端时钟为准。
+// 双人同房间反应赛。服务端决定绿灯和胜负；浏览器从绿灯显示起本地计时。
 class ReactionRooms {
     using Clock = std::chrono::steady_clock;
     using Time = Clock::time_point;
@@ -162,8 +163,13 @@ public:
                 room.falseStart = side;
                 finish(room, now);
                 send(room, now);
-            } else if (room.phase == "go" && room.results[side] < 0) {
-                room.results[side] = static_cast<int>(elapsed(room.phaseAt, now));
+            } else if (room.phase == "go" && room.results[side] < 0
+                       && value.has("reactionMs") && value["reactionMs"].t() == crow::json::type::Number) {
+                const double reported = value["reactionMs"].d();
+                // 网络到达时间不能用作反应成绩，但能拒绝不可能的未来成绩。
+                if (!std::isfinite(reported) || reported < 1 || reported > 5000
+                    || std::floor(reported) != reported || reported > elapsed(room.phaseAt, now) + 50) return;
+                room.results[side] = static_cast<int>(reported);
                 if (room.results[1 - side] >= 0) finish(room, now);
                 send(room, now);
             }

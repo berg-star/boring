@@ -53,17 +53,18 @@ with connect(socket_base + "/ws/reaction", origin=base, open_timeout=15) as left
         assert (ended["winner"], ended["falseStart"], ended["leftMs"]) == (1, 0, -1)
         assert until(right, lambda s: s.get("phase") == "finished")["winner"] == 1
 
-        # Both players must ready again. The server announces GO, then records each tap.
+        # The player whose message arrives second can still win on local reaction time.
         left.send('{"type":"ready"}')
         right.send('{"type":"ready"}')
         until(left, lambda s: s.get("phase") == "go")
         until(right, lambda s: s.get("phase") == "go")
-        left.send('{"type":"tap"}')
-        until(left, lambda s: s.get("leftMs", -1) >= 0)
+        time.sleep(0.3)
+        left.send('{"type":"tap","reactionMs":250}')
+        assert until(left, lambda s: s.get("leftMs", -1) >= 0)["leftMs"] == 250
         time.sleep(0.04)
-        right.send('{"type":"tap"}')
+        right.send('{"type":"tap","reactionMs":180}')
         ended = until(left, lambda s: s.get("phase") == "finished")
-        assert ended["winner"] == 0 and ended["leftMs"] <= ended["rightMs"], ended
+        assert (ended["winner"], ended["leftMs"], ended["rightMs"]) == (1, 250, 180), ended
 
         # A disconnect during a match returns the room to waiting.
         left.send('{"type":"ready"}')

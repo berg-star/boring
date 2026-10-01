@@ -8,6 +8,7 @@
   const names = ["青柠队", "蓝莓队"];
   const storageKey = "boring-lab-reaction-online-v1";
   let identity = null, socket = null, snapshot = null, sentTap = false, generation = 0, quitting = false;
+  let greenAt = 0, missedRound = false;
   let held = new Set();
   function showError(message) { error.textContent = message; error.hidden = !message; }
   function save() {
@@ -35,7 +36,7 @@
   }
   function connect() {
     if (!identity || socket?.readyState === WebSocket.OPEN || socket?.readyState === WebSocket.CONNECTING) return;
-    const turn = ++generation; quitting = false; snapshot = null; sentTap = false;
+    const turn = ++generation; quitting = false; snapshot = null; sentTap = false; greenAt = 0;
     pad.disabled = true; ready.disabled = true; reconnect.hidden = true;
     status.textContent = "正在连接房间……";
     const ws = new WebSocket(`${location.protocol === "https:" ? "wss" : "ws"}://${location.host}/ws/reaction`);
@@ -47,8 +48,23 @@
       try { message = JSON.parse(event.data); } catch { return; }
       if (message.type === "closed") { showError(message.message); reset(false); return; }
       if (message.type !== "state" || message.room !== identity.room || message.self !== identity.side) return;
-      if (snapshot?.phase !== message.phase && message.phase === "countdown") sentTap = false;
-      snapshot = message; render();
+      if (snapshot?.phase !== message.phase && message.phase === "countdown") {
+        sentTap = false; greenAt = 0; missedRound = false;
+      }
+      const enteringGo = snapshot?.phase !== "go" && message.phase === "go";
+      snapshot = message;
+      if (enteringGo) {
+        pad.disabled = true;
+        requestAnimationFrame(() => {
+          if (turn !== generation || snapshot?.phase !== "go") return;
+          render();
+          if (!document.hidden && !missedRound) {
+            // Like the solo test, start the clock in the frame that shows green.
+            greenAt = performance.now();
+            pad.disabled = sentTap || (identity.side === 0 ? snapshot.leftMs : snapshot.rightMs) >= 0;
+          }
+        });
+      } else render();
     };
     ws.onclose = event => {
       if (turn !== generation || quitting) return;
@@ -69,7 +85,8 @@
     $("reaction-left-ms").textContent = s.falseStart === 0 ? "抢跑" : format(s.leftMs);
     $("reaction-right-ms").textContent = s.falseStart === 1 ? "抢跑" : format(s.rightMs);
     pad.className = "reaction-pad reaction-online-pad " + s.phase;
-    pad.disabled = !["countdown", "armed", "go"].includes(s.phase) || myResult >= 0 || sentTap;
+    pad.disabled = !["countdown", "armed", "go"].includes(s.phase) || myResult >= 0 || sentTap
+      || (s.phase === "go" && (!greenAt || missedRound));
     const mineReady = side ? s.rightReady : s.leftReady;
     ready.disabled = !["waiting", "finished"].includes(s.phase) || (s.phase === "waiting" && mineReady);
     ready.textContent = s.phase === "finished" ? "再来一局 · 我准备好了" : mineReady ? "已准备，等待对方" : "我准备好了";
@@ -81,7 +98,7 @@
       $("reaction-hint").textContent = "提前按会判负";
     } else if (s.phase === "go") {
       $("reaction-cue").textContent = "现在点！";
-      $("reaction-hint").textContent = myResult >= 0 || sentTap ? "已记录，等待对方" : "快按下去！";
+      $("reaction-hint").textContent = missedRound ? "切到后台错过了本局" : myResult >= 0 || sentTap ? "已记录，等待对方" : "快按下去！";
     } else if (s.phase === "finished") {
       $("reaction-cue").textContent = s.falseStart >= 0 ? "抢跑！" : s.winner < 0 ? "平局！" : s.winner === side ? "你赢啦！" : "对方赢啦！";
       $("reaction-hint").textContent = "双方都点准备，就能再来一局";
@@ -92,14 +109,14 @@
     status.textContent = s.notice || (s.phase === "finished"
       ? s.falseStart >= 0 ? `${names[s.falseStart]}抢跑，${names[s.winner]}获胜。`
         : s.winner < 0 ? "这轮平局，再来一次？" : `${names[s.winner]}更快！再来一局？`
-      : s.phase === "go" ? "服务器已发出信号，正在记录双方反应时间。"
+      : s.phase === "go" ? "绿灯出现后在本机计时，服务器汇总两人的成绩。"
       : s.phase === "countdown" || s.phase === "armed" ? "看到绿色再点，提前按会判负。"
       : s.leftConnected && s.rightConnected ? "双方都在房间，准备好就开局。" : "把链接发给朋友，等他加入房间。");
   }
   function reset(leave) {
     generation++; quitting = true;
     if (leave && socket?.readyState === WebSocket.OPEN) socket.send('{"type":"leave"}');
-    socket?.close(); socket = null; identity = null; snapshot = null; sentTap = false; held.clear(); save();
+    socket?.close(); socket = null; identity = null; snapshot = null; sentTap = false; greenAt = 0; missedRound = false; held.clear(); save();
     session.hidden = true; entry.hidden = false;
     if (location.search) history.replaceState(null, "", location.pathname);
   }
@@ -118,7 +135,9 @@
   function tap() {
     if (pad.disabled || !snapshot || !["countdown", "armed", "go"].includes(snapshot.phase)
         || socket?.readyState !== WebSocket.OPEN || sentTap) return;
-    sentTap = true; pad.disabled = true; socket.send('{"type":"tap"}');
+    sentTap = true; pad.disabled = true;
+    const reactionMs = snapshot.phase === "go" ? Math.max(1, Math.round(performance.now() - greenAt)) : null;
+    socket.send(JSON.stringify(reactionMs === null ? {type:"tap"} : {type:"tap",reactionMs}));
   }
   $("reaction-create").addEventListener("click", () => startSession(true));
   $("reaction-join-form").addEventListener("submit", event => { event.preventDefault(); startSession(false); });
@@ -147,6 +166,12 @@
     if (event.detail === 0 && event.clientX === 0 && event.clientY === 0 && !held.size) tap();
   });
   pad.addEventListener("contextmenu", event => event.preventDefault());
+  document.addEventListener("visibilitychange", () => {
+    if (document.hidden && ["countdown", "armed", "go"].includes(snapshot?.phase)) {
+      missedRound = true; greenAt = 0; pad.disabled = true;
+    }
+    if (!document.hidden && snapshot?.phase === "go") render();
+  });
   const urlCode = new URLSearchParams(location.search).get("room");
   if (urlCode && /^[A-HJ-NP-Z2-9]{6}$/i.test(urlCode)) $("reaction-code").value = urlCode.toUpperCase();
   try {
