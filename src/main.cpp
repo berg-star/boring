@@ -1,4 +1,6 @@
+#define CROW_ENFORCE_WS_SPEC
 #include <crow.h>
+#include "tug_rooms.h"
 #include <cstdlib>
 #include <filesystem>
 #include <fstream>
@@ -154,6 +156,7 @@ int main(int argc, char* argv[]) try {
     const auto truth_json = truth_list.dump();
     if (!fs::is_regular_file(root / "static/index.html")) throw std::runtime_error("static/index.html is missing");
     crow::SimpleApp app;
+    TugRooms tugRooms;
     // 固定路径先注册，避免被下面的通用 /<string> 页面路由匹配。
     // 数据通过启动校验且 HTTP 服务正常接收请求，才会返回健康状态。
     CROW_ROUTE(app, "/healthz")([] {
@@ -164,8 +167,50 @@ int main(int argc, char* argv[]) try {
         return response;
     });
     // 只公开列出的网页和资源，不把任意用户路径拼到磁盘路径里。
-    const std::set<std::string> pages = {"index.html", "reaction.html", "wheel.html", "card.html", "question.html", "fun.html", "truth.html", "pet.html", "planet.html", "book.html", "doodle.html", "smash.html", "tug.html", "achievements.html", "luggage.html"};
-    const std::set<std::string> assets = {"style.css", "main.js", "reaction.js", "wheel.js", "wheel-presets.js", "wheel.css", "random.js", "truth.js", "pet.js", "pet.css", "planet.js", "planet.css", "fun.js", "fun.css", "book.js", "book.css", "achievements.js", "achievements.css", "cards.js", "cards.css", "doodle.js", "doodle-presets.js", "doodle-toy.js", "doodle-shelf.js", "doodle.css", "smash.js", "smash.css", "tug.js", "tug.css", "luggage.js", "luggage-schema.js", "luggage.css", "question.css"};
+    const std::set<std::string> pages = {"index.html", "reaction.html", "wheel.html", "card.html", "question.html", "fun.html", "truth.html", "pet.html", "planet.html", "book.html", "doodle.html", "smash.html", "tug.html", "tug-online.html", "achievements.html", "luggage.html"};
+    const std::set<std::string> assets = {"style.css", "main.js", "reaction.js", "wheel.js", "wheel-presets.js", "wheel.css", "random.js", "truth.js", "pet.js", "pet.css", "planet.js", "planet.css", "fun.js", "fun.css", "book.js", "book.css", "achievements.js", "achievements.css", "cards.js", "cards.css", "doodle.js", "doodle-presets.js", "doodle-toy.js", "doodle-shelf.js", "doodle.css", "smash.js", "smash.css", "tug.js", "tug.css", "tug-online.js", "tug-online.css", "luggage.js", "luggage-schema.js", "luggage.css", "question.css"};
+    CROW_ROUTE(app, "/api/tug/rooms").methods(crow::HTTPMethod::Post)([&] {
+        auto result = tugRooms.create();
+        crow::json::wvalue data;
+        if (result.error.empty()) { data["room"] = result.code; data["token"] = result.token; data["side"] = result.side; }
+        else data["error"] = result.error;
+        crow::response response(data);
+        response.code = result.error.empty() ? 201 : 503;
+        response.set_header("Cache-Control", "no-store");
+        return response;
+    });
+    CROW_ROUTE(app, "/api/tug/join").methods(crow::HTTPMethod::Post)([&](const crow::request& request) {
+        crow::json::wvalue data;
+        auto body = crow::json::load(request.body);
+        std::string code;
+        if (body && body.t() == crow::json::type::Object && body.has("room") && body["room"].t() == crow::json::type::String)
+            code = body["room"].s();
+        if (code.size() != 6 || code.find_first_not_of("ABCDEFGHJKLMNPQRSTUVWXYZ23456789") != std::string::npos) {
+            data["error"] = "请输入六位房间码。";
+            crow::response response(data); response.code = 400; return response;
+        }
+        auto result = tugRooms.join(code);
+        if (result.error.empty()) { data["room"] = result.code; data["token"] = result.token; data["side"] = result.side; }
+        else data["error"] = result.error;
+        crow::response response(data);
+        response.code = result.error.empty() ? 200 : 409;
+        response.set_header("Cache-Control", "no-store");
+        return response;
+    });
+    CROW_WEBSOCKET_ROUTE(app, "/ws/tug").max_payload(512)
+        .onaccept([](const crow::request& request, void**) {
+            const std::string origin = request.get_header_value("Origin"), host = request.get_header_value("Host");
+            if (origin.empty()) return true; // 非浏览器客户端仍需要通过房间令牌验证。
+            const auto schemeEnd = origin.find("://");
+            return schemeEnd != std::string::npos && origin.substr(schemeEnd + 3) == host;
+        })
+        .onmessage([&](crow::websocket::connection& connection, const std::string& text, bool binary) {
+            tugRooms.message(connection, text, binary);
+        })
+        .onclose([&](crow::websocket::connection& connection, const std::string&, uint16_t) {
+            tugRooms.close(connection);
+        });
+    app.tick(std::chrono::milliseconds(100), [&] { tugRooms.tick(); });
     CROW_ROUTE(app, "/")([&] { return serve_file(root / "static/index.html"); });
     CROW_ROUTE(app, "/<string>")([&](const std::string& name) {
         if (!pages.count(name)) return crow::response(404, "Page not found");

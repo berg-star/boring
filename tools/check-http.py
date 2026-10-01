@@ -18,7 +18,7 @@ def get(path, content_type):
 
 assert json.loads(get("/healthz", "application/json")) == {"status": "ok"}
 assert json.loads(get("/api/hello", "application/json")) == {"message": "Hello from C++"}
-for page in ("/", "/reaction.html", "/wheel.html", "/card.html", "/question.html", "/fun.html", "/truth.html", "/pet.html", "/planet.html", "/book.html", "/doodle.html", "/smash.html", "/tug.html", "/achievements.html", "/luggage.html"):
+for page in ("/", "/reaction.html", "/wheel.html", "/card.html", "/question.html", "/fun.html", "/truth.html", "/pet.html", "/planet.html", "/book.html", "/doodle.html", "/smash.html", "/tug.html", "/tug-online.html", "/achievements.html", "/luggage.html"):
     assert "无聊研究所" in get(page, "text/html")
 get("/static/style.css", "text/css")
 get("/static/pet.css", "text/css")
@@ -29,7 +29,8 @@ get("/static/achievements.css", "text/css")
 get("/static/cards.css", "text/css")
 get("/static/question.css", "text/css")
 get("/static/tug.css", "text/css")
-for script in ("main.js", "reaction.js", "wheel.js", "random.js", "truth.js", "pet.js", "planet.js", "fun.js", "book.js", "achievements.js", "cards.js", "doodle.js", "doodle-presets.js", "doodle-toy.js", "doodle-shelf.js", "smash.js", "tug.js", "luggage.js", "luggage-schema.js"):
+get("/static/tug-online.css", "text/css")
+for script in ("main.js", "reaction.js", "wheel.js", "random.js", "truth.js", "pet.js", "planet.js", "fun.js", "book.js", "achievements.js", "cards.js", "doodle.js", "doodle-presets.js", "doodle-toy.js", "doodle-shelf.js", "smash.js", "tug.js", "tug-online.js", "luggage.js", "luggage-schema.js"):
     get("/static/" + script, "text/javascript")
 for endpoint, fields in (
     ("random-card", ("id", "series", "rarity", "keyword", "tagline", "message", "skill", "skillText", "good", "avoid", "luckyItem", "bonusLabel", "bonus", "luck")),
