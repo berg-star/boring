@@ -45,6 +45,7 @@
     "tug-online",
     "reaction-online",
     "password-online",
+    "puzzle-online",
   ];
   const kinds = ["report", "notice", "wanted", "patch", "ad", "invention"];
   const achievementIds = [

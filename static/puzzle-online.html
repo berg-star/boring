@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="description" content="双人合作解谜：两部手机，两份不同的线索，一起打开三道门。" />
+  <title>双人合作解谜 · 无聊研究所</title>
+  <link rel="stylesheet" href="/static/style.css" />
+  <link rel="stylesheet" href="/static/tug-online.css" />
+  <link rel="stylesheet" href="/static/puzzle-online.css" />
+  <script defer src="/static/achievements.js"></script>
+  <script defer src="/static/main.js"></script>
+  <script defer src="/static/puzzle-online.js"></script>
+</head>
+<body>
+<div class="site-shell">
+  <header class="header"><a class="brand" href="/"><span class="brand-mark">✳</span><span>无聊研究所<small>BORING LAB.</small></span></a><a class="header-link" href="/#playground">全部玩法 ↗</a></header>
+  <main class="game-main">
+    <a class="back" href="/#playground">← 回游乐场</a>
+    <div class="game-heading"><p class="eyebrow">EXPERIMENT / 15 · TWO MINDS</p><h1>双人合作解谜。</h1><p>你看到的线索，是对方缺少的那一半。</p></div>
+    <section class="panel online-room puzzle-room" aria-label="双人合作解谜房间">
+      <div id="puzzle-entry">
+        <h2>找个人，一起打开三道门。</h2>
+        <p class="help">分别用两部手机进入同一个房间。每人只看到自己的线索，互相描述后，双方都提交答案才能开门。</p>
+        <div class="online-entry-actions"><button id="puzzle-create" class="primary" type="button">创建房间</button><span>或</span>
+          <form id="puzzle-join-form"><label for="puzzle-code">输入朋友的房间码</label><div><input id="puzzle-code" maxlength="6" minlength="6" autocapitalize="characters" autocomplete="off" spellcheck="false" inputmode="text" placeholder="例如 AB3XYZ" required /><button class="secondary" type="submit">加入房间</button></div></form>
+        </div>
+      </div>
+      <div id="puzzle-session" hidden>
+        <div class="online-toolbar"><div><small>房间码</small><strong id="puzzle-room-code">······</strong></div><span>三关合作 · 没有倒计时</span></div>
+        <div class="online-share"><label for="puzzle-share-link">把这个链接发给朋友</label><div><input id="puzzle-share-link" readonly aria-label="邀请链接" /><button id="puzzle-copy" class="secondary" type="button">复制链接</button></div></div>
+        <div class="online-players"><span id="puzzle-player-left">青柠队 · 等待连接</span><span id="puzzle-player-right">蓝莓队 · 等待连接</span></div>
+        <div class="puzzle-progress" aria-label="三关进度"><span id="puzzle-step-0">01 符号门</span><span id="puzzle-step-1">02 档案柜</span><span id="puzzle-step-2">03 控制台</span></div>
+        <div class="puzzle-board">
+          <p class="puzzle-eyebrow" id="puzzle-chapter">第一关 / 符号门</p>
+          <h2 id="puzzle-cue">正在连接房间……</h2>
+          <p id="puzzle-guide">读出你的线索，再听听朋友看到了什么。</p>
+          <section class="puzzle-clue" aria-label="你的专属线索"><strong id="puzzle-role">你的线索</strong><pre id="puzzle-clue">正在连接……</pre></section>
+          <form id="puzzle-play-form" autocomplete="off">
+            <label for="puzzle-answer">一起想出的答案</label>
+            <div class="puzzle-input-row"><input id="puzzle-answer" type="text" inputmode="numeric" maxlength="4" minlength="4" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="四位数字" required disabled /><button id="puzzle-submit" class="primary" type="submit" disabled>提交答案</button></div>
+          </form>
+        </div>
+        <p id="puzzle-status" class="puzzle-status" role="status" aria-live="polite">正在连接房间……</p>
+        <div class="puzzle-actions"><button id="puzzle-ready" class="primary" type="button" hidden>再解一次</button><button id="puzzle-reconnect" class="secondary" type="button" hidden>重新连接</button><button id="puzzle-leave" class="secondary" type="button">离开房间</button></div>
+      </div>
+      <p id="puzzle-error" class="online-error" role="alert" hidden></p>
+    </section>
+    <p class="help online-note">你们可以打电话、语音或当面交流；这款游戏不提供聊天。每局重新生成题目，双方答对才前进。短暂断线保留进度；朋友离线超过两分钟会释放座位并重置谜题，服务器重启也会清空房间。</p>
+  </main>
+  <footer><span>✳ 无聊研究所 / 快乐不必有意义。</span><span>JUST FOR FUN. © 2026</span></footer>
+</div>
+</body>
+</html>

@@ -59,6 +59,7 @@ const gamePages = [
   "tug-online.html",
   "reaction-online.html",
   "password-online.html",
+  "puzzle-online.html",
 ];
 function randomGame() {
   const soloPages = gamePages.filter(page => !page.endsWith("-online.html"));
@@ -110,6 +111,7 @@ if (document.modelContext?.registerTool) {
                   "tug-online",
                   "reaction-online",
                   "password-online",
+                  "puzzle-online",
                 ],
               },
             },

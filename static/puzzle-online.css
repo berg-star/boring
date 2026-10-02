@@ -1,0 +1,22 @@
+.puzzle-room{--left:#b9f879;--right:#93b9ff}
+#puzzle-room-code{display:block;color:var(--left);font-size:30px;letter-spacing:4px}
+.puzzle-room .online-toolbar>span{color:var(--muted);font-size:13px}
+.puzzle-progress{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:22px 0}
+.puzzle-progress span{border:1px solid var(--border);border-radius:12px;padding:12px 8px;color:var(--muted);font-size:13px;text-align:center}
+.puzzle-progress span.active{border-color:var(--left);color:var(--left);background:#253124;font-weight:700}
+.puzzle-progress span.done{color:var(--text);border-color:#486442}
+.puzzle-board{border:1px solid var(--border);background:#17231e;border-radius:18px;padding:26px}
+.puzzle-board .puzzle-eyebrow{font-size:12px;letter-spacing:2px;color:var(--left);margin:0 0 12px}
+.puzzle-board h2{font-size:28px;margin:0 0 8px}
+#puzzle-guide{font-size:14px;line-height:1.7;color:var(--muted)}
+.puzzle-clue{border:1px solid #526a4a;border-radius:14px;background:#101a17;padding:18px;margin:24px 0}
+.puzzle-clue strong{font-size:12px;color:var(--left)}
+.puzzle-clue pre{white-space:pre-wrap;overflow-wrap:anywhere;font:500 18px/1.9 ui-monospace,SFMono-Regular,Consolas,monospace;color:var(--text);margin:14px 0 0}
+#puzzle-play-form label{display:block;font-size:14px;margin:0 0 10px}
+.puzzle-input-row{display:flex;gap:12px;flex-wrap:wrap}
+#puzzle-answer{width:190px;min-width:0;flex:1;border:1px solid var(--border);border-radius:12px;background:#101916;color:var(--text);font:700 22px/1.2 monospace;letter-spacing:5px;padding:14px;text-transform:uppercase}
+#puzzle-answer::placeholder{font:400 15px/1.4 sans-serif;letter-spacing:0}
+#puzzle-answer:focus{outline:2px solid var(--left);outline-offset:2px}
+.puzzle-status{min-height:2.5em;margin:20px 0 14px;font-size:14px;line-height:1.7}
+.puzzle-actions{display:flex;gap:10px;flex-wrap:wrap}
+@media(max-width:600px){.puzzle-board{padding:16px}.puzzle-board h2{font-size:23px}.puzzle-clue{padding:14px}.puzzle-clue pre{font-size:15px}.puzzle-progress span{font-size:11px;padding:10px 4px}.puzzle-input-row button{width:100%}}
