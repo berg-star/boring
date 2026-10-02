@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <meta name="description" content="双人联机猜词对抗：轮流问是非问题，用最少回合找出隐藏词。" />
+  <meta name="description" content="两个人轮流出词和自由提问，比较谁用更少的问题猜中。" />
   <title>猜词对抗 · 无聊研究所</title>
   <link rel="stylesheet" href="/static/style.css" />
   <link rel="stylesheet" href="/static/achievements.css" />
@@ -18,37 +18,44 @@
   <header class="header"><a class="brand" href="/"><span class="brand-mark">✳</span><span>无聊研究所<small>BORING LAB.</small></span></a><a class="header-link" href="/#playground">全部玩法 ↗</a></header>
   <main class="game-main">
     <a class="back" href="/#playground">← 回游乐场</a>
-    <div class="game-heading"><p class="eyebrow">EXPERIMENT / 16 · TWO MINDS</p><h1>猜词对抗。</h1><p>十次机会。问得好，猜得准。</p></div>
+    <div class="game-heading"><p class="eyebrow">EXPERIMENT / 16 · TWO MINDS</p><h1>猜词对抗。</h1><p>你出一个词，我来问。然后换我出题。</p></div>
     <section class="panel online-room word-room" aria-label="双人猜词对抗房间">
       <div id="word-entry">
-        <h2>和朋友玩一局二十问。</h2>
-        <p class="help">两部手机进入同一房间。你们面对同一个隐藏词，轮流选一个“是或否”问题，或直接猜词。谁先猜中谁赢；同轮都猜中算平局。</p>
+        <h2>和朋友轮流出题。</h2>
+        <p class="help">两部手机进入同一房间。第一轮一人写下词语，另一人自由问是非问题或直接猜；第二轮交换角色。每次有效提问、猜测各用一次机会，谁猜中用的次数更少谁赢。</p>
         <div class="online-entry-actions"><button id="word-create" class="primary" type="button">创建房间</button><span>或</span>
           <form id="word-join-form"><label for="word-code">输入朋友的房间码</label><div><input id="word-code" maxlength="6" minlength="6" autocapitalize="characters" autocomplete="off" spellcheck="false" inputmode="text" placeholder="例如 AB3XYZ" required /><button class="secondary" type="submit">加入房间</button></div></form>
         </div>
       </div>
       <div id="word-session" hidden>
-        <div class="online-toolbar"><div><small>房间码</small><strong id="word-room-code">······</strong></div><span>每人最多 10 次行动</span></div>
+        <div class="online-toolbar"><div><small>房间码</small><strong id="word-room-code">······</strong></div><span>两轮换角色 · 每人最多 10 次</span></div>
         <div class="online-share"><label for="word-share-link">把这个链接发给朋友</label><div><input id="word-share-link" readonly aria-label="邀请链接" /><button id="word-copy" class="secondary" type="button">复制链接</button></div></div>
         <div class="online-players"><span id="word-player-left">青柠队 · 等待连接</span><span id="word-player-right">蓝莓队 · 等待连接</span></div>
+        <div class="word-scores"><span id="word-round">第 1 / 2 轮</span><span id="word-score">双方还未得分</span></div>
         <div class="word-board">
-          <p class="word-eyebrow">HIDDEN WORD / 双人对抗</p>
+          <p class="word-eyebrow">THE SECRET WORD / 两轮互换</p>
           <h2 id="word-cue">正在连接房间……</h2>
-          <p id="word-hint">挑个有用的问题，排除更多候选词。</p>
-          <div class="word-mode" role="group" aria-label="行动方式"><button id="word-mode-ask" class="selected" type="button" aria-pressed="true">问一个问题</button><button id="word-mode-guess" type="button" aria-pressed="false">直接猜词</button></div>
-          <form id="word-play-form" autocomplete="off">
-            <label id="word-select-label" for="word-select">选择一个“是或否”问题</label>
-            <div class="word-input-row"><select id="word-select" required disabled><option value="">请选择一个问题</option></select><button id="word-submit" class="primary" type="submit" disabled>确认提问</button></div>
+          <p id="word-hint">请把房间链接发给朋友。</p>
+          <form id="word-set-form" autocomplete="off" hidden>
+            <label for="word-secret">你要出的词（2～4 个汉字）</label>
+            <div class="word-input-row"><input id="word-secret" type="text" minlength="2" maxlength="4" placeholder="例如：小熊猫" required /><select id="word-category" required aria-label="词语分类"><option value="">选择分类</option><option>动物</option><option>食物</option><option>物品</option><option>地点</option><option>人物</option><option>其他</option></select><button id="word-set-submit" class="primary" type="submit">锁定词语</button></div>
           </form>
+          <div id="word-play" hidden>
+            <div class="word-mode" role="group" aria-label="行动方式"><button id="word-mode-ask" class="selected" type="button" aria-pressed="true">自由提问</button><button id="word-mode-guess" type="button" aria-pressed="false">直接猜词</button></div>
+            <form id="word-play-form" autocomplete="off">
+              <label id="word-input-label" for="word-input">问一个能回答“是／否”的问题</label>
+              <div class="word-input-row"><input id="word-input" type="text" maxlength="60" placeholder="例如：它是动物吗？" required /><button id="word-submit" class="primary" type="submit">发出问题</button></div>
+            </form>
+          </div>
+          <div id="word-reply" class="word-reply" hidden><p>对方问：</p><blockquote id="word-pending-question"></blockquote><div class="word-reply-actions"><button type="button" data-answer="是">是</button><button type="button" data-answer="否">否</button><button type="button" data-answer="说不准">说不准</button><button type="button" data-answer="重问">问题无效，重问</button></div></div>
         </div>
-        <div class="word-candidates"><h3>候选词 <small>共 16 个</small></h3><div id="word-words">加入房间后显示</div></div>
-        <div class="word-history"><h3>你的推理记录</h3><ol id="word-history-list"><li class="empty">还没有行动</li></ol></div>
+        <div class="word-history"><h3>本轮问答 <small id="word-count">0 / 10</small></h3><ol id="word-history-list"><li class="empty">还没有行动</li></ol></div>
         <p id="word-status" class="word-status" role="status" aria-live="polite">正在连接房间……</p>
         <div class="word-actions"><button id="word-ready" class="primary" type="button" hidden>再来一局</button><button id="word-reconnect" class="secondary" type="button" hidden>重新连接</button><button id="word-leave" class="secondary" type="button">离开房间</button></div>
       </div>
       <p id="word-error" class="online-error" role="alert" hidden></p>
     </section>
-    <p class="help online-note">问题和猜测都算一次行动；问题由服务器回答“是”或“否”。每人最多行动 10 次，同一轮都猜中算平局，没有倒计时。自己的记录仅自己可见，结束后揭晓答案。断线可重连；网站重启会清空房间。</p>
+    <p class="help online-note">出题者尽量选大家都认识的词，并如实回答；问题需要能用“是／否／说不准”回答，不合适可退回重问且不扣次数。猜词须与原词完全一致。每人最多 10 次有效行动；没猜中记 11 次。断线可重连，网站重启会清空房间。</p>
   </main>
   <footer><span>✳ 无聊研究所 / 快乐不必有意义。</span><span>JUST FOR FUN. © 2026</span></footer>
 </div>

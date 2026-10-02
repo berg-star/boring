@@ -2,7 +2,6 @@
 #include <crow.h>
 #include <array>
 #include <chrono>
-#include <cmath>
 #include <cstdint>
 #include <mutex>
 #include <random>
@@ -10,39 +9,21 @@
 #include <unordered_map>
 #include <vector>
 
-// Turn-based yes/no word deduction. Both players get the same target but separate histories.
-inline constexpr std::uint32_t wordBit(int question) { return std::uint32_t{1} << question; }
+// Two human-authored word rounds. A word is disclosed only to its setter until the round ends.
 class WordRooms {
     using Clock = std::chrono::steady_clock;
     using Time = Clock::time_point;
     using Socket = crow::websocket::connection;
-    struct Word { const char* label; std::uint32_t yes; };
-    inline static constexpr std::array<const char*, 19> questions_{{
-        "它是动物吗？", "它通常被当作食物吗？", "它通常会在水里活动吗？", "它属于鸟类吗？",
-        "它能飞吗？", "它是哺乳动物吗？", "它有坚硬的壳吗？", "它是昆虫吗？",
-        "它属于水果吗？", "它通常是甜的吗？", "它通常是酸的吗？", "它是液体吗？",
-        "它是烘烤制成的吗？", "它需要电才能发挥主要用途吗？", "它能发光吗？", "它有屏幕吗？",
-        "它主要用来挡雨吗？", "它有轮子吗？", "它主要用来吹风吗？"
-    }};
-    inline static constexpr std::array<Word, 16> words_{{
-        {"企鹅", wordBit(0)|wordBit(2)|wordBit(3)}, {"麻雀", wordBit(0)|wordBit(3)|wordBit(4)},
-        {"海豚", wordBit(0)|wordBit(2)|wordBit(5)}, {"乌龟", wordBit(0)|wordBit(2)|wordBit(6)},
-        {"猫", wordBit(0)|wordBit(5)}, {"蜜蜂", wordBit(0)|wordBit(4)|wordBit(7)},
-        {"苹果", wordBit(1)|wordBit(8)|wordBit(9)}, {"柠檬", wordBit(1)|wordBit(8)|wordBit(10)},
-        {"面包", wordBit(1)|wordBit(12)}, {"鸡蛋", wordBit(1)|wordBit(6)}, {"牛奶", wordBit(1)|wordBit(11)},
-        {"台灯", wordBit(13)|wordBit(14)}, {"风扇", wordBit(13)|wordBit(18)},
-        {"手机", wordBit(13)|wordBit(14)|wordBit(15)}, {"雨伞", wordBit(16)}, {"自行车", wordBit(17)}
-    }};
-    struct Step { bool question; int id; bool yes; };
+    struct Step { std::string kind, text, reply; };
     struct Room {
-        std::string code;
+        std::string code, phase = "setting", word, category, question, previousWord, notice;
         std::array<std::string, 2> tokens;
         std::array<Socket*, 2> clients{{nullptr, nullptr}};
         std::array<Time, 2> disconnectedAt{};
-        std::array<std::vector<Step>, 2> histories;
-        std::array<bool, 2> solved{{false, false}}, ready{{false, false}};
-        std::string phase = "waiting", notice;
-        int target = -1, starter = 0, moves = 0, winner = -2, run = 0;
+        std::array<int, 2> scores{{-1, -1}};
+        std::array<bool, 2> ready{{false, false}};
+        std::vector<Step> history;
+        int firstSetter = 0, stage = 0, move = 0, winner = -2, run = 0;
         Time touched = Clock::now();
     };
     struct Session { std::string room; int side; };
@@ -58,50 +39,72 @@ class WordRooms {
         for (std::size_t i = 0; i < size; ++i) value += alphabet[entropy_() % alphabet.size()];
         return value;
     }
-    void newCase(Room& room) {
-        room.target = room.target < 0 ? static_cast<int>(entropy_() % words_.size())
-            : (room.target + 1 + static_cast<int>(entropy_() % (words_.size() - 1))) % words_.size();
-        room.phase = "waiting";
-        room.histories = {};
-        room.solved = {{false, false}};
-        room.ready = {{false, false}};
-        room.moves = 0;
-        room.winner = -2;
-        room.notice.clear();
-        room.touched = Clock::now();
+    static int setter(const Room& room) { return room.firstSetter ^ room.stage; }
+    static int guesser(const Room& room) { return 1 - setter(room); }
+    static bool validWord(const std::string& word) {
+        if (word.size() < 6 || word.size() > 12 || word.size() % 3) return false;
+        for (std::size_t i = 0; i < word.size(); i += 3) {
+            const auto a = static_cast<unsigned char>(word[i]);
+            const auto b = static_cast<unsigned char>(word[i + 1]);
+            const auto c = static_cast<unsigned char>(word[i + 2]);
+            // U+4E00..U+9FFF, ordinary Han characters only.
+            if (a < 0xe4 || a > 0xe9 || b < 0x80 || b > 0xbf || c < 0x80 || c > 0xbf
+                || (a == 0xe4 && b < 0xb8) || (a == 0xe9 && b > 0xbf)) return false;
+        }
+        return true;
+    }
+    static bool validQuestion(const std::string& question) {
+        if (question.empty() || question.size() > 180) return false;
+        for (unsigned char c : question) if (c < 32 || c == 127) return false;
+        return true;
+    }
+    static bool validCategory(const std::string& category) {
+        return category == "动物" || category == "食物" || category == "物品"
+            || category == "地点" || category == "人物" || category == "其他";
+    }
+    static bool positionMatches(const crow::json::rvalue& value, const Room& room) {
+        return value.has("run") && value["run"].t() == crow::json::type::Number && value["run"].d() == room.run
+            && value.has("stage") && value["stage"].t() == crow::json::type::Number && value["stage"].d() == room.stage
+            && value.has("move") && value["move"].t() == crow::json::type::Number && value["move"].d() == room.move;
+    }
+    void newMatch(Room& room) {
+        room.phase = "setting";
+        room.word.clear(); room.category.clear(); room.question.clear(); room.previousWord.clear(); room.notice.clear();
+        room.history.clear(); room.scores = {{-1, -1}}; room.ready = {{false, false}};
+        room.stage = 0; room.move = 0; room.winner = -2; room.touched = Clock::now();
         ++room.run;
+    }
+    static void endStage(Room& room, bool solved) {
+        room.scores[guesser(room)] = solved ? room.move : 11;
+        if (room.stage == 0) {
+            room.previousWord = room.word;
+            room.stage = 1; room.phase = "setting"; room.word.clear(); room.category.clear();
+            room.question.clear(); room.history.clear(); room.move = 0;
+        } else {
+            room.phase = "finished";
+            room.winner = room.scores[0] == room.scores[1] ? -1 : room.scores[0] < room.scores[1] ? 0 : 1;
+            room.ready = {{false, false}};
+        }
     }
     static crow::json::wvalue state(const Room& room, int side) {
         crow::json::wvalue value;
-        value["type"] = "state";
-        value["room"] = room.code;
-        value["self"] = side;
-        value["phase"] = room.phase;
-        value["run"] = room.run;
-        value["move"] = room.moves;
-        value["turn"] = room.starter ^ (room.moves % 2);
-        value["winner"] = room.winner;
-        value["leftConnected"] = room.clients[0] != nullptr;
-        value["rightConnected"] = room.clients[1] != nullptr;
-        value["leftSolved"] = room.solved[0];
-        value["rightSolved"] = room.solved[1];
-        value["leftReady"] = room.ready[0];
-        value["rightReady"] = room.ready[1];
-        value["leftCount"] = static_cast<int>(room.histories[0].size());
-        value["rightCount"] = static_cast<int>(room.histories[1].size());
-        value["notice"] = room.notice;
-        value["questions"] = crow::json::wvalue::list();
-        value["words"] = crow::json::wvalue::list();
+        value["type"] = "state"; value["room"] = room.code; value["self"] = side;
+        value["phase"] = room.phase; value["run"] = room.run; value["stage"] = room.stage;
+        value["move"] = room.move; value["setter"] = setter(room); value["guesser"] = guesser(room);
+        value["winner"] = room.winner; value["category"] = room.category;
+        value["length"] = static_cast<int>(room.word.size() / 3);
+        value["previousWord"] = room.previousWord;
+        value["leftConnected"] = room.clients[0] != nullptr; value["rightConnected"] = room.clients[1] != nullptr;
+        value["leftScore"] = room.scores[0]; value["rightScore"] = room.scores[1];
+        value["leftReady"] = room.ready[0]; value["rightReady"] = room.ready[1];
+        value["notice"] = room.notice; value["pendingQuestion"] = room.question;
         value["history"] = crow::json::wvalue::list();
-        for (std::size_t i = 0; i < questions_.size(); ++i) value["questions"][i] = questions_[i];
-        for (std::size_t i = 0; i < words_.size(); ++i) value["words"][i] = words_[i].label;
-        for (std::size_t i = 0; i < room.histories[side].size(); ++i) {
-            const auto& step = room.histories[side][i];
-            value["history"][i]["kind"] = step.question ? "ask" : "guess";
-            value["history"][i]["id"] = step.id;
-            value["history"][i]["yes"] = step.yes;
+        for (std::size_t i = 0; i < room.history.size(); ++i) {
+            value["history"][i]["kind"] = room.history[i].kind;
+            value["history"][i]["text"] = room.history[i].text;
+            value["history"][i]["reply"] = room.history[i].reply;
         }
-        if (room.phase == "finished") value["answer"] = words_[room.target].label;
+        if (side == setter(room) || room.phase == "finished") value["answer"] = room.word;
         return value;
     }
     static void send(const Room& room) {
@@ -121,7 +124,7 @@ public:
         do { room.code = randomText(6, "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"); }
         while (rooms_.count(room.code));
         room.tokens[0] = randomText(32, "0123456789abcdef");
-        newCase(room);
+        newMatch(room);
         const auto result = Result{room.code, room.tokens[0], {}, 0};
         rooms_.emplace(room.code, std::move(room));
         return result;
@@ -133,8 +136,7 @@ public:
         auto& room = it->second;
         if (!room.tokens[1].empty()) return {{}, {}, "这个房间已经有两位玩家了。", 0};
         room.tokens[1] = randomText(32, "0123456789abcdef");
-        room.touched = Clock::now();
-        room.disconnectedAt[1] = room.touched;
+        room.touched = Clock::now(); room.disconnectedAt[1] = room.touched;
         return {code, room.tokens[1], {}, 1};
     }
     void message(Socket& socket, const std::string& text, bool binary) {
@@ -162,68 +164,70 @@ public:
                 sessions_.erase(previous);
                 previous->close(std::string("\x03\xe8", 2) + "Reconnected elsewhere");
             }
-            room.clients[side] = &socket;
-            room.disconnectedAt[side] = Time{};
-            sessions_[&socket] = {room.code, side};
-            room.touched = Clock::now();
-            room.notice.clear();
-            if (room.phase == "waiting" && room.clients[0] && room.clients[1]) room.phase = "playing";
-            send(room);
-            return;
+            room.clients[side] = &socket; room.disconnectedAt[side] = Time{};
+            sessions_[&socket] = {room.code, side}; room.touched = Clock::now(); room.notice.clear();
+            send(room); return;
         }
         auto it = rooms_.find(session->second.room);
         if (it == rooms_.end()) { socket.close(std::string("\x03\xf0", 2) + "Expired room"); return; }
         auto& room = it->second;
         const int side = session->second.side;
-        const auto now = Clock::now();
-        room.touched = now;
-        if (type == "ask" || type == "guess") {
-            if (room.phase != "playing" || !room.clients[0] || !room.clients[1] || side != (room.starter ^ (room.moves % 2))) {
-                error(socket, "还没轮到你，或对方暂时离线。"); return;
+        room.touched = Clock::now();
+        if (type == "set" || type == "ask" || type == "guess" || type == "reply") {
+            if (!positionMatches(value, room)) { error(socket, "回合已更新，请刷新状态再试。"); return; }
+            if (!room.clients[0] || !room.clients[1]) { error(socket, "请等对方重新连接。"); return; }
+            if (type == "set") {
+                if (room.phase != "setting" || side != setter(room) || !value.has("word") || !value.has("category")
+                    || value["word"].t() != crow::json::type::String || value["category"].t() != crow::json::type::String) {
+                    error(socket, "现在不能出题。"); return;
+                }
+                const std::string word = value["word"].s(), category = value["category"].s();
+                if (!validWord(word) || !validCategory(category)) { error(socket, "词语须是 2～4 个常用汉字，并选择分类。"); return; }
+                room.word = word; room.category = category; room.phase = "playing";
+                send(room); return;
             }
-            if (!value.has("move") || value["move"].t() != crow::json::type::Number || value["move"].d() != room.moves
-                || !value.has("run") || value["run"].t() != crow::json::type::Number || value["run"].d() != room.run) {
-                error(socket, "回合已更新，请重新选择。"); return;
+            if (type == "ask" || type == "guess") {
+                if (room.phase != "playing" || side != guesser(room) || !value.has("text")
+                    || value["text"].t() != crow::json::type::String) {
+                    error(socket, "现在不能提问或猜词。"); return;
+                }
+                const std::string entry = value["text"].s();
+                if (type == "ask") {
+                    if (!validQuestion(entry)) { error(socket, "请输入 1～60 字的清楚问题。"); return; }
+                    room.question = entry; room.phase = "reply";
+                } else {
+                    if (!validWord(entry)) { error(socket, "请猜 2～4 个汉字的词语。"); return; }
+                    const bool yes = entry == room.word;
+                    room.history.push_back({"guess", entry, yes ? "猜中了" : "猜错了"});
+                    ++room.move;
+                    if (yes || room.move == 10) endStage(room, yes);
+                }
+                send(room); return;
             }
-            if (!value.has("id") || value["id"].t() != crow::json::type::Number) {
-                error(socket, "请选择一个问题或词语。"); return;
+            if (room.phase != "reply" || side != setter(room) || !value.has("answer")
+                || value["answer"].t() != crow::json::type::String) {
+                error(socket, "现在不能回答。"); return;
             }
-            const double number = value["id"].d();
-            if (!std::isfinite(number) || number < 0 || number >= static_cast<double>(type == "ask" ? questions_.size() : words_.size())
-                || number != static_cast<int>(number)) { error(socket, "这个选项无效。"); return; }
-            const int id = static_cast<int>(number);
-            for (const auto& step : room.histories[side]) if (step.question == (type == "ask") && step.id == id) {
-                error(socket, "这项已经用过了，请换一个。"); return;
+            const std::string answer = value["answer"].s();
+            if (answer != "是" && answer != "否" && answer != "说不准" && answer != "重问") {
+                error(socket, "请选择一个回答。"); return;
             }
-            const bool yes = type == "ask" ? (words_[room.target].yes & wordBit(id)) != 0 : id == room.target;
-            room.histories[side].push_back({type == "ask", id, yes});
-            if (type == "guess" && yes) room.solved[side] = true;
-            ++room.moves;
-            if (room.moves % 2 == 0 && (room.solved[0] || room.solved[1] || room.moves >= 20)) {
-                room.phase = "finished";
-                room.winner = room.solved[0] == room.solved[1] ? -1 : room.solved[0] ? 0 : 1;
-                room.ready = {{false, false}};
-            }
+            if (answer != "重问") { room.history.push_back({"ask", room.question, answer}); ++room.move; }
+            room.question.clear(); room.phase = "playing";
+            if (room.move == 10) endStage(room, false);
             send(room);
         } else if (type == "ready" && room.phase == "finished") {
             room.ready[side] = true;
-            if (room.ready[0] && room.ready[1]) {
-                room.starter = 1 - room.starter;
-                newCase(room);
-                if (room.clients[0] && room.clients[1]) room.phase = "playing";
-            }
+            if (room.ready[0] && room.ready[1]) { room.firstSetter = 1 - room.firstSetter; newMatch(room); }
             send(room);
         } else if (type == "leave") {
-            room.clients[side] = nullptr;
-            sessions_.erase(session);
+            room.clients[side] = nullptr; sessions_.erase(session);
             if (side == 0) {
                 if (room.clients[1]) room.clients[1]->close(std::string("\x03\xe8", 2) + "Room closed");
                 rooms_.erase(it);
             } else {
-                room.tokens[1].clear();
-                newCase(room);
-                room.notice = "队友离开了，已换新词，可以邀请新朋友。";
-                send(room);
+                room.tokens[1].clear(); newMatch(room);
+                room.notice = "队友离开了，可以邀请新朋友。"; send(room);
             }
             socket.close(std::string("\x03\xe8", 2) + "Left room");
         }
@@ -237,8 +241,7 @@ public:
             auto& room = it->second;
             room.clients[session->second.side] = nullptr;
             room.disconnectedAt[session->second.side] = Clock::now();
-            room.notice = "队友暂时离线，进度保留，等他重新连接。";
-            send(room);
+            room.notice = "队友暂时离线，进度保留，等他重新连接。"; send(room);
         }
         sessions_.erase(session);
     }
@@ -252,11 +255,8 @@ public:
             }
             if (!room.clients[1] && !room.tokens[1].empty() && room.disconnectedAt[1] != Time{}
                 && elapsed(room.disconnectedAt[1], now) > 2 * 60 * 1000) {
-                room.tokens[1].clear();
-                room.disconnectedAt[1] = Time{};
-                newCase(room);
-                room.notice = "队友离线超过两分钟，可以邀请新朋友，已换新词。";
-                send(room);
+                room.tokens[1].clear(); room.disconnectedAt[1] = Time{}; newMatch(room);
+                room.notice = "队友离线超过两分钟，可以邀请新朋友。"; send(room);
             }
             ++it;
         }
