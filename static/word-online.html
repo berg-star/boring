@@ -37,8 +37,8 @@
           <h2 id="word-cue">正在连接房间……</h2>
           <p id="word-hint">请把房间链接发给朋友。</p>
           <form id="word-set-form" autocomplete="off" hidden>
-            <label for="word-secret">你要出的词（2～4 个汉字）</label>
-            <div class="word-input-row"><input id="word-secret" type="text" minlength="2" maxlength="4" placeholder="例如：小熊猫" required /><select id="word-category" required aria-label="词语分类"><option value="">选择分类</option><option>动物</option><option>食物</option><option>物品</option><option>地点</option><option>人物</option><option>其他</option></select><button id="word-set-submit" class="primary" type="submit">锁定词语</button></div>
+            <label for="word-secret">你要出的词或作品名（2～12 个汉字）</label>
+            <div class="word-input-row"><input id="word-secret" type="text" minlength="2" maxlength="12" placeholder="例如：孤勇者" required /><select id="word-category" required aria-label="词语分类"><option value="">选择分类</option><option>动物</option><option>植物</option><option>食物饮品</option><option>日常物品</option><option>人物</option><option>地点</option><option>歌曲</option><option>电影电视剧</option><option>动漫</option><option>游戏</option><option>书籍</option><option>其他</option></select><button id="word-set-submit" class="primary" type="submit">锁定词语</button></div>
           </form>
           <div id="word-play" hidden>
             <div class="word-mode" role="group" aria-label="行动方式"><button id="word-mode-ask" class="selected" type="button" aria-pressed="true">自由提问</button><button id="word-mode-guess" type="button" aria-pressed="false">直接猜词</button></div>
@@ -46,16 +46,18 @@
               <label id="word-input-label" for="word-input">问一个能回答“是／否”的问题</label>
               <div class="word-input-row"><input id="word-input" type="text" maxlength="60" placeholder="例如：它是动物吗？" required /><button id="word-submit" class="primary" type="submit">发出问题</button></div>
             </form>
+            <div id="word-rejection" class="word-rejection" role="status" aria-live="polite" hidden><strong>刚才的问题被退回，本次不扣次数</strong><p id="word-rejection-detail"></p></div>
           </div>
-          <div id="word-reply" class="word-reply" hidden><p>对方问：</p><blockquote id="word-pending-question"></blockquote><div class="word-reply-actions"><button type="button" data-answer="是">是</button><button type="button" data-answer="否">否</button><button type="button" data-answer="说不准">说不准</button><button type="button" data-answer="重问">问题无效，重问</button></div></div>
+          <div id="word-reply" class="word-reply" hidden><p>对方问：</p><blockquote id="word-pending-question"></blockquote><div class="word-reply-actions"><button type="button" data-answer="是">是</button><button type="button" data-answer="否">否</button><button type="button" data-answer="说不准">说不准</button></div><div class="word-reject-form"><label for="word-reject-reason">问题不合适？告诉对方为什么</label><select id="word-reject-reason"><option value="">选择退回原因</option><option>不是是非题</option><option>问题含糊</option><option>一次问了多个问题</option><option>其他原因</option></select><input id="word-reject-note" type="text" maxlength="30" placeholder="补充提示（可选）" aria-label="退回时的补充提示" /><button id="word-reject-submit" class="secondary" type="button">退回重问，不扣次数</button></div></div>
         </div>
         <div class="word-history"><h3>本轮问答 <small id="word-count">0 / 10</small></h3><ol id="word-history-list"><li class="empty">还没有行动</li></ol></div>
+        <details id="word-previous" class="word-history" hidden><summary id="word-previous-title">查看上一轮问答</summary><ol id="word-previous-list"></ol></details>
         <p id="word-status" class="word-status" role="status" aria-live="polite">正在连接房间……</p>
         <div class="word-actions"><button id="word-ready" class="primary" type="button" hidden>再来一局</button><button id="word-reconnect" class="secondary" type="button" hidden>重新连接</button><button id="word-leave" class="secondary" type="button">离开房间</button></div>
       </div>
       <p id="word-error" class="online-error" role="alert" hidden></p>
     </section>
-    <p class="help online-note">出题者尽量选大家都认识的词，并如实回答；问题需要能用“是／否／说不准”回答，不合适可退回重问且不扣次数。猜词须与原词完全一致。每人最多 10 次有效行动；没猜中记 11 次。断线可重连，网站重启会清空房间。</p>
+    <p class="help online-note">出题只接受 2～12 个汉字，不含数字、字母或符号。出题者尽量选大家都认识的词，并如实回答；清楚的问题可以回答“是／否／说不准”（计一次），不合适的问题可说明原因并退回（不扣次数）。猜词须与原词完全一致。每人最多 10 次有效行动；没猜中记 11 次。断线可重连，网站重启会清空房间。</p>
   </main>
   <footer><span>✳ 无聊研究所 / 快乐不必有意义。</span><span>JUST FOR FUN. © 2026</span></footer>
 </div>

@@ -47,6 +47,9 @@
       const changedRound = !snapshot || snapshot.run !== message.run || snapshot.stage !== message.stage;
       const consumed = !changedRound && snapshot.move !== message.move;
       if (changedRound || consumed) { input.value = ""; secret.value = ""; $("word-category").value = ""; showError(""); }
+      if (changedRound || snapshot?.phase === "reply" && message.phase !== "reply") {
+        $("word-reject-reason").value = ""; $("word-reject-note").value = "";
+      }
       snapshot = message; pending = false; render();
     };
     ws.onclose = event => {
@@ -94,30 +97,43 @@
     $("word-mode-guess").classList.toggle("selected", mode === "guess");
     $("word-mode-ask").setAttribute("aria-pressed", String(mode === "ask"));
     $("word-mode-guess").setAttribute("aria-pressed", String(mode === "guess"));
-    $("word-input-label").textContent = mode === "ask" ? "问一个能回答“是／否”的问题" : "直接猜完整词语（2～4 个汉字）";
+    $("word-input-label").textContent = mode === "ask" ? "问一个能回答“是／否”的问题" : "直接猜完整词语（2～12 个汉字）";
     input.placeholder = mode === "ask" ? "例如：它是动物吗？" : "例如：小熊猫";
-    input.maxLength = mode === "ask" ? 60 : 4;
+    input.maxLength = mode === "ask" ? 60 : 12;
     input.disabled = !both || pending || s.phase !== "playing" || !isGuesser;
     submit.disabled = input.disabled;
     submit.textContent = mode === "ask" ? "发出问题" : "提交猜测";
+    $("word-rejection").hidden = !isGuesser || s.phase !== "playing" || !s.rejectedQuestion;
+    $("word-rejection-detail").textContent = s.rejectedQuestion ? `「${s.rejectedQuestion}」：${s.rejectionReason}。请换一种问法。` : "";
+    $("word-reject-reason").disabled = !both || pending;
+    $("word-reject-note").disabled = !both || pending;
+    $("word-reject-submit").disabled = !both || pending;
     $("word-count").textContent = `${s.move} / 10`;
-    const list = $("word-history-list"); list.replaceChildren();
-    if (!s.history.length) { const item = document.createElement("li"); item.className = "empty"; item.textContent = "还没有行动"; list.append(item); }
-    s.history.forEach((step, index) => {
-      const item = document.createElement("li"); if (step.reply === "否" || step.reply === "猜错了") item.className = "negative";
-      const number = document.createElement("span"); number.textContent = String(index + 1).padStart(2, "0");
-      const label = document.createElement("strong"); label.textContent = step.kind === "ask" ? step.text : `猜「${step.text}」`;
-      const response = document.createElement("b"); response.textContent = step.reply;
-      item.append(number, label, response); list.append(item);
-    });
+    function fillHistory(list, steps) {
+      list.replaceChildren();
+      if (!steps.length) { const item = document.createElement("li"); item.className = "empty"; item.textContent = "还没有行动"; list.append(item); }
+      steps.forEach((step, index) => {
+        const item = document.createElement("li"); if (step.reply === "否" || step.reply === "猜错了") item.className = "negative";
+        const number = document.createElement("span"); number.textContent = String(index + 1).padStart(2, "0");
+        const label = document.createElement("strong"); label.textContent = step.kind === "ask" ? step.text : `猜「${step.text}」`;
+        const response = document.createElement("b"); response.textContent = step.reply;
+        item.append(number, label, response); list.append(item);
+      });
+    }
+    fillHistory($("word-history-list"), s.history);
+    $("word-previous").hidden = !s.previousWord;
+    if (s.previousWord) {
+      $("word-previous-title").textContent = `查看上一轮问答 · ${s.previousCategory}「${s.previousWord}」`;
+      fillHistory($("word-previous-list"), s.previousHistory);
+    } else $("word-previous").open = false;
     ready.hidden = s.phase !== "finished";
     ready.disabled = side ? s.rightReady : s.leftReady;
     ready.textContent = ready.disabled ? "已准备，等待对方" : "再来一局";
     status.textContent = s.notice || (s.phase === "finished" ? `青柠 ${scoreText(s.leftScore)}，蓝莓 ${scoreText(s.rightScore)}。双方同意后可重赛。`
       : !both ? "对方暂时不在线。把链接发给朋友，断线进度会保留。"
-      : s.phase === "setting" ? isSetter ? "输入一个 2～4 字的名词并锁定，朋友只会看到分类与字数。" : "等对方锁定词语。"
+      : s.phase === "setting" ? isSetter ? "输入一个 2～12 字的中文词语或作品名，朋友只会看到分类与字数。" : "等对方锁定词语。"
       : s.phase === "reply" ? isSetter ? "请回答问题；退回重问不消耗次数。" : "正在等对方回答。"
-      : isSetter ? "等对方提问或猜词。" : `你已使用 ${s.move}/10 次，认真提问吧。`);
+      : isSetter ? "等对方提问或猜词。" : s.rejectedQuestion ? `问题被退回：${s.rejectionReason}。本次不扣次数。` : `你已使用 ${s.move}/10 次，认真提问吧。`);
   }
   function reset(leave) {
     generation++; quitting = true;
@@ -143,19 +159,25 @@
   $("word-set-form").addEventListener("submit", event => {
     event.preventDefault();
     const word = secret.value.trim(), category = $("word-category").value;
-    if (!/^[\u4e00-\u9fff]{2,4}$/.test(word) || !category) { showError("词语须是 2～4 个汉字，并选择分类。"); return; }
+    if (!/^[\u4e00-\u9fff]{2,12}$/.test(word) || !category) { showError("词语须是 2～12 个汉字，并选择分类。"); return; }
     if (snapshot?.phase === "setting" && snapshot.setter === identity.side) sendAction("set", {word,category});
   });
   $("word-play-form").addEventListener("submit", event => {
     event.preventDefault();
     const value = input.value.trim();
-    if (mode === "guess" && !/^[\u4e00-\u9fff]{2,4}$/.test(value)) { showError("请猜 2～4 个汉字的词语。"); return; }
+    if (mode === "guess" && !/^[\u4e00-\u9fff]{2,12}$/.test(value)) { showError("请猜 2～12 个汉字的词语。"); return; }
     if (mode === "ask" && (!value || new TextEncoder().encode(value).length > 180)) { showError("问题不能超过 60 字。"); return; }
     if (snapshot?.phase === "playing" && snapshot.guesser === identity.side) sendAction(mode, {text:value});
   });
   document.querySelectorAll(".word-reply-actions button").forEach(button => button.addEventListener("click", () => {
     if (snapshot?.phase === "reply" && snapshot.setter === identity.side) sendAction("reply", {answer:button.dataset.answer});
   }));
+  $("word-reject-submit").addEventListener("click", () => {
+    const reason = $("word-reject-reason").value, note = $("word-reject-note").value.trim();
+    if (!reason) { showError("请先选择退回原因。"); return; }
+    if (new TextEncoder().encode(note).length > 90) { showError("补充提示不能超过 30 字。"); return; }
+    if (snapshot?.phase === "reply" && snapshot.setter === identity.side) sendAction("reply", {answer:"重问",reason,note});
+  });
   $("word-create").addEventListener("click", () => startSession(true));
   $("word-join-form").addEventListener("submit", event => { event.preventDefault(); startSession(false); });
   $("word-copy").addEventListener("click", async () => {

@@ -61,12 +61,15 @@ with connect(ws_base + "/ws/word", origin=base) as left:
             send(sockets[side], type=kind, run=previous["run"], stage=previous["stage"], move=previous["move"], **extra)
             assert until(sockets[side], lambda s: s.get("type") == "error")
 
-        rejected(1, "set", word="小熊猫", category="动物")
+        rejected(1, "set", word="夜空中最亮的星", category="歌曲")
         rejected(0, "set", word="猫", category="动物")
         rejected(0, "set", word="abc", category="动物")
-        action(0, "set", word="小熊猫", category="动物")
-        assert states[0]["answer"] == "小熊猫"
-        assert "answer" not in states[1] and states[1]["length"] == 3 and states[1]["category"] == "动物"
+        rejected(0, "set", word="二零二六年第一首歌1", category="歌曲")
+        rejected(0, "set", word="一二三四五六七八九十天地人", category="歌曲")
+        rejected(0, "set", word="孤勇者", category="无类别")
+        action(0, "set", word="夜空中最亮的星", category="歌曲")
+        assert states[0]["answer"] == "夜空中最亮的星"
+        assert "answer" not in states[1] and states[1]["length"] == 7 and states[1]["category"] == "歌曲"
         rejected(0, "ask", text="它是动物吗？")
         action(1, "ask", text="它是动物吗？")
         assert states[0]["pendingQuestion"] == states[1]["pendingQuestion"] == "它是动物吗？"
@@ -81,24 +84,33 @@ with connect(ws_base + "/ws/word", origin=base) as left:
             states[1] = auth(resumed, guest)
             states[0] = state(left, lambda s: s["rightConnected"])
             assert states[1]["phase"] == "reply" and "answer" not in states[1]
-            action(0, "reply", answer="重问")
+            rejected(0, "reply", answer="重问", reason="随便说说", note="")
+            rejected(0, "reply", answer="重问", reason="问题含糊", note="太长" * 31)
+            action(0, "reply", answer="重问", reason="问题含糊", note="请限定时间")
             assert states[1]["move"] == 0 and states[1]["history"] == []
+            assert states[1]["rejectedQuestion"] == "它是动物吗？"
+            assert states[1]["rejectionReason"] == "问题含糊：请限定时间"
             action(1, "ask", text="它住在竹林吗？")
+            assert states[1]["rejectedQuestion"] == "" and states[1]["rejectionReason"] == ""
             action(0, "reply", answer="说不准")
             assert states[1]["move"] == 1 and states[1]["history"][0]["reply"] == "说不准"
             rejected(1, "guess", text="x")
+            rejected(1, "guess", text="孤勇者2")
             action(1, "guess", text="大熊猫")
             assert states[1]["move"] == 2 and states[1]["history"][-1]["reply"] == "猜错了"
             # Stale request must not use a new stage's action slot.
-            send(resumed, type="guess", text="小熊猫", run=states[1]["run"], stage=0, move=0)
+            send(resumed, type="guess", text="夜空中最亮的星", run=states[1]["run"], stage=0, move=0)
             assert until(resumed, lambda s: s.get("type") == "error")
-            action(1, "guess", text="小熊猫")
+            action(1, "guess", text="夜空中最亮的星")
             assert states[1]["stage"] == 1 and states[1]["phase"] == "setting"
             assert states[0]["rightScore"] == states[1]["rightScore"] == 3
-            assert states[1]["previousWord"] == "小熊猫"
+            assert states[1]["previousWord"] == "夜空中最亮的星"
+            assert states[1]["previousCategory"] == "歌曲"
+            assert len(states[0]["previousHistory"]) == len(states[1]["previousHistory"]) == 3
+            assert states[1]["previousHistory"][0]["text"] == "它住在竹林吗？"
             assert "answer" not in states[0] or states[0]["answer"] == ""
-            action(1, "set", word="橘子", category="食物")
-            assert "answer" not in states[0] and states[0]["category"] == "食物"
+            action(1, "set", word="橘子", category="食物饮品")
+            assert "answer" not in states[0] and states[0]["category"] == "食物饮品"
             action(0, "guess", text="橘子")
             assert states[0]["phase"] == states[1]["phase"] == "finished"
             assert states[0]["leftScore"] == 1 and states[1]["rightScore"] == 3
@@ -108,9 +120,9 @@ with connect(ws_base + "/ws/word", origin=base) as left:
             send(resumed, type="ready")
             states[0] = state(left, lambda s: s["phase"] == "setting" and s["run"] != initial["run"])
             states[1] = state(resumed, lambda s: s["run"] == states[0]["run"])
-            assert states[0]["setter"] == 1 and states[0]["previousWord"] == "" and states[0]["leftScore"] == -1
+            assert states[0]["setter"] == 1 and states[0]["previousWord"] == "" and states[0]["previousHistory"] == [] and states[0]["leftScore"] == -1
             # Ten valid actions without solving earn the 11-point penalty; second round swaps roles.
-            action(1, "set", word="苹果", category="食物")
+            action(1, "set", word="一二三四五六七八九十天地", category="书籍")
             for i in range(10):
                 action(0, "guess", text=f"大熊猫" if i % 2 == 0 else "小熊猫")
             assert states[0]["stage"] == 1 and states[0]["leftScore"] == 11
@@ -132,4 +144,4 @@ with connect(ws_base + "/ws/word", origin=base) as left:
                 newcomer.recv(timeout=5)
         except ConnectionClosedOK as closed:
             assert closed.rcvd.code == 1000 and closed.rcvd.reason == "Room closed"
-print("PASS: private word, free questions, human replies, invalid re-ask, exact guess, two rounds, scores, limit, rematch, reconnect and replacement")
+print("PASS: Chinese-only long titles, categories, private word, rejection feedback, previous history, scores, limits, rematch and reconnect")

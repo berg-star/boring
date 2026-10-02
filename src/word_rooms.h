@@ -7,6 +7,7 @@
 #include <random>
 #include <string>
 #include <unordered_map>
+#include <utility>
 #include <vector>
 
 // Two human-authored word rounds. A word is disclosed only to its setter until the round ends.
@@ -16,13 +17,14 @@ class WordRooms {
     using Socket = crow::websocket::connection;
     struct Step { std::string kind, text, reply; };
     struct Room {
-        std::string code, phase = "setting", word, category, question, previousWord, notice;
+        std::string code, phase = "setting", word, category, question, previousWord, previousCategory;
+        std::string rejectedQuestion, rejectionReason, notice;
         std::array<std::string, 2> tokens;
         std::array<Socket*, 2> clients{{nullptr, nullptr}};
         std::array<Time, 2> disconnectedAt{};
         std::array<int, 2> scores{{-1, -1}};
         std::array<bool, 2> ready{{false, false}};
-        std::vector<Step> history;
+        std::vector<Step> history, previousHistory;
         int firstSetter = 0, stage = 0, move = 0, winner = -2, run = 0;
         Time touched = Clock::now();
     };
@@ -42,7 +44,7 @@ class WordRooms {
     static int setter(const Room& room) { return room.firstSetter ^ room.stage; }
     static int guesser(const Room& room) { return 1 - setter(room); }
     static bool validWord(const std::string& word) {
-        if (word.size() < 6 || word.size() > 12 || word.size() % 3) return false;
+        if (word.size() < 6 || word.size() > 36 || word.size() % 3) return false;
         for (std::size_t i = 0; i < word.size(); i += 3) {
             const auto a = static_cast<unsigned char>(word[i]);
             const auto b = static_cast<unsigned char>(word[i + 1]);
@@ -59,8 +61,14 @@ class WordRooms {
         return true;
     }
     static bool validCategory(const std::string& category) {
-        return category == "动物" || category == "食物" || category == "物品"
-            || category == "地点" || category == "人物" || category == "其他";
+        return category == "动物" || category == "植物" || category == "食物饮品"
+            || category == "日常物品" || category == "人物" || category == "地点"
+            || category == "歌曲" || category == "电影电视剧" || category == "动漫"
+            || category == "游戏" || category == "书籍" || category == "其他";
+    }
+    static bool validRejection(const std::string& reason) {
+        return reason == "不是是非题" || reason == "问题含糊"
+            || reason == "一次问了多个问题" || reason == "其他原因";
     }
     static bool positionMatches(const crow::json::rvalue& value, const Room& room) {
         return value.has("run") && value["run"].t() == crow::json::type::Number && value["run"].d() == room.run
@@ -69,8 +77,9 @@ class WordRooms {
     }
     void newMatch(Room& room) {
         room.phase = "setting";
-        room.word.clear(); room.category.clear(); room.question.clear(); room.previousWord.clear(); room.notice.clear();
-        room.history.clear(); room.scores = {{-1, -1}}; room.ready = {{false, false}};
+        room.word.clear(); room.category.clear(); room.question.clear(); room.previousWord.clear();
+        room.previousCategory.clear(); room.rejectedQuestion.clear(); room.rejectionReason.clear(); room.notice.clear();
+        room.history.clear(); room.previousHistory.clear(); room.scores = {{-1, -1}}; room.ready = {{false, false}};
         room.stage = 0; room.move = 0; room.winner = -2; room.touched = Clock::now();
         ++room.run;
     }
@@ -78,8 +87,10 @@ class WordRooms {
         room.scores[guesser(room)] = solved ? room.move : 11;
         if (room.stage == 0) {
             room.previousWord = room.word;
+            room.previousCategory = room.category;
+            room.previousHistory = std::move(room.history);
             room.stage = 1; room.phase = "setting"; room.word.clear(); room.category.clear();
-            room.question.clear(); room.history.clear(); room.move = 0;
+            room.question.clear(); room.history.clear(); room.rejectedQuestion.clear(); room.rejectionReason.clear(); room.move = 0;
         } else {
             room.phase = "finished";
             room.winner = room.scores[0] == room.scores[1] ? -1 : room.scores[0] < room.scores[1] ? 0 : 1;
@@ -94,6 +105,9 @@ class WordRooms {
         value["winner"] = room.winner; value["category"] = room.category;
         value["length"] = static_cast<int>(room.word.size() / 3);
         value["previousWord"] = room.previousWord;
+        value["previousCategory"] = room.previousCategory;
+        value["rejectedQuestion"] = room.rejectedQuestion;
+        value["rejectionReason"] = room.rejectionReason;
         value["leftConnected"] = room.clients[0] != nullptr; value["rightConnected"] = room.clients[1] != nullptr;
         value["leftScore"] = room.scores[0]; value["rightScore"] = room.scores[1];
         value["leftReady"] = room.ready[0]; value["rightReady"] = room.ready[1];
@@ -103,6 +117,12 @@ class WordRooms {
             value["history"][i]["kind"] = room.history[i].kind;
             value["history"][i]["text"] = room.history[i].text;
             value["history"][i]["reply"] = room.history[i].reply;
+        }
+        value["previousHistory"] = crow::json::wvalue::list();
+        for (std::size_t i = 0; i < room.previousHistory.size(); ++i) {
+            value["previousHistory"][i]["kind"] = room.previousHistory[i].kind;
+            value["previousHistory"][i]["text"] = room.previousHistory[i].text;
+            value["previousHistory"][i]["reply"] = room.previousHistory[i].reply;
         }
         if (side == setter(room) || room.phase == "finished") value["answer"] = room.word;
         return value;
@@ -182,7 +202,7 @@ public:
                     error(socket, "现在不能出题。"); return;
                 }
                 const std::string word = value["word"].s(), category = value["category"].s();
-                if (!validWord(word) || !validCategory(category)) { error(socket, "词语须是 2～4 个常用汉字，并选择分类。"); return; }
+                if (!validWord(word) || !validCategory(category)) { error(socket, "词语须是 2～12 个汉字，并选择分类。"); return; }
                 room.word = word; room.category = category; room.phase = "playing";
                 send(room); return;
             }
@@ -194,9 +214,11 @@ public:
                 const std::string entry = value["text"].s();
                 if (type == "ask") {
                     if (!validQuestion(entry)) { error(socket, "请输入 1～60 字的清楚问题。"); return; }
+                    room.rejectedQuestion.clear(); room.rejectionReason.clear();
                     room.question = entry; room.phase = "reply";
                 } else {
-                    if (!validWord(entry)) { error(socket, "请猜 2～4 个汉字的词语。"); return; }
+                    if (!validWord(entry)) { error(socket, "请猜 2～12 个汉字的词语。"); return; }
+                    room.rejectedQuestion.clear(); room.rejectionReason.clear();
                     const bool yes = entry == room.word;
                     room.history.push_back({"guess", entry, yes ? "猜中了" : "猜错了"});
                     ++room.move;
@@ -212,7 +234,18 @@ public:
             if (answer != "是" && answer != "否" && answer != "说不准" && answer != "重问") {
                 error(socket, "请选择一个回答。"); return;
             }
-            if (answer != "重问") { room.history.push_back({"ask", room.question, answer}); ++room.move; }
+            if (answer == "重问") {
+                if (!value.has("reason") || value["reason"].t() != crow::json::type::String
+                    || !value.has("note") || value["note"].t() != crow::json::type::String) {
+                    error(socket, "请选择退回原因。"); return;
+                }
+                const std::string reason = value["reason"].s(), note = value["note"].s();
+                if (!validRejection(reason) || note.size() > 90 || (!note.empty() && !validQuestion(note))) {
+                    error(socket, "退回原因或补充说明无效。"); return;
+                }
+                room.rejectedQuestion = room.question;
+                room.rejectionReason = reason + (note.empty() ? "" : "：" + note);
+            } else { room.history.push_back({"ask", room.question, answer}); ++room.move; }
             room.question.clear(); room.phase = "playing";
             if (room.move == 10) endStage(room, false);
             send(room);
