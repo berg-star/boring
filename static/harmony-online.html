@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="description" content="两部手机，各自排序。三轮揭晓，看看你和朋友有多默契。" />
+  <title>默契排序 · 无聊研究所</title>
+  <link rel="stylesheet" href="/static/style.css" />
+  <link rel="stylesheet" href="/static/achievements.css" />
+  <link rel="stylesheet" href="/static/tug-online.css" />
+  <link rel="stylesheet" href="/static/harmony-online.css" />
+  <script defer src="/static/achievements.js"></script>
+  <script defer src="/static/main.js"></script>
+  <script defer src="/static/harmony-online.js"></script>
+</head>
+<body>
+<div class="site-shell">
+  <header class="header"><a class="brand" href="/"><span class="brand-mark">✳</span><span>无聊研究所<small>BORING LAB.</small></span></a><a class="header-link" href="/#playground">全部玩法 ↗</a></header>
+  <main class="game-main">
+    <a class="back" href="/#playground">← 回游乐场</a>
+    <div class="game-heading"><p class="eyebrow">EXPERIMENT / 17 · TWO MINDS</p><h1>默契排序。</h1><p>同一道题，各自排序。揭晓时看我们想到一起了吗。</p></div>
+    <section class="panel online-room harmony-room" aria-label="双人默契排序房间">
+      <div id="harmony-entry">
+        <h2>叫上朋友，猜猜彼此的优先级。</h2>
+        <p class="help">分别用两部手机进入同一个房间。三轮题目，每轮根据题意把五个选项从最符合自己到最不符合自己排列；双方提交后一起揭晓。没有计时，先别商量答案。</p>
+        <div class="online-entry-actions"><button id="harmony-create" class="primary" type="button">创建房间</button><span>或</span>
+          <form id="harmony-join-form"><label for="harmony-code">输入朋友的房间码</label><div><input id="harmony-code" maxlength="6" minlength="6" autocapitalize="characters" autocomplete="off" spellcheck="false" inputmode="text" placeholder="例如 AB3XYZ" required /><button class="secondary" type="submit">加入房间</button></div></form>
+        </div>
+      </div>
+      <div id="harmony-session" hidden>
+        <div class="online-toolbar"><div><small>房间码</small><strong id="harmony-room-code">······</strong></div><span>三轮排序 · 没有倒计时</span></div>
+        <div class="online-share"><label for="harmony-share-link">把这个链接发给朋友</label><div><input id="harmony-share-link" readonly aria-label="邀请链接" /><button id="harmony-copy" class="secondary" type="button">复制链接</button></div></div>
+        <div class="online-players"><span id="harmony-player-left">青柠队 · 等待连接</span><span id="harmony-player-right">蓝莓队 · 等待连接</span></div>
+        <div id="harmony-progress" class="harmony-progress" aria-label="三轮得分"></div>
+        <section class="harmony-board" aria-label="当前排序题">
+          <p class="harmony-eyebrow" id="harmony-round">ROUND 01 / 03</p>
+          <h2 id="harmony-title">正在连接房间……</h2>
+          <p id="harmony-guide">第 1 名最符合你，第 5 名最不符合你。</p>
+          <div id="harmony-ranking"><ol id="harmony-order" aria-label="你的排序"></ol><button id="harmony-submit" class="primary harmony-submit" type="button" disabled>确认我的排序</button></div>
+          <div id="harmony-wait" class="harmony-wait" hidden>你已提交。等朋友排好后，一起揭晓。</div>
+          <div id="harmony-reveal" hidden>
+            <p id="harmony-round-score" class="harmony-round-score"></p>
+            <div class="harmony-columns"><div><h3>青柠队</h3><ol id="harmony-left-order"></ol></div><div><h3>蓝莓队</h3><ol id="harmony-right-order"></ol></div></div>
+            <p class="harmony-tip">五个选项两两比较有 10 对；顺序判断一致一对得 1 分。完全相同得 10 分。</p>
+          </div>
+        </section>
+        <p id="harmony-status" class="harmony-status" role="status" aria-live="polite">正在连接房间……</p>
+        <div class="harmony-actions"><button id="harmony-next" class="primary" type="button" hidden>进入下一轮</button><button id="harmony-ready" class="primary" type="button" hidden>再玩三轮</button><button id="harmony-reconnect" class="secondary" type="button" hidden>重新连接</button><button id="harmony-leave" class="secondary" type="button">离开房间</button></div>
+      </div>
+      <p id="harmony-error" class="online-error" role="alert" hidden></p>
+    </section>
+    <p class="help online-note">选项在两部手机上的初始顺序不同，按 ↑ ↓ 调整；提交后不能修改，另一人提交前也看不到你的排序。每轮共同确认后继续；断线可重连，网站重启会清空房间。</p>
+  </main>
+  <footer><span>✳ 无聊研究所 / 快乐不必有意义。</span><span>JUST FOR FUN. © 2026</span></footer>
+</div>
+</body>
+</html>
