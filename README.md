@@ -59,7 +59,7 @@ cmake --build build --parallel
 ./build/boring_lab
 ```
 
-浏览器同样访问 **http://localhost:18080**。要求支持 C++17 的编译器，例如 GCC 9+。当前提交的 Linux Docker 构建结果见下文“当前版本的验收证据”；Windows 本机构建需在目标机器上运行。
+浏览器同样访问 **http://localhost:18080**。要求支持 C++17 的编译器，例如 GCC 9+。当前提交的 Linux Docker 构建结果见下文“审计基准版本的验收证据”；Windows 本机构建需在目标机器上运行。
 
 ## Crow 如何配置
 
