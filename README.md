@@ -2,40 +2,31 @@
 
 想学习项目实现：先读 [HTML 入门教学](HTML入门教学.md)，再读 [核心代码教学](核心代码教学.md)。
 
-一个打开就能玩几分钟的娱乐小站：反应速度测试、命运转盘、今日抽卡、奇怪问题、随机整活、真心话。深色背景，少量霓虹配色，支持电脑和手机。
+一个打开就能玩几分钟的娱乐小站，包含反应测试、抽卡、转盘、涂鸦等单人玩法，也可以在两部手机上玩拔河、反应赛、猜密码、合作解谜、猜词对抗和默契排序。首页有 **17 个玩法入口**，另保留一个不占首页卡片的同屏拔河页面；支持电脑和手机。
 
-技术栈：**C++17 + Crow 1.2.1 + CMake + JSON**；前端为原生 HTML / CSS / JavaScript。没有数据库，没有前端框架，没有 Node.js 后端。
+技术栈：**C++17 + Crow 1.2.1 + CMake + JSON**；后端由 C++ 提供 HTTP 和 WebSocket 服务，前端为原生 HTML / CSS / JavaScript。没有数据库、前端框架或 Node.js 后端。Python 和 Node.js 仅用于可选验收脚本，不参与网站运行。
 
-**准备公网部署：阅读 [Render 上线说明](DEPLOY_RENDER.md)**。Dockerfile 和 render.yaml 已准备好，Render 自动完成 Linux 编译；你的电脑仍然可以用现有 Windows 方式运行。
+README 记录的线上地址：[Railway 站点](https://boring-lab-play.up.railway.app/)；仓库同时保留 [Render 可选部署说明](DEPLOY_RENDER.md)。两种方式都使用根目录的 Dockerfile；联机房间只保存在单个服务进程内，部署时应使用单实例并支持 WebSocket 转发。线上地址与实际部署设置需在平台控制台核对。
 
 ## 项目结构
 
+以下为主要文件，完整页面与脚本见 `static/`、`tools/`：
+
 ```text
 boring-lab/
-├── CMakeLists.txt          # 自动获取固定版本 Crow / Asio，构建并复制资源
-├── README.md
-├── Dockerfile             # Linux 多阶段编译和非 root 运行
-├── .dockerignore          # 只上传必需源码到 Docker 构建上下文
-├── render.yaml            # Render 免费 Web Service 配置
-├── DEPLOY_RENDER.md       # GitHub / Render 操作与填写项
-├── src/main.cpp           # HTTP 服务、静态文件、JSON 校验、随机接口
+├── CMakeLists.txt             # 获取固定版本 Crow / Asio，构建并复制资源
+├── Dockerfile                 # Linux 多阶段构建，非 root 运行
+├── render.yaml                # 可选的 Render Blueprint 配置
+├── DEPLOY_RENDER.md           # Render 操作说明
+├── src/
+│   ├── main.cpp               # HTTP、WebSocket 路由，静态资源与 JSON 数据
+│   └── *_rooms.h              # 六种联机玩法的内存房间规则
 ├── static/
-│   ├── index.html         # 首页和分类
-│   ├── style.css          # 共用样式及响应式布局
-│   ├── main.js            # 随机入口、首页筛选
-│   ├── reaction.html / reaction.js
-│   ├── wheel.html / wheel.js
-│   ├── card.html
-│   ├── question.html
-│   ├── fun.html
-│   └── random.js          # 奇怪问题题库、主题轮换与防重复
-├── data/
-│   ├── cards.json         # 90 张六系列主题卡片
-│   ├── questions.json     # 100 个奇怪问题，四个主题各 25 道
-│   └── activities.json    # 24 份整活小节目
-└── tools/                 # 可选验收工具，不参与网站运行
-    ├── package.json
-    └── check-browser.cjs
+│   ├── index.html / main.js   # 17 个首页入口、分类和单人随机入口
+│   ├── *-online.html          # 六种双设备联机玩法
+│   └── 其他 HTML / CSS / JS   # 单人、同屏拔河、成就册与行李箱
+├── data/                      # 卡片、问题、答案等初始 JSON 数据
+└── tools/                     # 可选 HTTP、浏览器与联机验收脚本
 ```
 
 ## Windows 构建与运行
@@ -52,7 +43,7 @@ cmake --build build --config Release --parallel
 
 浏览器打开 **http://localhost:18080**。终端保持开启，按 Ctrl+C 停止服务。
 
-本机已经生成可执行文件；可以直接执行第三条命令。也可双击 `build\Release\boring_lab.exe`，程序会从自身所在目录查找资源。
+完成构建后也可双击 `build\Release\boring_lab.exe`；程序会从自身所在目录查找资源。
 
 若提示端口占用，先关闭此前运行的网站服务。重新编译前也应停止旧程序，避免 Windows 锁住可执行文件。不要在同一个 build 目录混用不同的编译器或 CMake 生成器。
 
@@ -68,7 +59,7 @@ cmake --build build --parallel
 ./build/boring_lab
 ```
 
-浏览器同样访问 **http://localhost:18080**。要求支持 C++17 的编译器，例如 GCC 9+。本地使用 Windows / MSVC 验收，Linux Docker 构建由 GitHub Actions 验证。
+浏览器同样访问 **http://localhost:18080**。要求支持 C++17 的编译器，例如 GCC 9+。当前提交的 Linux Docker 构建结果见下文“当前版本的验收证据”；Windows 本机构建需在目标机器上运行。
 
 ## Crow 如何配置
 
@@ -84,27 +75,49 @@ Asio 路径应指向含 `asio/include/asio.hpp` 的仓库根目录。参考：[C
 
 ## 页面入口
 
-| 地址 | 玩法 |
-| --- | --- |
-| `/` | 首页，分类筛选，“随便给我来一个” |
-| `/reaction.html` | 反应速度，抢跑提示，当前浏览器会话最佳成绩 |
-| `/wheel.html` | 两种模板、添加 / 删除选项、真实旋转和结果 |
-| `/card.html` | 抽取后翻面揭晓、收藏册、生成分享图 |
-| `/question.html` | 四个主题，题目轮换，再来一个 |
-| `/fun.html` | 六类随机小节目及复制分享 |
+首页展示 **17 个玩法卡片**：11 个非联机入口、6 个双设备联机入口。同屏拔河 `/tug.html` 是额外保留的玩法页面，因此共有 **18 个玩法页面**；再加首页、成就册和行李箱，共 **21 个 HTML 页面**。`/static/页面名.html` 也可访问相应页面，不重复计数。
 
-静态网页也可以通过 `/static/页面名.html` 访问。所有资源从本站加载，不依赖外部字体或 CDN。不要直接双击 HTML：三个随机玩法需要从 Crow 服务访问。
+| 地址 | 玩法与入口说明 |
+| --- | --- |
+| `/` | 首页、分类筛选、“随便给我来一个” |
+| `/reaction.html` | 单人反应测试 |
+| `/wheel.html` | 命运转盘，九类生活场景及自定义选项 |
+| `/card.html` | 六系列抽卡、收藏册、分享图 |
+| `/question.html` | 四主题奇怪问题 |
+| `/fun.html` | 六类随机整活 |
+| `/truth.html` | 真心话 |
+| `/pet.html` | 奇怪小宠物 |
+| `/planet.html` | 无聊星球 |
+| `/book.html` | 答案之书 |
+| `/doodle.html` | 涂鸦活了 |
+| `/smash.html` | 桌面破坏王 |
+| `/tug-online.html` | 联机拔河：首页拔河卡片默认进入此版 |
+| `/reaction-online.html` | 两部手机的联机反应赛 |
+| `/password-online.html` | 双人猜密码 |
+| `/puzzle-online.html` | 双人合作解谜 |
+| `/word-online.html` | 双人猜词对抗 |
+| `/harmony-online.html` | 双人默契排序 |
+| `/tug.html` | 同一设备上的双人拔河；不在首页卡片中 |
+| `/achievements.html` | 成就册，不计入玩法数 |
+| `/luggage.html` | 存档备份与搬家，不计入玩法数 |
+
+首页“随便给我来一个”只从 11 个非联机首页入口抽取，不跳转到六个联机房间，也不抽到同屏拔河。所有资源从本站加载，不依赖外部字体或 CDN。请通过 Crow 服务访问网页；抽卡等功能需要后端接口，联机玩法还需要同源 WebSocket。
 
 ## 后端接口与数据
 
-| GET 接口 | 返回字段 |
+| GET 接口 | 返回内容 |
 | --- | --- |
 | `/api/hello` | `message: "Hello from C++"` |
 | `/healthz` | `status: "ok"`，供平台检查服务健康状态 |
-| `/api/random-card` | `id`, `series`, `rarity`, `keyword`, `tagline`, `message`, `skill`, `skillText`, `good`, `avoid`, `luckyItem`, `bonusLabel`, `bonus`, `luck` |
-| `/api/random-question` | `id`, `category`, `question`，保留的单条随机接口 |
-| `/api/questions` | 完整奇怪问题题库，每条含 `id`, `category`, `question` |
-| `/api/random-fun` | `kind`, `title`, `intro`, `label1..3`, `value1..3`, `footer` |
+| `/api/random-card` | 随机卡片 |
+| `/api/cards` | 90 张卡片的完整卡册 |
+| `/api/random-question` | 保留的单条随机问题接口 |
+| `/api/questions` | 完整奇怪问题题库 |
+| `/api/random-fun` | 随机整活节目 |
+| `/api/truth-questions` | 真心话题库 |
+| `/api/book-answers` | 答案之书题库 |
+
+除 `/healthz` 外，上表有 8 个普通 GET API。六种联机玩法（`tug`、`reaction`、`password`、`puzzle`、`word`、`harmony`）各有 `POST /api/<玩法>/rooms`、`POST /api/<玩法>/join` 和 `/ws/<玩法>` WebSocket 路由，分别用于建房、入房和实时对局。房间只存于当前 C++ 进程内，重启或重新部署后会丢失。
 
 JSON 文件最外层是非空数组；字符串字段不能为空，指数必须为 0～100 的数字。启动时读取并校验数据：文件丢失、格式错误、字段错误会打印原因并退出，而不是悄悄生成错误结果。单条随机接口每次请求等概率抽一条，允许重复。奇怪问题页面改用完整题库，在浏览器中按主题洗牌轮换；点击“今日抽卡”也不限于每天一次，所有内容仅供娱乐。
 
@@ -122,38 +135,60 @@ JSON 文件最外层是非空数组；字符串字段不能为空，指数必须
 
 其他机器将参数替换成实际项目根目录。Linux 示例：`./build/boring_lab "$PWD"`。
 
-增加前端小游戏时，添加 HTML / JS，在 `main.cpp` 的 `pages` / `assets` 白名单和首页卡片、随机入口列表中登记即可。暂时不需要拆出复杂的类或服务层。下一步最适合加 **记忆翻牌**：代码量适中，能沿用当前卡片风格，也不需要数据库。
+增加纯前端小游戏时，添加 HTML / JS，在 `main.cpp` 的 `pages` / `assets` 白名单和首页卡片中登记；若应进入“随便给我来一个”，还要更新 `static/main.js` 的列表。增加联机玩法时，还需添加 C++ 房间规则、建房/入房 HTTP 路由与 WebSocket 路由，并补充对应专项检查。
 
 ## 可选自动验收
 
-网站运行不需要 Node.js。`tools/` 中的 Playwright 脚本仅用于开发验收；需要 Node.js 和已安装的 Chrome。先启动 Crow 服务，再在另一个终端执行：
+网站后端始终是 C++ / Crow。以下 Python 与 Node.js 程序只是连接已启动服务的验收工具，不参与线上运行。先在项目根目录启动服务；以下命令均以默认地址 `http://127.0.0.1:18080` 为例。如果启动时设置了其他 `PORT`，把命令中的地址改成实际端口。
 
 ```powershell
-npm install --prefix tools
-node tools/check-browser.cjs
+python tools/check-http.py http://127.0.0.1:18080
 ```
 
-覆盖真实接口、资源、异常 JSON、反应测试、转盘指针与结果一致性、请求失败重试，以及 320 / 390 / 768 像素宽度的布局。截图保存在被忽略的 `.qa/`。
+`check-http.py` 只使用 Python 标准库，检查 21 个页面入口、静态资源、GET API 和 404；它不模拟双人对局。停止本地服务后可运行 `python tools/check-startup.py` 检查启动配置；该脚本要求 18080、18081 端口空闲。
 
-部署改动另有 Python 标准库检查：运行中的服务可执行 `python tools/check-http.py http://127.0.0.1:18080`；停止本地服务后，可执行 `python tools/check-startup.py`，自动验证默认端口、自定义 HOST / PORT 和错误配置，并在结束时关闭测试进程。后一个检查要求本机 18080、18081 端口空闲。
+现有通用浏览器脚本 `tools/check-browser.cjs` 需要 Node.js、Playwright 和 Chrome，但仍断言首页只有 11 张卡片、测试分类只有 1 张；当前分别为 17 张和 2 张。**修正该脚本及其其他旧页面假设前，不应把它的结果当作当前版本的完整浏览器验收。**
+
+### 六种联机玩法的专项检查
+
+先安装依赖：`npm install --prefix tools` 用于联机拔河的 Playwright / Chrome 检查；`python -m pip install websockets` 用于其余五个 Python 双客户端检查。Python 脚本的地址是第一个命令行参数；拔河脚本读取 `BASE_URL` 环境变量。以下均检查本地默认端口：
+
+```powershell
+$env:BASE_URL = "http://127.0.0.1:18080"
+node tools/check-tug-online.cjs
+python tools/check-reaction-online.py http://127.0.0.1:18080
+python tools/check-password-online.py http://127.0.0.1:18080
+python tools/check-puzzle-online.py http://127.0.0.1:18080
+python tools/check-word-online.py http://127.0.0.1:18080
+python tools/check-harmony-online.py http://127.0.0.1:18080
+```
+
+| 专项脚本 | 主要检查范围 |
+| --- | --- |
+| `check-tug-online.cjs` | 两个浏览器上下文的建房、实时计分、胜负、重赛、断线与替补；属于浏览器模拟，不等于真机多点触控测试 |
+| `check-reaction-online.py` | 双客户端抢跑、计时胜负、重赛、掉线恢复 |
+| `check-password-online.py` | 密码保密、A/B 提示、轮次、过期请求、重赛、次数上限 |
+| `check-puzzle-online.py` | 私有线索、三关解答、双方同步、错误提交、重连 |
+| `check-word-online.py` | 词语与分类校验、答案保密、问答、计分、重赛 |
+| `check-harmony-online.py` | 排序保密、计分、三轮推进、重连、重赛 |
+
+五个 Python 脚本直接检查 C++ 服务的 HTTP / WebSocket 协议和规则，不验证页面点击或移动布局。要检查公网版本，请只在确知其部署版本且允许创建测试房间时，把地址改为对应站点。
 
 ## 本地与上线
 
-本地默认监听 `127.0.0.1:18080`，无需设置环境变量。部署到 Render 时，Docker 配置设置 `HOST=0.0.0.0`、`PORT=10000`；运行时可更改 PORT，程序不会写死平台端口。PORT 必须是 1～65535 的整数；HOST 只接受 `127.0.0.1` 或 `0.0.0.0`。错误配置会明确报错并退出。
+本地默认监听 `127.0.0.1:18080`，无需设置环境变量。Dockerfile 默认设置 `HOST=0.0.0.0`、`PORT=10000`；平台可覆盖 `PORT`，服务不会写死端口。PORT 必须是 1～65535 的整数；HOST 只接受 `127.0.0.1` 或 `0.0.0.0`，错误配置会报错并退出。
 
-Render 会从源码构建 Linux 容器，不运行 Windows `.exe`。具体操作见 [Render 上线说明](DEPLOY_RENDER.md)。线上 HTTPS 由 Render 提供，不需要自行配置证书。目前网站已部署到 Railway：https://boring-lab-play.up.railway.app/ 。Railway 同样从 Dockerfile 构建，使用 `/healthz` 检查健康状态。
+README 记录的线上地址为 [Railway 站点](https://boring-lab-play.up.railway.app/)；仓库没有 Railway 专用配置文件，部署时应选择 Dockerfile、设置健康检查 `/healthz`，并确认实例数为 1、代理支持同源 WebSocket。六种联机房间都只存在服务进程内，多实例之间不共享房间；部署或重启会清空对局。公网 HTTPS / WSS 由实际使用的部署平台提供，Crow 在容器内部提供 HTTP / WebSocket。
 
-浏览器支持 WebMCP 时，首页共用脚本还会注册“打开指定玩法”的可选导航动作；普通浏览器无此能力时自动跳过，不影响游戏。
+Render 是仓库保留的**可选部署方案**：`render.yaml` 指向同一个 Dockerfile，并配置 `/healthz`、HOST 和 PORT。操作见 [Render 上线说明](DEPLOY_RENDER.md)。这些文件的存在不表示当前站点在 Render 上运行，也不能证明 Railway 控制台的设置。浏览器支持 WebMCP 时，首页脚本还会注册可选导航动作；普通浏览器会跳过。
 
-## 本次验收结果
+## 审计基准版本的验收证据
 
-- Windows / Visual Studio 2022 Release 构建成功，真实 Crow 服务响应正常。
-- Render 适配已在 Windows 验证默认地址、自定义监听地址与端口、`/healthz` 和错误配置；Linux Docker 构建已由 GitHub Actions 验证，网站已部署到 Railway。
-- 健康检查、五个 API、七个页面及其资源、未知路径 404、随机结果变化已验证。
-- 浏览器交互已验证：分类和随机跳转、反应测试抢跑 / 计时 / 键盘 / 最佳成绩、转盘增删选项 / 模板 / 指针结果一致 / 减少动画、抽卡和其他随机页面、真心话分类 / 同轮不重复 / 跳过 / 切换保留进度、网络失败后重试。
-- 320 / 390 / 768 像素宽度无水平溢出；已人工查看桌面首页、手机首页和手机转盘截图。
-- 缺失数据、错误 JSON、空数组和越界指数均能清楚报错并退出。
-- 当前 Chrome 无原生 WebMCP 上下文，此可选能力未做真实代理调用验证；常规浏览器功能已通过。Linux 尚未在本机实际编译。
+记录日期：**2026-10-09**；审计基准：`main` 提交 [`fb797ec`](https://github.com/berg-star/boring/commit/fb797ec68e99700a601c1e30ed7250d2606cba42)。以下区分仓库中有检查、已有运行结果和本次尚未验证的项目。
+
+- **已有运行结果**：该提交的 [GitHub Actions “Check Docker build”](https://github.com/berg-star/boring/actions/runs/37325180749) 成功。工作流在 Ubuntu 上构建 Docker 镜像，用自定义端口启动容器，运行 `check-http.py` 并检查非 root 身份。该 HTTP 脚本涵盖 21 个页面入口、静态资源、GET API 和 404。
+- **已有脚本**：六种联机专项脚本及其他浏览器脚本位于 `tools/`。它们的存在本身不是通过记录；上述 Docker 工作流没有运行六项联机对局。
+- **本次尚未验证**：未在本次文档更新中运行 Windows 本机构建、六项联机专项检查、真机触控、Railway 公网对局或 WebMCP 代理调用。通用 `check-browser.cjs` 含旧断言，不能作为当前 17 个首页入口的完整通过证据。早期的页面布局和交互验收记录也不能自动覆盖后来新增的页面。
 
 ## 奇怪问题
 
@@ -237,7 +272,7 @@ Render 会从源码构建 Linux 容器，不运行 Windows `.exe`。具体操作
 
 `doodle.html` / `doodle.js` / `doodle.css` 提供鼠标与触屏绘画、五种颜色、三档笔尖、撤销、清空和示例小怪物。完成后将整幅画裁出并缩放到舞台，通过 Canvas 变换实现果冻、蹦跳、倒下及随机动作；支持戳一下、暂停和返回编辑。不会识别肢体，不使用 AI 或上传画作。
 
-笔画以坐标保存于 `boring-lab-doodle-v1`，最多 100 笔、16000 个点；读取时校验存档，损坏或存储不可用时保留旧记录并提示。减少动态效果设置下保持静态；隐藏页面时停止动画。首页现有 10 个玩法，成就“常驻人口”仍保持访问九个不同玩法即可解锁，已有解锁不会撤销。
+笔画以坐标保存于 `boring-lab-doodle-v1`，最多 100 笔、16000 个点；读取时校验存档，损坏或存储不可用时保留旧记录并提示。减少动态效果设置下保持静态；隐藏页面时停止动画。成就“常驻人口”仍保持访问九个不同玩法即可解锁，已有解锁不会撤销。
 
 专项检查：`node tools/check-doodle.cjs`；支持 `BASE_URL` 指向线上。这里的 Node 仅用于浏览器验收。
 
@@ -246,7 +281,7 @@ Render 会从源码构建 Linux 容器，不运行 Windows `.exe`。具体操作
 
 `smash.html` / `smash.js` / `smash.css` 提供玻璃、积木、气泡三个场景，无分数和时间限制。玻璃每块随机生成 6–14 的耐久，集中敲同一区域会累积额外损伤，但至少六次才破碎。积木在小塔、阶梯、墙、偏斜堆叠四种布局中随机生成，不连续重复同一类；尺寸、颜色和层数也有变化，碰撞和拖拽按实际宽高计算（不模拟旋转刚体）。气泡按滑动轨迹采样，默认等待 0.5–1.2 秒后用 0.25 秒重新鼓起，可关闭自动再生。每个场景均支持重置和键盘/按钮操作。
 
-Web Audio 实时合成音效，限制音量、发声频率和并发数量；关闭音效立即停止现有声音。震动默认关闭，仅支持的浏览器可开启，实际反馈取决于设备。偏好存于 `boring-lab-smash-settings-v1`，自动再生偏好也会保存；不保存破坏进度。页面隐藏时暂停动画并停止声振；减少动态效果设置下跳过玻璃飞散和气泡扩散动画，积木保留核心物理交互。首页现有 11 个玩法。
+Web Audio 实时合成音效，限制音量、发声频率和并发数量；关闭音效立即停止现有声音。震动默认关闭，仅支持的浏览器可开启，实际反馈取决于设备。偏好存于 `boring-lab-smash-settings-v1`，自动再生偏好也会保存；不保存破坏进度。页面隐藏时暂停动画并停止声振；减少动态效果设置下跳过玻璃飞散和气泡扩散动画，积木保留核心物理交互。
 
 验收：`node tools/check-smash.cjs` 和 `node tools/check-smash-variety.cjs`，可用 `BASE_URL` 检查公网版本。浏览器测试验证音频节点生成和开关，不等于对扬声器音质或真机马达强度的实测。
 
@@ -274,7 +309,7 @@ Web Audio 实时合成音效，限制音量、发声频率和并发数量；关�
 
 ## 双人拔河
 
-入口 `/tug.html`，首页第 12 个玩法。手机横着放，两个人各操作一侧，竖屏也可玩；电脑分别按 A / L。踩准节奏模式每 850 毫秒一拍，亮起窗口内按一下，按得越准拉力越大；每队每拍最多计一次。疯狂连点模式每次独立按下贡献一点力量，按住与同一侧多指不会额外加分。三秒准备后开始，拉过自己一侧的线即获胜，最多 20 秒；时间到按双方累计拉力判定，允许平局。
+入口 `/tug.html`；首页第 12 张拔河卡片现在默认指向联机版 `/tug-online.html`，此页保留供同一设备上的两人游玩。手机横着放，两个人各操作一侧，竖屏也可玩；电脑分别按 A / L。踩准节奏模式每 850 毫秒一拍，亮起窗口内按一下，按得越准拉力越大；每队每拍最多计一次。疯狂连点模式每次独立按下贡献一点力量，按住与同一侧多指不会额外加分。三秒准备后开始，拉过自己一侧的线即获胜，最多 20 秒；时间到按双方累计拉力判定，允许平局。
 
 使用 Pointer Events 支持双方同时触摸，忽略键盘长按重复。后台、窗口失焦、旋转和全屏切换会暂停，需要主动继续；暂停时间不计入比赛。无联机、账号、声音、数据库或新增存档。此玩法计入探索成就，原来的九种玩法解锁门槛不变；行李箱支持含该访问记录的成就存档。单人随机入口不抽到拔河。
 
@@ -301,24 +336,24 @@ Web Audio 实时合成音效，限制音量、发声频率和并发数量；关�
 
 入口 `/password-online.html`，创建房间分享给另一部手机。双方分别锁定四位不重复数字密码（允许前导 0），服务器保存秘密，结束前不下发给对手。轮流猜测，A 表示数字与位置正确，B 表示数字正确但位置不对。先手命中后后手仍可完成同一轮，双方命中则平局；每人最多 20 次。双方确认重赛后清空密码、历史并交换先后手。短暂断线保留进度，客人离线两分钟释放座位并重置对局。房间仅保存在单进程内存，重启会清空。
 
-接口：`POST /api/password/rooms`、`POST /api/password/join`、`/ws/password`。猜测附带 round/move 防止重复或过期请求。`python tools/check-password-online.py http://127.0.0.1:18091` 运行双客户端规则检查。
+接口：`POST /api/password/rooms`、`POST /api/password/join`、`/ws/password`。猜测附带 round/move 防止重复或过期请求。`python tools/check-password-online.py http://127.0.0.1:18080` 运行双客户端规则检查。
 
 
 ### 双人合作解谜
 
 入口 `/puzzle-online.html`，两部设备进入同一房间，各自获得仅自己可见的线索。三关依次为符号翻译（四位数字）、坐标档案柜（四个字母）、控制台运算（两位数字）。每关随机生成线索，需交流后双方各自提交正确答案才会同步进入下一关。没有倒计时；双方完成后可以生成新题。WebSocket 断开可用本地身份令牌重连；客人离线超过两分钟释放座位并生成新题，房间只保存在进程内。
 
-接口：`POST /api/puzzle/rooms`、`POST /api/puzzle/join`、`/ws/puzzle`。提交包含当前关卡和本局编号以拒绝过期消息。`python tools/check-puzzle-online.py http://127.0.0.1:18091` 检查双客户端玩法。
+接口：`POST /api/puzzle/rooms`、`POST /api/puzzle/join`、`/ws/puzzle`。提交包含当前关卡和本局编号以拒绝过期消息。`python tools/check-puzzle-online.py http://127.0.0.1:18080` 检查双客户端玩法。
 
 
 ### 双人猜词对抗
 
 入口 `/word-online.html`。两人从各自手机进入同一房间，玩两轮，出题者和猜题者轮流交换。出题者输入 2～12 个汉字的词语或作品名并选分类（动物、植物、食物饮品、日常物品、人物、地点、歌曲、电影电视剧、动漫、游戏、书籍、其他），服务器只向猜题者发送类别和字数，不接受数字、字母和符号。猜题者自由问是非问题，出题者回答“是／否／说不准”，或选择原因并附加简短提示退回不合适的问题；提问者会看到退回通知，且不扣次数。有效提问和猜测各算一次行动，猜测必须与词语完全一致。每轮最多 10 次行动，没猜中记 11 次；两轮后比较双方用的次数，少者获胜。答案在该轮结束后揭晓，第二轮可回看上一轮问答，答题公平依靠双方诚实回答。重赛双方确认后交换第一位出题者。断线暂存进度，客人离线两分钟释放座位并重置，重启清空内存房间。
 
-接口：`POST /api/word/rooms`、`POST /api/word/join`、`/ws/word`。设置、提问、回答、猜测都包含本局/轮次/行动编号以拒绝过期请求。`python tools/check-word-online.py http://127.0.0.1:18091` 检查双客户端玩法。
+接口：`POST /api/word/rooms`、`POST /api/word/join`、`/ws/word`。设置、提问、回答、猜测都包含本局/轮次/行动编号以拒绝过期请求。`python tools/check-word-online.py http://127.0.0.1:18080` 检查双客户端玩法。
 
 ### 双人默契排序
 
 入口 `/harmony-online.html`。两部手机进入同一房间，连续玩三轮。从 18 组日常情境中为每轮随机选一题，双方各自把五个选项按题意从最符合自己到最不符合自己排列，初始顺序分别打乱；两人都提交后才公开双方排序。五项共有十对，某一对的先后顺序在两份答案里相同就得一分，单轮满分 10，三轮满分 30。揭晓后两人都确认才进入下一轮，完成后可一起重新开始。已提交答案在断线重连后保留，未提交的本地临时顺序在重连时恢复为初始顺序。客人离线两分钟释放座位并重置对局，服务重启清空内存房间。
 
-接口：`POST /api/harmony/rooms`、`POST /api/harmony/join`、`/ws/harmony`。提交验证本局/轮次及包含五个不同选项的完整排列。`python tools/check-harmony-online.py http://127.0.0.1:18091` 运行双客户端规则检查。
+接口：`POST /api/harmony/rooms`、`POST /api/harmony/join`、`/ws/harmony`。提交验证本局/轮次及包含五个不同选项的完整排列。`python tools/check-harmony-online.py http://127.0.0.1:18080` 运行双客户端规则检查。
