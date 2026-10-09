@@ -9,7 +9,7 @@ permissions:
 jobs:
   docker-check:
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 40
     steps:
       - uses: actions/checkout@v4
       - name: Build Linux image
@@ -22,6 +22,29 @@ jobs:
           curl --fail --retry 20 --retry-connrefused --retry-delay 1 http://127.0.0.1:18081/healthz
           python3 tools/check-http.py http://127.0.0.1:18081
           test "$(docker exec boring-lab-check id -u)" = "10001"
+      - name: Install online test tools
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 -m venv .qa/ci-venv
+          . .qa/ci-venv/bin/activate
+          python -m pip install 'websockets==15.0.1'
+          npm install --prefix tools --no-audit --no-fund
+          ./tools/node_modules/.bin/playwright install --with-deps chromium
+      - name: Check all six online games and unconnected guest expiry
+        shell: bash
+        run: |
+          set -euo pipefail
+          . .qa/ci-venv/bin/activate
+          export BASE_URL=http://127.0.0.1:18081
+          export CHROME_PATH="$(node -p "require('./tools/node_modules/playwright').chromium.executablePath()")"
+          node tools/check-tug-online.cjs
+          python tools/check-reaction-online.py "$BASE_URL"
+          python tools/check-password-online.py "$BASE_URL"
+          python tools/check-puzzle-online.py "$BASE_URL"
+          python tools/check-word-online.py "$BASE_URL"
+          python tools/check-harmony-online.py "$BASE_URL"
+          python tools/check-room-join-expiry.py "$BASE_URL"
       - name: Container logs and cleanup
         if: always()
         run: |

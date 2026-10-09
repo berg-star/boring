@@ -151,7 +151,7 @@ python tools/check-http.py http://127.0.0.1:18080
 
 ### 六种联机玩法的专项检查
 
-先安装依赖：`npm install --prefix tools` 用于联机拔河的 Playwright / Chrome 检查；`python -m pip install websockets` 用于其余五个 Python 双客户端检查。Python 脚本的地址是第一个命令行参数；拔河脚本读取 `BASE_URL` 环境变量。以下均检查本地默认端口：
+先安装依赖：`npm install --prefix tools` 用于联机拔河的 Playwright / Chrome 检查；`python -m pip install websockets==15.0.1` 用于其余五个 Python 双客户端检查。Python 脚本的地址是第一个命令行参数；拔河脚本读取 `BASE_URL` 环境变量。以下均检查本地默认端口：
 
 ```powershell
 $env:BASE_URL = "http://127.0.0.1:18080"
@@ -161,6 +161,7 @@ python tools/check-password-online.py http://127.0.0.1:18080
 python tools/check-puzzle-online.py http://127.0.0.1:18080
 python tools/check-word-online.py http://127.0.0.1:18080
 python tools/check-harmony-online.py http://127.0.0.1:18080
+python tools/check-room-join-expiry.py http://127.0.0.1:18080
 ```
 
 | 专项脚本 | 主要检查范围 |
@@ -172,7 +173,7 @@ python tools/check-harmony-online.py http://127.0.0.1:18080
 | `check-word-online.py` | 词语与分类校验、答案保密、问答、计分、重赛 |
 | `check-harmony-online.py` | 排序保密、计分、三轮推进、重连、重赛 |
 
-五个 Python 脚本直接检查 C++ 服务的 HTTP / WebSocket 协议和规则，不验证页面点击或移动布局。要检查公网版本，请只在确知其部署版本且允许创建测试房间时，把地址改为对应站点。
+五个 Python 对局脚本直接检查 C++ 服务的 HTTP / WebSocket 协议和规则，不验证页面点击或移动布局。`check-room-join-expiry.py` 额外检查拔河和反应赛客人加入后从未建立 WebSocket 连接的情况：约两分钟后座位应释放；两种玩法同时等待，因此该检查本身需约两分钟。GitHub Actions 的 Docker 工作流在构建与 HTTP 检查后运行六项联机专项检查和这项过期检查。要检查公网版本，请只在确知其部署版本且允许创建测试房间时，把地址改为对应站点。
 
 ## 本地与上线
 
@@ -186,7 +187,7 @@ Render 是仓库保留的**可选部署方案**：`render.yaml` 指向同一个 
 
 检查基于 [`413a73a`](https://github.com/berg-star/boring/commit/413a73a2ba97af504e9678f12584b5ce5ffb8de0) 的玩法代码；本次仅修订浏览器验收脚本和文档，没有改动 C++ 服务或网页功能。
 
-- **Linux / Docker**：[GitHub Actions “Check Docker build”](https://github.com/berg-star/boring/actions/runs/37892147447) 成功。它在 Ubuntu 上构建镜像，用自定义端口启动容器，运行 `check-http.py` 并检查非 root 身份；不运行浏览器或联机专项脚本。
+- **Linux / Docker**：[GitHub Actions “Check Docker build”](https://github.com/berg-star/boring/actions/runs/37892147447) 成功。那次运行在 Ubuntu 上构建镜像，用自定义端口启动容器，运行 `check-http.py` 并检查非 root 身份；当时尚未运行浏览器或联机专项脚本。上文所列的新工作流检查需要在本次修复提交后单独验证。
 - **Windows 本地**：使用 MinGW GCC 13.2 构建 C++ 服务；`check-http.py` 通过。修订后的 `check-browser.cjs` 在 Chrome 无头模式下通过，覆盖 17 个首页入口、21 个页面、部分单人交互、三个移动宽度及本地错误数据启动检查。六项联机专项检查也全部通过：拔河使用两个浏览器上下文，其余五项使用 Python 双客户端连接 C++ 服务。
 - **Railway 公网**：对 `https://boring-lab-play.up.railway.app` 运行 `check-http.py` 和六项联机专项检查，均通过；覆盖建房、加入、对局、重赛及各脚本包含的断线恢复等规则。网站没有返回部署提交号，因此这些结果证明该地址当时的可访问功能，不证明它与仓库某个提交逐字一致。
 - **仍未验证**：两部真实手机上的触控与系统分享体验、Render 公网部署、WebMCP 代理调用。浏览器模拟和协议检查不能替代这些实测。
@@ -320,7 +321,7 @@ Web Audio 实时合成音效，限制音量、发声频率和并发数量；关�
 
 入口 `/tug-online.html`，首页拔河卡片默认进入此版。一个人创建房间，把六位房间码或邀请链接发给另一人；朋友在另一部手机加入，双方点“我准备好了”，三秒倒数后各自连续点自己的按钮。服务端以最多每 70 毫秒一次的速度记分，先拉开 40 次差距获胜；20 秒到按次数判胜负，次数相同则平局。双方确认后可以重赛。同一台设备的旧版仍在 `/tug.html`。
 
-房间码与一次性身份令牌保存在两部手机各自的浏览器中，刷新或短暂掉线后可返回；主动离开会清除令牌。朋友断线后保留席位两分钟，超过后房主可邀请其他人。房间仅在单个 C++ 进程的内存中，双方离线 15 分钟或网站重新部署后失效；此版适合 Railway 单实例运行，不提供跨实例共享、账号或永久战绩。邀请链接只含房间码，不含身份令牌。浏览器与服务端使用同源 WebSocket 连接。
+房间码与一次性身份令牌保存在两部手机各自的浏览器中，刷新或短暂掉线后可返回；主动离开会清除令牌。朋友断线，或加入后一直没连上房间，都会保留席位约两分钟；超过后房主可邀请其他人。房间仅在单个 C++ 进程的内存中，双方离线 15 分钟或网站重新部署后失效；此版适合 Railway 单实例运行，不提供跨实例共享、账号或永久战绩。邀请链接只含房间码，不含身份令牌。浏览器与服务端使用同源 WebSocket 连接。
 
 专项验收：服务启动后执行 `node tools/check-tug-online.cjs`（需 Playwright 和 Chrome）；覆盖两独立浏览器加入、实时计分、服务端胜负、重赛、掉线恢复、退出和新玩家加入。`python tools/check-http.py` 同时检查网页及资源。
 
@@ -328,7 +329,7 @@ Web Audio 实时合成音效，限制音量、发声频率和并发数量；关�
 
 入口 `/reaction-online.html`。创建房间并分享六位房间码或链接，双方准备后先倒数两秒，再随机等待 1.5–3.5 秒亮绿灯。倒数或等待时按下算抢跑，对方获胜；绿灯亮后各自设备从显示绿灯的一帧开始计时，服务器比较两人上报的成绩，五秒内无人按下则平局。双方都按准备可在原房间重赛；原单人反应测试仍在 `/reaction.html`。
 
-身份令牌只留在各自浏览器，短暂断线可返回房间；比赛过程中掉线会结束本局。房间只存在单个进程内，重新部署或服务重启后会消失。本地计时避免把往返网络延迟计入反应时间；设备与屏幕延迟仍会影响成绩。这是休闲比赛，客户端上报的成绩无法作为防作弊的严格判据。
+身份令牌只留在各自浏览器，短暂断线可返回房间；比赛过程中掉线会结束本局。加入后从未连上的客人也会在约两分钟后让出位置。房间只存在单个进程内，重新部署或服务重启后会消失。本地计时避免把往返网络延迟计入反应时间；设备与屏幕延迟仍会影响成绩。这是休闲比赛，客户端上报的成绩无法作为防作弊的严格判据。
 
 专项验收：服务启动后执行 `python tools/check-reaction-online.py http://127.0.0.1:18080`（需安装 Python `websockets`）；检查两端建房、抢跑、计时胜负、重赛、断线恢复和替补加入。也可用 `python tools/check-http.py` 检查新页面和资源。
 

@@ -106,6 +106,8 @@ public:
         if (!room.tokens[1].empty()) return {{}, {}, "这个房间已经有两位玩家了。", 0};
         room.tokens[1] = randomText(32, "0123456789abcdef");
         room.touched = Clock::now();
+        // Joining reserves the guest seat before WebSocket auth; start its grace period now.
+        room.disconnectedAt[1] = room.touched;
         return {code, room.tokens[1], {}, 1};
     }
     void message(Socket& socket, const std::string& text, bool binary) {

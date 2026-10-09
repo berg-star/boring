@@ -95,6 +95,6 @@ docker run --rm -p 127.0.0.1:18080:10000 boring-lab
 
 ## 当前验证范围
 
-截至 2026-10-09，`main` 提交 [`fb797ec`](https://github.com/berg-star/boring/commit/fb797ec68e99700a601c1e30ed7250d2606cba42) 的 [GitHub Actions Docker 工作流](https://github.com/berg-star/boring/actions/runs/37325180749) 已成功：构建 Linux 镜像，用自定义 PORT 启动容器，运行 `tools/check-http.py` 检查页面、静态资源、GET API 和 404，并检查非 root 用户。工作流没有执行六种联机玩法的双客户端专项检查，也不证明 Render 服务已创建或其公网地址可用。请部署后按实际地址检查页面、`/healthz`、WebSocket 建房与重连；本次文档更新未执行 Render 公网验收。
+截至 2026-10-09，`main` 提交 [`fb797ec`](https://github.com/berg-star/boring/commit/fb797ec68e99700a601c1e30ed7250d2606cba42) 的 [GitHub Actions Docker 工作流](https://github.com/berg-star/boring/actions/runs/37325180749) 已成功：构建 Linux 镜像，用自定义 PORT 启动容器，运行 `tools/check-http.py` 检查页面、静态资源、GET API 和 404，并检查非 root 用户。那次工作流尚未执行六种联机玩法的双客户端专项检查；当前工作流已加入六项对局检查和“加入后未连接”超时检查，但仍须以该次提交的实际运行结果为准。旧运行结果也不证明 Render 服务已创建或其公网地址可用。请部署后按实际地址检查页面、`/healthz`、WebSocket 建房与重连；本次文档更新未执行 Render 公网验收。
 
 官方参考：[Docker 部署](https://render.com/docs/docker)、[Blueprint 配置](https://render.com/docs/blueprint-spec)、[端口要求](https://render.com/docs/web-services#port-binding)、[健康检查](https://render.com/docs/health-checks)、[免费服务限制](https://render.com/docs/free)。
