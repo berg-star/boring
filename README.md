@@ -59,7 +59,7 @@ cmake --build build --parallel
 ./build/boring_lab
 ```
 
-浏览器同样访问 **http://localhost:18080**。要求支持 C++17 的编译器，例如 GCC 9+。当前提交的 Linux Docker 构建结果见下文“审计基准版本的验收证据”；Windows 本机构建需在目标机器上运行。
+浏览器同样访问 **http://localhost:18080**。要求支持 C++17 的编译器，例如 GCC 9+。Linux Docker 构建结果见下文“验收记录（2026-10-09）”；Windows 本机构建需在目标机器上运行。
 
 ## Crow 如何配置
 
@@ -147,7 +147,7 @@ python tools/check-http.py http://127.0.0.1:18080
 
 `check-http.py` 只使用 Python 标准库，检查 21 个页面入口、静态资源、GET API 和 404；它不模拟双人对局。停止本地服务后可运行 `python tools/check-startup.py` 检查启动配置；该脚本要求 18080、18081 端口空闲。
 
-现有通用浏览器脚本 `tools/check-browser.cjs` 需要 Node.js、Playwright 和 Chrome，但仍断言首页只有 11 张卡片、测试分类只有 1 张；当前分别为 17 张和 2 张。**修正该脚本及其其他旧页面假设前，不应把它的结果当作当前版本的完整浏览器验收。**
+通用浏览器脚本 `tools/check-browser.cjs` 需要 Node.js、Playwright 和 Chrome。它检查当前 17 个首页卡片、21 个页面及资源、随机入口、部分单人玩法交互和 320 / 390 / 768 像素布局；存在本地可执行文件时，还会检查错误数据下的启动失败。截图写入被忽略的 `.qa/`。运行前先安装 `npm install --prefix tools`，再执行 `node tools/check-browser.cjs`；可用 `BASE_URL` 指向其他地址。联机对局仍使用下方六项专项检查。
 
 ### 六种联机玩法的专项检查
 
@@ -182,13 +182,14 @@ README 记录的线上地址为 [Railway 站点](https://boring-lab-play.up.rail
 
 Render 是仓库保留的**可选部署方案**：`render.yaml` 指向同一个 Dockerfile，并配置 `/healthz`、HOST 和 PORT。操作见 [Render 上线说明](DEPLOY_RENDER.md)。这些文件的存在不表示当前站点在 Render 上运行，也不能证明 Railway 控制台的设置。浏览器支持 WebMCP 时，首页脚本还会注册可选导航动作；普通浏览器会跳过。
 
-## 审计基准版本的验收证据
+## 验收记录（2026-10-09）
 
-记录日期：**2026-10-09**；审计基准：`main` 提交 [`fb797ec`](https://github.com/berg-star/boring/commit/fb797ec68e99700a601c1e30ed7250d2606cba42)。以下区分仓库中有检查、已有运行结果和本次尚未验证的项目。
+检查基于 [`413a73a`](https://github.com/berg-star/boring/commit/413a73a2ba97af504e9678f12584b5ce5ffb8de0) 的玩法代码；本次仅修订浏览器验收脚本和文档，没有改动 C++ 服务或网页功能。
 
-- **已有运行结果**：该提交的 [GitHub Actions “Check Docker build”](https://github.com/berg-star/boring/actions/runs/37325180749) 成功。工作流在 Ubuntu 上构建 Docker 镜像，用自定义端口启动容器，运行 `check-http.py` 并检查非 root 身份。该 HTTP 脚本涵盖 21 个页面入口、静态资源、GET API 和 404。
-- **已有脚本**：六种联机专项脚本及其他浏览器脚本位于 `tools/`。它们的存在本身不是通过记录；上述 Docker 工作流没有运行六项联机对局。
-- **本次尚未验证**：未在本次文档更新中运行 Windows 本机构建、六项联机专项检查、真机触控、Railway 公网对局或 WebMCP 代理调用。通用 `check-browser.cjs` 含旧断言，不能作为当前 17 个首页入口的完整通过证据。早期的页面布局和交互验收记录也不能自动覆盖后来新增的页面。
+- **Linux / Docker**：[GitHub Actions “Check Docker build”](https://github.com/berg-star/boring/actions/runs/37892147447) 成功。它在 Ubuntu 上构建镜像，用自定义端口启动容器，运行 `check-http.py` 并检查非 root 身份；不运行浏览器或联机专项脚本。
+- **Windows 本地**：使用 MinGW GCC 13.2 构建 C++ 服务；`check-http.py` 通过。修订后的 `check-browser.cjs` 在 Chrome 无头模式下通过，覆盖 17 个首页入口、21 个页面、部分单人交互、三个移动宽度及本地错误数据启动检查。六项联机专项检查也全部通过：拔河使用两个浏览器上下文，其余五项使用 Python 双客户端连接 C++ 服务。
+- **Railway 公网**：对 `https://boring-lab-play.up.railway.app` 运行 `check-http.py` 和六项联机专项检查，均通过；覆盖建房、加入、对局、重赛及各脚本包含的断线恢复等规则。网站没有返回部署提交号，因此这些结果证明该地址当时的可访问功能，不证明它与仓库某个提交逐字一致。
+- **仍未验证**：两部真实手机上的触控与系统分享体验、Render 公网部署、WebMCP 代理调用。浏览器模拟和协议检查不能替代这些实测。
 
 ## 奇怪问题
 

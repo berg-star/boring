@@ -5,7 +5,7 @@ const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const path = require('node:path');
 const {spawnSync} = require('node:child_process');
-const base = 'http://127.0.0.1:18080';
+const base = (process.env.BASE_URL || 'http://127.0.0.1:18080').replace(/\/$/, '');
 async function main() {
   fs.mkdirSync('.qa',{recursive:true});
   const browser = await chromium.launch({channel:'chrome',headless:true});
@@ -26,15 +26,15 @@ async function main() {
       assert.ok(new Set(records).size>1,endpoint+' must return varied records');
     }
     for (const route of ['/missing.html','/static/main.cpp','/static/cards.json','/api/missing','/data/cards.json','/static/../CMakeLists.txt']) assert.equal((await api.get(base+route)).status(),404,route);
-    const pages = ['','reaction.html','wheel.html','card.html','question.html','fun.html','truth.html','pet.html','planet.html','book.html','doodle.html','smash.html','achievements.html'];
+    const pages = ['','reaction.html','wheel.html','card.html','question.html','fun.html','truth.html','pet.html','planet.html','book.html','doodle.html','smash.html','tug.html','tug-online.html','reaction-online.html','password-online.html','puzzle-online.html','word-online.html','harmony-online.html','achievements.html','luggage.html'];
     for (const route of pages) {
       const response = await page.goto(base+'/'+route);assert.equal(response.status(),200);
       const assets = await page.locator('script[src],link[rel="stylesheet"]').evaluateAll(nodes=>nodes.map(n=>n.src||n.href));
       for (const asset of assets) assert.equal((await api.get(asset)).status(),200,asset);
     }
-    await page.goto(base);assert.equal(await page.locator('.game-card').count(),11);
+    await page.goto(base);assert.equal(await page.locator('.game-card').count(),17);
     await page.screenshot({path:'.qa/home-desktop.png',fullPage:true});
-    await page.getByRole('button',{name:'🧠 测试',exact:true}).click();assert.equal(await page.locator('.game-card:visible').count(),1);
+    await page.getByRole('button',{name:'🧠 测试',exact:true}).click();assert.equal(await page.locator('.game-card:visible').count(),2);
     await page.getByRole('button',{name:'全部玩法',exact:true}).click();
     await page.getByRole('button',{name:/随便给我来一个/}).click();await page.waitForURL(/\/(reaction|wheel|card|question|fun|truth|pet|planet|book|doodle|smash)\.html$/);
     await page.goto(base+'/reaction.html');
@@ -97,8 +97,8 @@ async function main() {
     }
     assert.deepEqual(errors,[],'browser runtime errors');
     await browser.close();
-    const executable = path.resolve('build/Release/boring_lab.exe');
-    if(fs.existsSync(executable)) {
+    const executable = ['build/Release/boring_lab.exe','build/boring_lab.exe'].map(file=>path.resolve(file)).find(file=>fs.existsSync(file));
+    if(executable) {
       const brokenRoot = path.resolve('.qa/bad-data');fs.mkdirSync(path.join(brokenRoot,'data'),{recursive:true});
       for(const content of ['{not-json','[]','[{"keyword":"test","message":"test","luck":150,"lazyIndex":3}]']) {
         fs.writeFileSync(path.join(brokenRoot,'data/cards.json'),content);
@@ -106,7 +106,7 @@ async function main() {
       }
       const missing = spawnSync(executable,[path.resolve('.qa/missing-root')],{encoding:'utf8',timeout:5000});assert.equal(missing.status,1);
     }
-    console.log('PASS: APIs, random variety, missing routes, resources, all eleven games, keyboard, wheel pointer, retry, 320/390/768px layouts, invalid data.');
+    console.log('PASS: APIs, random variety, missing routes, resources, 17 home games, 21 pages, keyboard, wheel pointer, retry, 320/390/768px layouts'+(executable?', invalid data.':'. Invalid-data startup check skipped: local executable not found.'));
   } finally {await browser.close();}
 }
 main().catch(error=>{console.error(error);process.exit(1);});
