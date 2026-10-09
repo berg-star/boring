@@ -1,6 +1,6 @@
-# 把无聊研究所部署到 Render
+# 可选：把无聊研究所部署到 Render
 
-本项目已经包含 Docker 和 Render 配置。你不需要自己租服务器、安装 Linux 或配置 VS2022；Render 会在 Linux 容器里自动编译 C++ 并运行网站。上线后使用平台分配的 HTTPS 地址。
+README 记录的线上地址是 Railway；本文件说明仓库保留的 **Render 可选部署方案**，不表示当前站点运行在 Render。项目已包含 Dockerfile 和 `render.yaml`，Render 可在 Linux 容器里编译 C++ 后端并运行网站。实际在 Render 创建服务后，使用该平台分配的 HTTPS 地址。双人联机房间只保存在单个 C++ 进程内；若使用联机玩法，应保持单实例并确认平台代理支持同源 WebSocket。
 
 ## 1. 把项目放到 GitHub
 
@@ -78,7 +78,7 @@ Docker 部署不用另填 CMake 的 Build Command 或普通 Start Command；这�
 
 根据 Render 官方文档，免费 Web Service 在 15 分钟无入站流量后会休眠，下一次请求唤醒通常约一分钟；免费额度和资格以账号页面为准。
 
-当前 JSON 是随镜像打包的只读初始内容，重新部署和唤醒后仍然存在。本版没有写入磁盘的用户数据，反应测试最佳成绩存在用户浏览器里。以后如果加入排行榜或 SQLite，需要单独设计持久化，不能依赖 Render 临时文件系统保存记录。
+当前 JSON 是随镜像打包的只读初始内容，重新部署和唤醒后仍然存在。宠物、卡片、成就等存档主要保存在用户浏览器；双人房间只存在 C++ 服务进程内，服务重启或重新部署会丢失，多个实例之间也不共享。以后若加入跨实例房间、排行榜或账号数据，需要单独设计持久化，不能依赖容器临时文件系统。
 
 修改内容后提交到所连接的 Git 分支，再查看 Render 的自动部署设置或手动执行 Deploy latest commit。修改本机文件而不上传，不会影响线上网站。
 
@@ -95,8 +95,6 @@ docker run --rm -p 127.0.0.1:18080:10000 boring-lab
 
 ## 当前验证范围
 
-Windows / MSVC 已重新编译通过，并实际验证：默认 `127.0.0.1:18080`、部署设置 `0.0.0.0:18081`、健康检查、全部页面与资源、三个随机接口、未知地址 404、资源目录定位和错误 HOST / PORT 拒绝启动。
-
-本机没有 Docker 或可用的 Linux 环境，尚未实际运行这个镜像或在 Render 上部署。已提供 GitHub Actions 工作流：推送到 `main` / `master` 或手动运行后，自动构建 Linux 镜像，用不同于默认值的 PORT 启动，并检查健康接口、网页、静态资源和 JSON API。GitHub Actions 与 Render 的部署是独立的；Actions 通过不代表 Render 已上线。
+截至 2026-10-09，`main` 提交 [`fb797ec`](https://github.com/berg-star/boring/commit/fb797ec68e99700a601c1e30ed7250d2606cba42) 的 [GitHub Actions Docker 工作流](https://github.com/berg-star/boring/actions/runs/37325180749) 已成功：构建 Linux 镜像，用自定义 PORT 启动容器，运行 `tools/check-http.py` 检查页面、静态资源、GET API 和 404，并检查非 root 用户。工作流没有执行六种联机玩法的双客户端专项检查，也不证明 Render 服务已创建或其公网地址可用。请部署后按实际地址检查页面、`/healthz`、WebSocket 建房与重连；本次文档更新未执行 Render 公网验收。
 
 官方参考：[Docker 部署](https://render.com/docs/docker)、[Blueprint 配置](https://render.com/docs/blueprint-spec)、[端口要求](https://render.com/docs/web-services#port-binding)、[健康检查](https://render.com/docs/health-checks)、[免费服务限制](https://render.com/docs/free)。
