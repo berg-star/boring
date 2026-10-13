@@ -1,7 +1,7 @@
 "use strict";
 // Bump this version when changing the cache layout. Updates wait for existing tabs to close.
 const CACHE_PREFIX = "boring-lab-pwa-";
-const CACHE_NAME = CACHE_PREFIX + "v3";
+const CACHE_NAME = CACHE_PREFIX + "v4";
 const STATIC_PATHS = new Set([
   "/",
   "/reaction.html",
@@ -11,6 +11,7 @@ const STATIC_PATHS = new Set([
   "/word-online.html",
   "/harmony-online.html",
   "/land-online.html",
+  "/light-online.html",
   "/wheel.html",
   "/card.html",
   "/question.html",
@@ -42,6 +43,8 @@ const STATIC_PATHS = new Set([
   "/static/harmony-online.css",
   "/static/land-online.js",
   "/static/land-online.css",
+  "/static/light-online.js",
+  "/static/light-online.css",
   "/static/wheel.js",
   "/static/wheel-presets.js",
   "/static/wheel.css",

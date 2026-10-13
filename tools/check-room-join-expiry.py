@@ -18,7 +18,7 @@ def post(path, data):
 
 
 rooms = []
-for game in ("tug", "reaction", "land"):
+for game in ("tug", "reaction", "land", "light"):
     status, host = post("/api/" + game + "/rooms", {})
     assert status == 201 and len(host["room"]) == 6, (game, host)
     status, first = post("/api/" + game + "/join", {"room": host["room"]})
@@ -27,11 +27,11 @@ for game in ("tug", "reaction", "land"):
     assert status == 409, (game, status, occupied)
     rooms.append((game, host["room"], first["token"]))
 
-# All three games wait concurrently. Server tick runs every 100 ms; leave a little scheduling margin.
+# All four games wait concurrently. Server tick runs every 100 ms; leave a little scheduling margin.
 time.sleep(123)
 for game, code, old_token in rooms:
     status, replacement = post("/api/" + game + "/join", {"room": code})
     assert status == 200 and replacement["side"] == 1, (game, status, replacement)
     assert replacement["token"] != old_token, game
 
-print("PASS: tug, reaction and land release guest seats that never authenticated by WebSocket")
+print("PASS: tug, reaction, land and light release guest seats that never authenticated by WebSocket")

@@ -29,7 +29,7 @@ cmake --build build --config Release --parallel 2
 
 - Manifest：应用名、`standalone`、启动地址 `/` 和图标应正确，没有资源加载错误。
 - Service Workers：脚本地址 `/sw.js`，状态 activated，作用域覆盖站点根目录。
-- Cache Storage：有 `boring-lab-pwa-v3` 静态缓存，内容不应包含 `/api/`、`/ws/` 或 `/healthz`。
+- Cache Storage：有 `boring-lab-pwa-v4` 静态缓存，内容不应包含 `/api/`、`/ws/` 或 `/healthz`。
 
 首次安装缓存完成后，刷新一次，再启用开发者工具的 Offline 模式，打开首页、转盘或宠物等页面；恢复网络后再试联机建房。浏览器的网络模拟和系统连接状态可能不同，离线提示主要随系统 online/offline 状态显示；缓存是否成功应以实际页面和请求结果判断。
 

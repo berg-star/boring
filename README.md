@@ -4,7 +4,7 @@
 
 想学习项目实现：先读 [HTML 入门教学](HTML入门教学.md)，再读 [核心代码教学](核心代码教学.md)。
 
-一个打开就能玩几分钟的娱乐小站，包含反应测试、抽卡、转盘、涂鸦等单人玩法，也可以在两部手机上玩拔河、反应赛、猜密码、合作解谜、猜词对抗、默契排序和圈地大战。首页有 **18 个玩法入口**，另保留一个不占首页卡片的同屏拔河页面；支持电脑和手机。
+一个打开就能玩几分钟的娱乐小站，包含反应测试、抽卡、转盘、涂鸦等单人玩法，也可以在两部手机上玩拔河、反应赛、猜密码、合作解谜、猜词对抗、默契排序、圈地大战和光轮赛。首页有 **19 个玩法入口**，另保留一个不占首页卡片的同屏拔河页面；支持电脑和手机。
 
 技术栈：**C++17 + Crow 1.2.1 + CMake + JSON**；后端由 C++ 提供 HTTP 和 WebSocket 服务，前端为原生 HTML / CSS / JavaScript。没有数据库、前端框架或 Node.js 后端。Python 和 Node.js 仅用于可选验收脚本，不参与网站运行。
 
@@ -22,10 +22,10 @@ boring-lab/
 ├── DEPLOY_RENDER.md           # Render 操作说明
 ├── src/
 │   ├── main.cpp               # HTTP、WebSocket 路由，静态资源与 JSON 数据
-│   └── *_rooms.h              # 七种联机玩法的内存房间规则
+│   └── *_rooms.h              # 八种联机玩法的内存房间规则
 ├── static/
-│   ├── index.html / main.js   # 18 个首页入口、分类和单人随机入口
-│   ├── *-online.html          # 七种双设备联机玩法
+│   ├── index.html / main.js   # 19 个首页入口、分类和单人随机入口
+│   ├── *-online.html          # 八种双设备联机玩法
 │   └── 其他 HTML / CSS / JS   # 单人、同屏拔河、成就册与行李箱
 ├── data/                      # 卡片、问题、答案等初始 JSON 数据
 └── tools/                     # 可选 HTTP、浏览器与联机验收脚本
@@ -77,7 +77,7 @@ Asio 路径应指向含 `asio/include/asio.hpp` 的仓库根目录。参考：[C
 
 ## 页面入口
 
-首页展示 **18 个玩法卡片**：11 个非联机入口、7 个双设备联机入口。同屏拔河 `/tug.html` 是额外保留的玩法页面，因此共有 **19 个玩法页面**；再加首页、成就册和行李箱，共 **22 个主要 HTML 页面**，另有 PWA 离线备用页 `/offline.html`。`/static/页面名.html` 也可访问相应页面，不重复计数。
+首页展示 **19 个玩法卡片**：11 个非联机入口、8 个双设备联机入口。同屏拔河 `/tug.html` 是额外保留的玩法页面，因此共有 **20 个玩法页面**；再加首页、成就册和行李箱，共 **23 个主要 HTML 页面**，另有 PWA 离线备用页 `/offline.html`。`/static/页面名.html` 也可访问相应页面，不重复计数。
 
 | 地址 | 玩法与入口说明 |
 | --- | --- |
@@ -100,11 +100,12 @@ Asio 路径应指向含 `asio/include/asio.hpp` 的仓库根目录。参考：[C
 | `/word-online.html` | 双人猜词对抗 |
 | `/harmony-online.html` | 双人默契排序 |
 | `/land-online.html` | 双人圈地大战 |
+| `/light-online.html` | 双人光轮赛 |
 | `/tug.html` | 同一设备上的双人拔河；不在首页卡片中 |
 | `/achievements.html` | 成就册，不计入玩法数 |
 | `/luggage.html` | 存档备份与搬家，不计入玩法数 |
 
-首页“随便给我来一个”只从 11 个非联机首页入口抽取，不跳转到七个联机房间，也不抽到同屏拔河。所有资源从本站加载，不依赖外部字体或 CDN。请通过 Crow 服务访问网页；抽卡等功能需要后端接口，联机玩法还需要同源 WebSocket。
+首页“随便给我来一个”只从 11 个非联机首页入口抽取，不跳转到八个联机房间，也不抽到同屏拔河。所有资源从本站加载，不依赖外部字体或 CDN。请通过 Crow 服务访问网页；抽卡等功能需要后端接口，联机玩法还需要同源 WebSocket。
 
 ## 后端接口与数据
 
@@ -120,7 +121,7 @@ Asio 路径应指向含 `asio/include/asio.hpp` 的仓库根目录。参考：[C
 | `/api/truth-questions` | 真心话题库 |
 | `/api/book-answers` | 答案之书题库 |
 
-除 `/healthz` 外，上表有 8 个普通 GET API。七种联机玩法（`tug`、`reaction`、`password`、`puzzle`、`word`、`harmony`）各有 `POST /api/<玩法>/rooms`、`POST /api/<玩法>/join` 和 `/ws/<玩法>` WebSocket 路由，分别用于建房、入房和实时对局。房间只存于当前 C++ 进程内，重启或重新部署后会丢失。
+除 `/healthz` 外，上表有 8 个普通 GET API。八种联机玩法（`tug`、`reaction`、`password`、`puzzle`、`word`、`harmony`、`land`、`light`）各有 `POST /api/<玩法>/rooms`、`POST /api/<玩法>/join` 和 `/ws/<玩法>` WebSocket 路由，分别用于建房、入房和实时对局。房间只存于当前 C++ 进程内，重启或重新部署后会丢失。
 
 JSON 文件最外层是非空数组；字符串字段不能为空，指数必须为 0～100 的数字。启动时读取并校验数据：文件丢失、格式错误、字段错误会打印原因并退出，而不是悄悄生成错误结果。单条随机接口每次请求等概率抽一条，允许重复。奇怪问题页面改用完整题库，在浏览器中按主题洗牌轮换；点击“今日抽卡”也不限于每天一次，所有内容仅供娱乐。
 
@@ -148,17 +149,19 @@ JSON 文件最外层是非空数组；字符串字段不能为空，指数必须
 python tools/check-http.py http://127.0.0.1:18080
 ```
 
-`check-http.py` 只使用 Python 标准库，检查 23 个页面入口、静态资源、GET API、PWA 基础资源和 404；它不模拟双人对局。停止本地服务后可运行 `python tools/check-startup.py` 检查启动配置；该脚本要求 18080、18081 端口空闲。
+`check-http.py` 只使用 Python 标准库，检查 24 个页面入口、静态资源、GET API、PWA 基础资源和 404；它不模拟双人对局。停止本地服务后可运行 `python tools/check-startup.py` 检查启动配置；该脚本要求 18080、18081 端口空闲。
 
-通用浏览器脚本 `tools/check-browser.cjs` 需要 Node.js、Playwright 和 Chrome。它检查当前 18 个首页卡片、22 个页面及资源、随机入口、部分单人玩法交互和 320 / 390 / 768 像素布局；存在本地可执行文件时，还会检查错误数据下的启动失败。截图写入被忽略的 `.qa/`。运行前先安装 `npm install --prefix tools`，再执行 `node tools/check-browser.cjs`；可用 `BASE_URL` 指向其他地址。联机对局仍使用下方七种玩法的专项检查。
+通用浏览器脚本 `tools/check-browser.cjs` 需要 Node.js、Playwright 和 Chrome。它检查当前 19 个首页卡片、23 个页面及资源、随机入口、部分单人玩法交互和 320 / 390 / 768 像素布局；存在本地可执行文件时，还会检查错误数据下的启动失败。截图写入被忽略的 `.qa/`。运行前先安装 `npm install --prefix tools`，再执行 `node tools/check-browser.cjs`；可用 `BASE_URL` 指向其他地址。联机对局仍使用下方八种玩法的专项检查。
 
-### 七种联机玩法的专项检查
+### 八种联机玩法的专项检查
 
-先准备 Python 3.9+，再安装依赖：`npm install --prefix tools` 用于联机拔河与圈地的 Playwright / Chrome 检查；`python -m pip install websockets==15.0.1` 用于六个 Python 双客户端检查。Python 脚本的地址是第一个命令行参数；拔河与圈地浏览器脚本读取 `BASE_URL` 环境变量。以下均检查本地默认端口：
+先准备 Python 3.9+，再安装依赖：`npm install --prefix tools` 用于联机拔河、圈地与光轮赛的 Playwright / Chrome 检查；`python -m pip install websockets==15.0.1` 用于七个 Python 双客户端检查。Python 脚本的地址是第一个命令行参数；拔河、圈地与光轮赛浏览器脚本读取 `BASE_URL` 环境变量。以下均检查本地默认端口：
 
 ```powershell
 $env:BASE_URL = "http://127.0.0.1:18080"
 node tools/check-tug-online.cjs
+node tools/check-light-online.cjs
+python tools/check-light-online.py http://127.0.0.1:18080
 node tools/check-land-online.cjs
 python tools/check-land-online.py http://127.0.0.1:18080
 python tools/check-reaction-online.py http://127.0.0.1:18080
@@ -177,15 +180,16 @@ python tools/check-room-join-expiry.py http://127.0.0.1:18080
 | `check-puzzle-online.py` | 私有线索、三关解答、双方同步、错误提交、重连 |
 | `check-word-online.py` | 词语与分类校验、答案保密、问答、计分、重赛 |
 | `check-harmony-online.py` | 排序保密、计分、三轮推进、重连、重赛 |
+| `check-light-engine.cpp` / `check-light-online.py` / `.cjs` | 同步碰撞、转向队列、过期消息、断线暂停、重连倒数、位置交换；手机触控与主题/PWA/存档兼容 |
 | `check-land-online.py` / `.cjs` | 九格圈地、双格得分、连走、过期操作、重连与先手交换；浏览器检查触控、主题、声音和行李箱记录 |
 
-六个 Python 对局脚本直接检查 C++ 服务的 HTTP / WebSocket 协议和规则，不验证页面点击或移动布局。`check-room-join-expiry.py` 额外检查拔河、反应赛和圈地客人加入后从未建立 WebSocket 连接的情况：约两分钟后座位应释放；三种玩法同时等待，因此该检查本身需约两分钟。GitHub Actions 的 Docker 工作流在构建与 HTTP 检查后先运行 PWA 安装/缓存/移动布局验收，再运行七种联机专项检查和这项过期检查。要检查公网版本，请只在确知其部署版本且允许创建测试房间时，把地址改为对应站点。
+七个 Python 对局脚本直接检查 C++ 服务的 HTTP / WebSocket 协议和规则，不验证页面点击或移动布局。`check-room-join-expiry.py` 额外检查拔河、反应赛、圈地和光轮赛客人加入后从未建立 WebSocket 连接的情况：约两分钟后座位应释放；四种玩法同时等待，因此该检查本身需约两分钟。GitHub Actions 的 Docker 工作流在构建与 HTTP 检查后先运行 PWA 安装/缓存/移动布局验收，再运行八种联机专项检查和这项过期检查。要检查公网版本，请只在确知其部署版本且允许创建测试房间时，把地址改为对应站点。
 
 ## 本地与上线
 
 本地默认监听 `127.0.0.1:18080`，无需设置环境变量。Dockerfile 默认设置 `HOST=0.0.0.0`、`PORT=10000`；平台可覆盖 `PORT`，服务不会写死端口。PORT 必须是 1～65535 的整数；HOST 只接受 `127.0.0.1` 或 `0.0.0.0`，错误配置会报错并退出。
 
-README 记录的线上地址为 [Railway 站点](https://boring-lab-play.up.railway.app/)；仓库没有 Railway 专用配置文件，部署时应选择 Dockerfile、设置健康检查 `/healthz`，并确认实例数为 1、代理支持同源 WebSocket。七种联机房间都只存在服务进程内，多实例之间不共享房间；部署或重启会清空对局。公网 HTTPS / WSS 由实际使用的部署平台提供，Crow 在容器内部提供 HTTP / WebSocket。
+README 记录的线上地址为 [Railway 站点](https://boring-lab-play.up.railway.app/)；仓库没有 Railway 专用配置文件，部署时应选择 Dockerfile、设置健康检查 `/healthz`，并确认实例数为 1、代理支持同源 WebSocket。八种联机房间都只存在服务进程内，多实例之间不共享房间；部署或重启会清空对局。公网 HTTPS / WSS 由实际使用的部署平台提供，Crow 在容器内部提供 HTTP / WebSocket。
 
 Render 是仓库保留的**可选部署方案**：`render.yaml` 指向同一个 Dockerfile，并配置 `/healthz`、HOST 和 PORT。操作见 [Render 上线说明](DEPLOY_RENDER.md)。这些文件的存在不表示当前站点在 Render 上运行，也不能证明 Railway 控制台的设置。浏览器支持 WebMCP 时，首页脚本还会注册可选导航动作；普通浏览器会跳过。
 
@@ -383,3 +387,16 @@ Web Audio 实时合成音效，限制音量、发声频率和并发数量；关�
 接口：`POST /api/land/rooms`、`POST /api/land/join`、`/ws/land`。`land-online.js` 用 44 像素按钮提供键盘与触摸操作，可点击虚线中段；开局收起邀请链接，轮次和得分反馈贴近棋盘。声音由 Web Audio 合成，可关闭，偏好随行李箱备份。房间身份不导出。支持四种主题和 PWA 静态离线页面，联机对局仍需要网络。
 
 专项验收：`python tools/check-land-online.py http://127.0.0.1:18080`（Python 3.9+ 与 `websockets==15.0.1`）、`node tools/check-land-online.cjs`（Playwright / Chrome，支持 `BASE_URL`、`CHROME_PATH`）。前者测试真实服务的规则与房间生命周期，后者用两个手机浏览器上下文完成整局、重连、重赛、主题切换和声音备份；不等同于 Android 真机验证。
+
+
+## 双人光轮赛
+
+入口 `/light-online.html`，首页第 19 个玩法。双方用两部手机加入同一个房间，准备后倒数三秒。18×24 格赛场中，车辆每 250 毫秒前进一格，左右转向相对当前车头。经过的格子留下不可穿越的光轨；撞墙、自己的轨迹、对方轨迹或迎头相撞都会结束比赛。同一步双方都撞车为平局，再来一局交换出发位置。
+
+`src/light_engine.h` 独立计算双方目标格，先检查所有碰撞，再延伸轨迹，避免先处理一方造成偏差。`src/light_rooms.h` 推进固定节拍并广播完整状态。转向携带 `run` / `epoch` / `step` / `seq`；一格最多排一个转弯，拒绝非法方向、重复序号、超过四步的旧输入和跨重连/对局的旧消息。网络延迟仍会影响响应，页面提醒提前转弯。
+
+断线暂停推进并清空尚未执行的转弯；重连保留赛场，三秒倒数后继续。客人离线两分钟释放座位并清空光轨，房主主动离开关闭房间。沿用单实例、同源 WebSocket 和进程内存房间约束。
+
+手机比赛中把赛场和 64 像素转向按钮集中展示，邀请链接收起；横屏时赛场和按钮并排。电脑支持方向键和 A / D；按钮也支持键盘操作。前端只在服务器已确认的位置之间插值，不自行判胜负。声音通过 Web Audio 合成，可关闭，偏好与到访记录可放进行李箱，房间身份不导出。兼容四种主题与 PWA；离线可打开页面，联机需要网络。
+
+验证：`check-light-engine.cpp` 可用任意 C++17 编译器单独运行；`python tools/check-light-online.py <网址>` 测试双客户端协议；`node tools/check-light-online.cjs` 检查两个手机浏览器上下文的操作、布局、断线续局和存档。浏览器检查支持 `BASE_URL` 与 `CHROME_PATH`，不等同于手机真机测试。

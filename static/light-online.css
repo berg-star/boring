@@ -1,0 +1,55 @@
+.light-main { max-width: 780px; }
+.light-room-info { border-bottom: 1px solid var(--border); padding-bottom: 10px; margin-bottom: 12px; }
+.light-room-info summary { cursor: pointer; font-size: 13px; color: var(--muted); }
+.light-room-info strong { color: var(--accent); font-size: 18px; letter-spacing: 3px; margin: 0 6px; }
+.light-room-info summary > span { font-size: 11px; }
+.light-players { display: flex; justify-content: space-between; gap: 10px; flex-wrap: wrap; font-size: 12px; }
+.light-players span { padding: 7px 10px; border: 1px solid var(--border); border-radius: 9px; background: #101a22; }
+.light-players span:first-child { color: #b9f879; }
+.light-players span:last-child { color: #93b9ff; }
+.light-status { text-align: center; font-size: 13px; min-height: 1.6em; margin: 12px 0; }
+.light-stage { width: min(100%, 360px); aspect-ratio: 3 / 4; margin: auto; position: relative; background: #101a22; border: 2px solid #536778; border-radius: 12px; overflow: hidden; }
+.light-stage canvas { display: block; width: 100%; height: 100%; }
+.light-overlay { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; flex-direction: column; gap: 10px; padding: 20px; text-align: center; color: #f1f6ff; background: #101a2299; pointer-events: none; }
+.light-overlay[hidden] { display: none; }
+.light-overlay strong { font-size: clamp(24px, 6vw, 36px); }
+.light-overlay span { font-size: 13px; line-height: 1.7; }
+.light-heading-tip { font-size: 12px; color: var(--muted); text-align: center; margin: 10px 0 8px; }
+.light-heading-tip strong { color: var(--text); font-size: 18px; }
+.light-controls { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; max-width: 360px; margin: auto; }
+.light-controls button { min-height: 64px; border-radius: 14px; background: var(--soft); border: 1px solid var(--accent); color: var(--accent); font-size: 18px; font-weight: 700; padding: 10px; touch-action: manipulation; user-select: none; -webkit-user-select: none; }
+.light-controls span { display: inline-block; margin-right: 12px; font-size: 26px; vertical-align: middle; }
+.light-controls button:disabled { opacity: .45; }
+.light-controls button:not(:disabled):active { background: var(--accent); color: var(--bg); transform: scale(.98); }
+.light-actions { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; margin-top: 12px; }
+.light-actions button { min-height: 44px; font-size: 13px; padding: 10px 13px; }
+.light-tip { font-size: 11px; color: var(--muted); text-align: center; margin: 10px 0 0; }
+.light-rules { border: 1px solid var(--border); border-radius: 14px; padding: 16px; margin-top: 20px; color: var(--muted); font-size: 14px; }
+.light-rules summary { cursor: pointer; color: var(--accent); }
+.light-rules ol { padding-left: 22px; line-height: 1.9; }
+@media (max-width: 600px), (max-height: 520px) {
+  .light-room { padding: 12px; }
+  .light-playing .header, .light-playing .game-heading, .light-playing .back, .light-playing footer, .light-playing .light-rules, .light-playing .online-note { display: none; }
+  .light-playing .site-shell { padding-top: max(8px, env(safe-area-inset-top)); }
+  .light-playing .light-main { padding-top: 0; margin-top: 0; }
+  .light-playing .light-room { margin-top: 0; }
+  .light-room-info summary > span { display: none; }
+  .light-stage { width: min(100%, 340px, calc((100svh - 375px) * .75)); min-width: 120px; }
+  .light-players { font-size: 11px; gap: 4px; }
+  .light-players span { padding: 6px; }
+  .light-playing .light-status { margin: 7px 0; }
+  .light-playing .light-tip { display: none; }
+}
+@media (orientation: landscape) and (max-height: 520px) {
+  .light-playing .light-race { display: grid; grid-template-columns: auto minmax(160px, 1fr); align-items: center; gap: 20px; }
+  .light-playing .light-stage { width: calc((100svh - 142px) * .75); min-width: 110px; }
+  .light-playing .light-control-panel { width: 100%; }
+}
+
+@media (max-width: 600px), (max-height: 520px) {
+  .light-playing .light-room { padding: 8px; }
+  .light-playing .light-race[data-phase="finished"] .light-heading-tip,
+  .light-playing .light-race[data-phase="finished"] .light-controls { display: none; }
+}
+
+.light-disconnected .light-heading-tip, .light-disconnected .light-controls { display: none; }

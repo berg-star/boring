@@ -49,6 +49,7 @@
     "word-online",
     "harmony-online",
     "land-online",
+    "light-online",
   ];
   const kinds = ["report", "notice", "wanted", "patch", "ad", "invention"];
   const achievementIds = [
@@ -281,6 +282,14 @@
       plain: true,
       valid: (s) => ["lime", "cream", "violet", "ocean"].includes(s),
       describe: (s) => ({ lime: "青柠夜游", cream: "奶油午后", violet: "紫电游戏厅", ocean: "深海电台" })[s],
+    },
+    {
+      key: "boring-lab-light-sound",
+      name: "光轮赛声音",
+      max: 10,
+      plain: true,
+      valid: (s) => s === "on" || s === "off",
+      describe: (s) => s === "on" ? "声音开启" : "声音关闭",
     },
     {
       key: "boring-lab-land-sound",
