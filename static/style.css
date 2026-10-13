@@ -128,7 +128,7 @@ h1 {
   font-weight:850;
 }
 .accent {
-  color:var(--lime);
+  color:var(--accent);
 }
 .hero-copy {
   color:var(--muted);
@@ -496,7 +496,7 @@ select,input {
 .option-chip {
   display:flex;
   align-items:center;
-  background:#282d2a;
+  background:var(--raised);
   border:1px solid var(--border);
   border-radius:8px;
   padding:4px 6px 4px 12px;
@@ -531,12 +531,12 @@ select,input {
 }
 .result-card h2 {
   font-size:48px;
-  color:var(--lavender);
+  color:var(--lavender-ink);
   margin:12px 0 20px;
 }
 .card-emblem {
   font-size:55px;
-  color:var(--lavender);
+  color:var(--lavender-ink);
   line-height:1.3;
 }
 .result-kicker {
@@ -581,7 +581,7 @@ select,input {
   justify-content:center;
 }
 .question-mark {
-  color:var(--blue);
+  color:var(--blue-ink);
   font:70px Georgia,serif;
   line-height:1;
 }
@@ -598,7 +598,7 @@ select,input {
 }
 .fun-panel h2 {
   font-size:38px;
-  color:var(--pink);
+  color:var(--pink-ink);
   margin:12px 0 28px;
 }
 .fun-panel .meter>span {
@@ -757,5 +757,5 @@ select,input {
   }
 }
 
-.luggage-link {display:inline-flex;align-items:center;min-height:44px;padding:8px 12px;color:var(--lime);border:1px solid #b9f87944;border-radius:20px;font-size:13px;white-space:nowrap;}
+.luggage-link {display:inline-flex;align-items:center;min-height:44px;padding:8px 12px;color:var(--accent);border:1px solid #b9f87944;border-radius:20px;font-size:13px;white-space:nowrap;}
 .section-head {flex-wrap:wrap;gap:12px;}

@@ -2,19 +2,19 @@
 #word-room-code{display:block;font-size:30px;letter-spacing:4px;color:var(--left)}
 .word-room .online-toolbar>span{font-size:13px;color:var(--muted)}
 .word-scores{display:flex;gap:12px;justify-content:space-between;flex-wrap:wrap;margin:18px 0 0;color:var(--left);font-size:14px;font-weight:700}
-.word-board{background:#17231e;border:1px solid var(--border);border-radius:18px;padding:26px;margin-top:18px}
+.word-board{background:var(--soft);border:1px solid var(--border);border-radius:18px;padding:26px;margin-top:18px}
 .word-eyebrow{color:var(--left);font-size:12px;letter-spacing:2px;margin:0 0 12px}
 .word-board h2{font-size:28px;margin:0 0 8px}.word-board>p:not(.word-eyebrow){color:var(--muted);font-size:14px;line-height:1.7}
 .word-board form{margin-top:20px}.word-board form label{display:block;margin:0 0 10px;font-size:14px}
 .word-input-row{display:flex;gap:10px;flex-wrap:wrap}
-.word-input-row input,.word-input-row select{flex:1;min-width:170px;max-width:100%;padding:14px 12px;background:#101916;color:var(--text);border:1px solid var(--border);border-radius:12px;font-size:15px}
+.word-input-row input,.word-input-row select{flex:1;min-width:170px;max-width:100%;padding:14px 12px;background:var(--inset);color:var(--text);border:1px solid var(--border);border-radius:12px;font-size:15px}
 .word-input-row input:focus,.word-input-row select:focus{outline:2px solid var(--left);outline-offset:2px}
-.word-mode{display:flex;gap:8px;margin:24px 0 16px}.word-mode button{flex:1;min-height:48px;border-radius:12px;border:1px solid var(--border);background:#101916;color:var(--muted);cursor:pointer;font-weight:700}
-.word-mode button.selected{border-color:var(--left);background:#293526;color:var(--left)}
-.word-reply{margin-top:20px}.word-reply p{color:var(--muted);font-size:14px}.word-reply blockquote{margin:10px 0 18px;padding:14px;border-left:3px solid var(--left);background:#101916;overflow-wrap:anywhere}
-.word-reply-actions{display:flex;gap:9px;flex-wrap:wrap}.word-reply-actions button{min-height:44px;padding:8px 14px;border-radius:12px;border:1px solid var(--border);color:var(--text);background:#293526;cursor:pointer}.word-reply-actions button:last-child{color:var(--muted);background:#101916}
+.word-mode{display:flex;gap:8px;margin:24px 0 16px}.word-mode button{flex:1;min-height:48px;border-radius:12px;border:1px solid var(--border);background:var(--inset);color:var(--muted);cursor:pointer;font-weight:700}
+.word-mode button.selected{border-color:var(--left);background:var(--raised);color:var(--left)}
+.word-reply{margin-top:20px}.word-reply p{color:var(--muted);font-size:14px}.word-reply blockquote{margin:10px 0 18px;padding:14px;border-left:3px solid var(--left);background:var(--inset);overflow-wrap:anywhere}
+.word-reply-actions{display:flex;gap:9px;flex-wrap:wrap}.word-reply-actions button{min-height:44px;padding:8px 14px;border-radius:12px;border:1px solid var(--border);color:var(--text);background:var(--raised);cursor:pointer}.word-reply-actions button:last-child{color:var(--muted);background:var(--inset)}
 .word-reject-form{display:flex;flex-wrap:wrap;gap:10px;margin-top:18px;padding-top:18px;border-top:1px solid var(--border)}.word-reject-form label{width:100%;font-size:14px;color:var(--muted)}
-.word-reject-form select,.word-reject-form input{flex:1;min-width:170px;padding:12px;background:#101916;color:var(--text);border:1px solid var(--border);border-radius:12px}.word-reject-form button{min-height:44px}
+.word-reject-form select,.word-reject-form input{flex:1;min-width:170px;padding:12px;background:var(--inset);color:var(--text);border:1px solid var(--border);border-radius:12px}.word-reject-form button{min-height:44px}
 .word-rejection{margin-top:16px;padding:14px;border:1px solid #d5a458;border-radius:12px;background:#30281b;color:#f9dea6;overflow-wrap:anywhere}.word-rejection p{margin:8px 0 0;font-size:14px;line-height:1.6}
 .word-history{margin-top:20px;border:1px solid var(--border);border-radius:14px;padding:18px}.word-history h3{font-size:17px;margin:0 0 14px}.word-history small{font-size:12px;color:var(--muted);font-weight:400}
 .word-history summary{cursor:pointer;font-size:16px;font-weight:700;margin-bottom:4px}.word-history[open] summary{margin-bottom:14px}

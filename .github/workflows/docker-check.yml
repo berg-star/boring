@@ -38,6 +38,7 @@ jobs:
           . .qa/ci-venv/bin/activate
           export BASE_URL=http://127.0.0.1:18081
           export CHROME_PATH="$(node -p "require('./tools/node_modules/playwright').chromium.executablePath()")"
+          node tools/check-themes.cjs
           node tools/check-pwa.cjs
           node tools/check-tug-online.cjs
           python tools/check-reaction-online.py "$BASE_URL"

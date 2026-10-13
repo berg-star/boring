@@ -272,6 +272,14 @@
       valid: (s) => s === "on" || s === "off",
       describe: (s) => (s === "on" ? "声音开启" : "声音关闭"),
     },
+    {
+      key: "boring-lab-theme-v1",
+      name: "界面主题",
+      max: 16,
+      plain: true,
+      valid: (s) => ["lime", "cream", "violet", "ocean"].includes(s),
+      describe: (s) => ({ lime: "青柠夜游", cream: "奶油午后", violet: "紫电游戏厅", ocean: "深海电台" })[s],
+    },
   ];
   function check(key, raw) {
     const entry = registry.find((e) => e.key === key);

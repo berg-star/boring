@@ -29,7 +29,7 @@ cmake --build build --config Release --parallel 2
 
 - Manifest：应用名、`standalone`、启动地址 `/` 和图标应正确，没有资源加载错误。
 - Service Workers：脚本地址 `/sw.js`，状态 activated，作用域覆盖站点根目录。
-- Cache Storage：有 `boring-lab-pwa-v1` 静态缓存，内容不应包含 `/api/`、`/ws/` 或 `/healthz`。
+- Cache Storage：有 `boring-lab-pwa-v2` 静态缓存，内容不应包含 `/api/`、`/ws/` 或 `/healthz`。
 
 首次安装缓存完成后，刷新一次，再启用开发者工具的 Offline 模式，打开首页、转盘或宠物等页面；恢复网络后再试联机建房。浏览器的网络模拟和系统连接状态可能不同，离线提示主要随系统 online/offline 状态显示；缓存是否成功应以实际页面和请求结果判断。
 
@@ -60,6 +60,7 @@ PWA 缓存与 localStorage 存档分开。激活新版本时只清理 `boring-la
 | `static/manifest.json` | 应用名称、根启动地址、根作用域、独立窗口、主题色和图标配置 |
 | `static/sw.js` | 从根地址 `/sw.js` 提供的 Service Worker，静态缓存与离线回退 |
 | `static/pwa.js` | 注册 SW、可选安装按钮、系统离线提示 |
+| `static/themes.js`、`static/themes.css` | 四种界面主题、保存选择、更新当前窗口主题色 |
 | `static/pwa.css` | 全面屏安全区域、手机触摸目标、PWA 提示样式 |
 | `static/offline.html` | 无缓存页面的离线备用页 |
 | `static/app-icon.svg`、四个 PNG | 复用原有青柠色“✳”标志；192 / 512 普通图标、512 maskable、180 Apple 图标 |

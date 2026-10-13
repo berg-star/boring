@@ -1,0 +1,190 @@
+/* Shared palettes. Artwork and reaction/team signals keep their original colors. */
+:root {
+  --accent: var(--lime);
+  --peach-ink: var(--peach);
+  --lavender-ink: var(--lavender);
+  --blue-ink: var(--blue);
+  --pink-ink: var(--pink);
+  --raised: #282d2a;
+  --inset: #111717;
+  --soft: #243026;
+  --accent-hover: #cbff9c;
+  --on-accent: #172111;
+}
+:root[data-theme="cream"] {
+  color-scheme: light;
+  --bg: #f6f1e7;
+  --surface: #fffdf7;
+  --border: #d6cebf;
+  --text: #332f28;
+  --muted: #70675b;
+  --lime: #c6dfa1;
+  --accent: #42622a;
+  --peach: #e6c2a1;
+  --peach-ink: #925425;
+  --lavender: #d5c7e8;
+  --lavender-ink: #75538e;
+  --blue: #bfd9e4;
+  --blue-ink: #33677d;
+  --pink: #ebc0cf;
+  --pink-ink: #974464;
+  --raised: #eee8dc;
+  --inset: #f3ede1;
+  --soft: #e9efde;
+  --accent-hover: #d6e9ba;
+  --on-accent: #283d19;
+}
+:root[data-theme="violet"] {
+  color-scheme: dark;
+  --bg: #191326;
+  --surface: #261d36;
+  --border: #4e3e63;
+  --text: #f5edf9;
+  --muted: #b8a9c7;
+  --lime: #e5b5ff;
+  --peach: #ffcbab;
+  --lavender: #c7bdff;
+  --blue: #9fdaf5;
+  --pink: #ffafd0;
+  --raised: #352946;
+  --inset: #1c152c;
+  --soft: #352445;
+  --accent-hover: #f1d5ff;
+  --on-accent: #35203f;
+}
+:root[data-theme="ocean"] {
+  color-scheme: dark;
+  --bg: #101e2c;
+  --surface: #192d3e;
+  --border: #355166;
+  --text: #edf5f6;
+  --muted: #a1b9c7;
+  --lime: #8ee4d4;
+  --peach: #f2c49d;
+  --lavender: #bdc4f7;
+  --blue: #a8cfff;
+  --pink: #f3b9d1;
+  --raised: #213b50;
+  --inset: #112435;
+  --soft: #1d3b40;
+  --accent-hover: #b2f1e6;
+  --on-accent: #173934;
+}
+:root[data-theme="cream"] body {
+  background-image: radial-gradient(#bbad8b22 .8px, transparent .8px);
+  background-size: 14px 14px;
+}
+:root[data-theme="violet"] body {
+  background-image: radial-gradient(ellipse at 80% 0%, #7040a326, transparent 55%);
+}
+:root[data-theme="ocean"] body {
+  background-image: radial-gradient(ellipse at 10% 0%, #3786a52b, transparent 55%);
+}
+:root[data-theme="cream"] :is(.panel, .game-card) { box-shadow: 0 5px 18px #6b58300a; }
+:root[data-theme="violet"] :is(.panel, .game-card) { box-shadow: 0 0 24px #b070ef09; }
+:root[data-theme="ocean"] :is(.panel, .game-card) { border-radius: 24px; }
+.primary { color: var(--on-accent); }
+.primary:hover { background: var(--accent-hover); }
+.brand-mark { color: var(--on-accent); }
+.hero-ticket { color: var(--on-accent); box-shadow: 12px 14px 0 var(--soft); }
+.game-card { --tint-ink: var(--accent); }
+.game-card.peach { --tint-ink: var(--peach-ink); }
+.game-card.lavender { --tint-ink: var(--lavender-ink); }
+.game-card.blue { --tint-ink: var(--blue-ink); }
+.game-card.pink { --tint-ink: var(--pink-ink); }
+.game-card .pill { color: var(--tint-ink); }
+/* These surfaces are game props or state signals, rather than the site chrome. */
+:is(.daily-card, #card-back, .show-card, .planet-room, .tug-arena, .reaction-pad) {
+  --text: #f0f2ed;
+  --muted: #a0a7a2;
+  --accent: #b9f879;
+  --peach-ink: #ffbc8b;
+  --lavender-ink: #cab5fa;
+  --blue-ink: #9fd2ed;
+  --pink-ink: #f4acc7;
+  color: var(--text);
+}
+/* Green still means go; a theme never changes the reaction test's cue. */
+:is(.reaction-pad.ready, .reaction-online-pad.go) { background: #b9f879; color: #1c2a13; }
+:root[data-theme="cream"] :is(.online-room, .tug-room, .reaction-room, .puzzle-room, .word-room, .harmony-room) {
+  --left: #42622a;
+  --right: #355f9e;
+}
+:root[data-theme="cream"] .tug-arena { --left: #b9f879; --right: #93b9ff; }
+:root[data-theme="cream"] :is(.doodle-top, .doodle-tools legend, .doodle-tools label, .doodle-stamp, .smash-caption, .doodle-options summary, #pet-speech) { color: var(--text); }
+:root[data-theme="cream"] .pet-room { background: radial-gradient(ellipse at 50% 75%, #e0e9cd, transparent 65%), var(--surface); }
+:root[data-theme="cream"] :is(.error, .luggage-item[data-state="invalid"] small) { color: #a63c32; }
+:root[data-theme="cream"] .pwa-network-note { background: #f7e6cf; }
+:root[data-theme="cream"] .achievement-card { background: var(--surface); }
+:root[data-theme="cream"] .achievement-card.unlocked { background: var(--soft); border-color: var(--accent); }
+:root[data-theme="cream"] .achievement-toast { background: var(--soft); border-color: var(--accent); }
+:root[data-theme="cream"] .achievement-toast p { color: var(--muted); }
+:root[data-theme="cream"] .result-card { background: #f0e8f5; }
+:root[data-theme="cream"] .meter { background: #332f2815; }
+:root[data-theme="cream"] .doodle-stages button[aria-pressed="true"],
+:root[data-theme="cream"] .doodle-shelf summary,
+:root[data-theme="cream"] .wheel-controls details summary { color: var(--accent); }
+.theme-trigger {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  gap: 8px;
+  min-width: 44px;
+  min-height: 44px;
+  padding: 8px 14px;
+  border: 1px solid var(--border);
+  border-radius: 30px;
+  background: var(--surface);
+  color: var(--text);
+  font-size: 13px;
+}
+.theme-trigger > span:first-child { font-size: 20px; line-height: 1; }
+.theme-picker {
+  width: min(560px, calc(100% - 24px));
+  max-height: calc(100dvh - 32px);
+  overflow: auto;
+  padding: 26px;
+  border: 1px solid var(--border);
+  border-radius: 24px;
+  background: var(--surface);
+  color: var(--text);
+  box-shadow: 0 24px 90px #0005;
+}
+.theme-picker::backdrop { background: #080b12b3; backdrop-filter: blur(5px); }
+.theme-heading { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
+.theme-heading .eyebrow { margin-bottom: 8px; font-size: 10px; }
+.theme-heading h2 { font-size: 25px; }
+.theme-close { flex-shrink: 0; width: 44px; height: 44px; padding: 0; border: 1px solid var(--border); border-radius: 50%; background: var(--bg); color: var(--text); font-size: 26px; }
+.theme-intro, .theme-status { color: var(--muted); font-size: 13px; line-height: 1.7; }
+.theme-options { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; margin: 22px 0 16px; }
+.theme-option { display: flex; flex-direction: column; align-items: flex-start; gap: 10px; padding: 16px; border: 2px solid var(--border); border-radius: 16px; background: var(--bg); color: var(--text); text-align: left; min-width: 0; }
+.theme-option[aria-pressed="true"] { border-color: var(--accent); background: var(--soft); }
+.theme-option strong { font-size: 15px; }
+.theme-option-note { font-size: 12px; color: var(--muted); line-height: 1.7; }
+.theme-swatches { display: flex; gap: 6px; }
+.theme-swatches i { width: 27px; height: 27px; border-radius: 50%; border: 1px solid #80808044; }
+.theme-status { min-height: 2em; margin: 0; }
+@media (max-width: 600px) {
+  .header { gap: 8px; }
+  .header .brand { flex: 1; min-width: 0; gap: 8px; }
+  .header .brand small { font-size: 9px; letter-spacing: 1.5px; }
+  .header .header-link { flex-shrink: 0; padding: 8px; }
+  .theme-trigger { width: 44px; padding: 0; }
+  .theme-trigger-label { display: none; }
+  .theme-picker { padding: 20px; }
+  .theme-heading h2 { font-size: 21px; }
+  .theme-option { padding: 12px; }
+  .theme-options { gap: 8px; }
+}
+@media (max-width: 360px) {
+  .header .brand { font-size: 15px; }
+  .header .brand-mark { width: 34px; height: 34px; font-size: 27px; flex-shrink: 0; }
+  .header .header-link { font-size: 11px; padding: 8px 6px; }
+}
+
+:root[data-theme="cream"] .collection-card.owned { color: var(--text); }
+:root[data-theme="cream"] .word-history li.negative b { color: #a63c32; }
+
+.achievement-link, .luggage-link { border-color: var(--border); }
+button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible { outline-color: var(--accent); }

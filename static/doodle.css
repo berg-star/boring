@@ -348,7 +348,7 @@ button:disabled {
     position: sticky;
     top: 0;
     z-index: 5;
-    background: #1b231f;
+    background:var(--surface);
     padding: 8px 0;
     margin-bottom: 12px;
     border-bottom: 1px solid var(--border);

@@ -55,19 +55,19 @@
   border: 1px solid var(--border);
   border-radius: 20px;
   font-size: 12px;
-  color: var(--lime);
+  color:var(--accent);
 }
 .question-theme-label[data-category="imagination"] {
-  color: var(--lavender);
+  color:var(--lavender-ink);
 }
 .question-theme-label[data-category="life"] {
-  color: var(--peach);
+  color:var(--peach-ink);
 }
 .question-theme-label[data-category="choice"] {
-  color: var(--pink);
+  color:var(--pink-ink);
 }
 .question-theme-label[data-category="objects"] {
-  color: var(--blue);
+  color:var(--blue-ink);
 }
 @media (max-width: 600px) {
   .question-themes {

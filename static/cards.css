@@ -8,7 +8,7 @@
   margin-bottom: 24px;
 }
 .card-collection-link a {
-  color: var(--lime);
+  color:var(--accent);
 }
 .daily-stage {
   perspective: 1400px;
@@ -200,7 +200,7 @@
   display: inline-block;
   margin-left: 12px;
   font-size: 12px;
-  color: var(--lime);
+  color:var(--accent);
 }
 .collection-controls {
   display: flex;

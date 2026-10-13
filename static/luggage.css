@@ -11,7 +11,7 @@
   padding: 8px 14px;
   border: 1px solid #b9f87955;
   border-radius: 30px;
-  color: var(--lime);
+  color:var(--accent);
   font-size: 13px;
 }
 .luggage-panel {
@@ -58,7 +58,7 @@
   color: var(--muted);
 }
 .luggage-item[data-state="ready"] small {
-  color: var(--lime);
+  color:var(--accent);
 }
 .luggage-item[data-state="invalid"] small {
   color: #ffc29a;
@@ -76,7 +76,7 @@
 }
 #backup-download {
   font-size: 13px;
-  color: var(--lime);
+  color:var(--accent);
 }
 #import-file {
   width: 100%;
@@ -102,7 +102,7 @@
   padding: 12px 0;
   font-size: 14px;
   line-height: 1.8;
-  color: var(--lime);
+  color:var(--accent);
   overflow-wrap: anywhere;
 }
 #restore-file {
@@ -165,7 +165,7 @@
   display: inline-flex;
   align-items: center;
   padding: 8px 12px;
-  color: var(--lime);
+  color:var(--accent);
   border: 1px solid #b9f87944;
   border-radius: 20px;
   font-size: 13px;
@@ -251,15 +251,15 @@
 .luggage-text-panel summary {
   min-height: 44px;
   cursor: pointer;
-  color: var(--lime);
+  color:var(--accent);
   font-size: 14px;
   line-height: 1.8;
 }
 .luggage-text-panel summary::marker {
-  color: var(--lime);
+  color:var(--accent);
 }
 #text-copy-status {
-  color: var(--lime);
+  color:var(--accent);
 }
 @media (max-width: 600px) {
   .luggage-text-panel {
@@ -288,7 +288,7 @@
   padding: 16px;
 }
 .luggage-storage-contexts dt {
-  color: var(--lime);
+  color:var(--accent);
   font-size: 14px;
   font-weight: 600;
 }
@@ -304,7 +304,7 @@
 }
 .luggage-method-tag {
   font-size: 12px;
-  color: var(--lime);
+  color:var(--accent);
 }
 .luggage-method h3 {
   font-size: 18px;
@@ -338,7 +338,7 @@
   margin: 0;
 }
 .luggage-faq summary {
-  color: var(--lime);
+  color:var(--accent);
   font-size: 15px;
   line-height: 1.8;
   min-height: 44px;

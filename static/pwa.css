@@ -19,7 +19,7 @@ body {
 }
 .pwa-install-help summary {
   cursor: pointer;
-  color: var(--lime);
+  color:var(--accent);
 }
 .pwa-install-help p {
   margin: 8px 0;
@@ -31,7 +31,7 @@ body {
   border: 1px solid #ffbc8b66;
   border-radius: 12px;
   background: #30261d;
-  color: var(--peach);
+  color:var(--peach-ink);
   font-size: 14px;
 }
 .pwa-offline-main {

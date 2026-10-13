@@ -77,6 +77,8 @@ assert manifest["display"] == "standalone" and manifest["start_url"] == "/"
 get("/sw.js", "text/javascript")
 get("/static/pwa.js", "text/javascript")
 get("/static/pwa.css", "text/css")
+get("/static/themes.js", "text/javascript")
+get("/static/themes.css", "text/css")
 get("/static/app-icon.svg", "image/svg+xml")
 
 print("PASS: health, pages, assets, JSON APIs, PWA resources and 404 responses at " + base)

@@ -380,6 +380,7 @@
       $("restore-success-copy").textContent =
         "已恢复 " + records.length + " 项记录。可以继续玩了，记得保留这份行李箱文件。";
       status("恢复成功。其他已打开的玩法页会在记录变化时重新载入。");
+      dispatchEvent(new Event("boring-luggage-restored"));
       $("restore-success-title").focus({ preventScroll: true });
     } catch (error) {
       if (error.changed && staged) preview();
