@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="theme-color" content="#121414" />
+    <script src="/static/themes.js"></script>
+    <link rel="manifest" href="/manifest.json" />
+    <link rel="apple-touch-icon" href="/static/apple-touch-icon.png" />
+    <meta name="description" content="两部手机轮流连线，圈地得分，还能继续走。九块地盘，看看谁更会挖坑。" />
+    <title>圈地大战 · 无聊研究所</title>
+    <link rel="stylesheet" href="/static/style.css" />
+    <link rel="stylesheet" href="/static/achievements.css" />
+    <link rel="stylesheet" href="/static/tug-online.css" />
+    <link rel="stylesheet" href="/static/land-online.css" />
+    <script defer src="/static/achievements.js"></script>
+    <script defer src="/static/main.js"></script>
+    <script defer src="/static/land-online.js"></script>
+    <link rel="stylesheet" href="/static/pwa.css" />
+    <link rel="stylesheet" href="/static/themes.css" />
+    <script defer src="/static/pwa.js"></script>
+  </head>
+  <body>
+    <div class="site-shell">
+      <header class="header">
+        <a class="brand" href="/"><span class="brand-mark">✳</span><span>无聊研究所<small>BORING LAB.</small></span></a>
+        <a class="header-link" href="/#playground">全部玩法 ↗</a>
+      </header>
+      <main class="game-main land-main">
+        <a class="back" href="/#playground">← 回游乐场</a>
+        <div class="game-heading"><p class="eyebrow">EXPERIMENT / 18 · DOTS &amp; BOXES</p><h1>圈地大战。</h1><p>补上最后一条边，这块地就归你。小心给朋友留下机会。</p></div>
+        <section class="panel online-room land-room" aria-label="双人圈地大战房间">
+          <div id="land-entry">
+            <h2>叫上朋友，圈一点自己的地盘。</h2>
+            <p class="help">分别用两部手机进入同一个房间。轮流连线，圈成方格就得一分，还能继续走；九块地全部分完，地盘多的人获胜。</p>
+            <div class="online-entry-actions">
+              <button id="land-create" class="primary" type="button">创建房间</button><span>或</span>
+              <form id="land-join-form"><label for="land-code">输入朋友的房间码</label><div><input id="land-code" maxlength="6" minlength="6" autocapitalize="characters" autocomplete="off" spellcheck="false" inputmode="text" placeholder="例如 AB3XYZ" required /><button class="secondary" type="submit">加入房间</button></div></form>
+            </div>
+          </div>
+          <div id="land-session" hidden>
+            <details id="land-room-info" class="land-room-info" open>
+              <summary>房间 <strong id="land-room-code">······</strong><span>邀请朋友 / 查看链接</span></summary>
+              <div class="online-share"><label for="land-share-link">把这个链接发给朋友</label><div><input id="land-share-link" readonly aria-label="邀请链接" /><button id="land-copy" class="secondary" type="button">复制链接</button></div></div>
+            </details>
+            <div class="land-scoreboard" aria-label="双方地盘得分">
+              <div data-side="0"><span id="land-player-left">✳ 青柠队</span><strong id="land-score-left">0</strong><small id="land-connection-left">等待连接</small></div>
+              <span class="land-versus" aria-hidden="true">VS</span>
+              <div data-side="1"><span id="land-player-right">◆ 蓝莓队</span><strong id="land-score-right">0</strong><small id="land-connection-right">等待连接</small></div>
+            </div>
+            <p id="land-status" class="land-status" role="status" aria-live="polite">正在连接房间……</p>
+            <div id="land-board" class="land-board" role="group" aria-label="圈地棋盘：四乘四圆点，九块地盘" data-phase="waiting">
+              <svg id="land-lines" viewBox="0 0 360 360" aria-hidden="true"></svg>
+            </div>
+            <p id="land-result" class="land-result" role="status" hidden></p>
+            <div class="land-actions">
+              <button id="land-ready" class="primary" type="button" disabled>我准备好了</button>
+              <button id="land-reconnect" class="secondary" type="button" hidden>重新连接</button>
+              <button id="land-sound" class="secondary" type="button" aria-pressed="true">声音：开 ♪</button>
+              <button id="land-leave" class="secondary" type="button">离开房间</button>
+            </div>
+            <p class="land-tip">点虚线的中间连起来。✳ 和 ◆ 分别标记双方地盘。</p>
+          </div>
+          <p id="land-error" class="online-error" role="alert" hidden></p>
+        </section>
+        <details class="land-rules"><summary>怎么圈地？</summary><ol><li>轮流连接相邻圆点，一次只画一条空线。</li><li>补上一个方格的第四条边，就拿到它，并继续走。</li><li>一条线同时封住两个方格，两块都归你。</li><li>九块地分完，地盘多的人获胜；再来一局会交换先手。</li></ol><p>提示：不要轻易给朋友留下只差一条边的格子。后半局可能一口气拿到好几块地！</p></details>
+        <p class="help online-note">短暂断线会保留棋盘，双方在线后继续。客人离线超过两分钟会释放座位并清空棋盘；网站重启会清空房间。</p>
+      </main>
+      <footer><span>✳ 无聊研究所 / 快乐不必有意义。</span><span>JUST FOR FUN. © 2026</span></footer>
+    </div>
+  </body>
+</html>

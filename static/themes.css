@@ -106,7 +106,7 @@
 }
 /* Green still means go; a theme never changes the reaction test's cue. */
 :is(.reaction-pad.ready, .reaction-online-pad.go) { background: #b9f879; color: #1c2a13; }
-:root[data-theme="cream"] :is(.online-room, .tug-room, .reaction-room, .puzzle-room, .word-room, .harmony-room) {
+:root[data-theme="cream"] :is(.online-room, .tug-room, .reaction-room, .puzzle-room, .word-room, .harmony-room, .land-room) {
   --left: #42622a;
   --right: #355f9e;
 }

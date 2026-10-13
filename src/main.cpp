@@ -6,6 +6,7 @@
 #include "puzzle_rooms.h"
 #include "word_rooms.h"
 #include "harmony_rooms.h"
+#include "land_rooms.h"
 #include <cstdlib>
 #include <filesystem>
 #include <fstream>
@@ -170,6 +171,7 @@ int main(int argc, char* argv[]) try {
     PuzzleRooms puzzleRooms;
     WordRooms wordRooms;
     HarmonyRooms harmonyRooms;
+    LandRooms landRooms;
     // 固定路径先注册，避免被下面的通用 /<string> 页面路由匹配。
     // 数据通过启动校验且 HTTP 服务正常接收请求，才会返回健康状态。
     CROW_ROUTE(app, "/healthz")([] {
@@ -180,8 +182,8 @@ int main(int argc, char* argv[]) try {
         return response;
     });
     // 只公开列出的网页和资源，不把任意用户路径拼到磁盘路径里。
-    const std::set<std::string> pages = {"index.html", "reaction.html", "reaction-online.html", "password-online.html", "puzzle-online.html", "word-online.html", "harmony-online.html", "wheel.html", "card.html", "question.html", "fun.html", "truth.html", "pet.html", "planet.html", "book.html", "doodle.html", "smash.html", "tug.html", "tug-online.html", "achievements.html", "luggage.html", "offline.html"};
-    const std::set<std::string> assets = {"style.css", "main.js", "reaction.js", "reaction-online.js", "reaction-online.css", "password-online.js", "password-online.css", "puzzle-online.js", "puzzle-online.css", "word-online.js", "word-online.css", "harmony-online.js", "harmony-online.css", "wheel.js", "wheel-presets.js", "wheel.css", "random.js", "truth.js", "pet.js", "pet.css", "planet.js", "planet.css", "fun.js", "fun.css", "book.js", "book.css", "achievements.js", "achievements.css", "cards.js", "cards.css", "doodle.js", "doodle-presets.js", "doodle-toy.js", "doodle-shelf.js", "doodle.css", "smash.js", "smash.css", "tug.js", "tug.css", "tug-online.js", "tug-online.css", "luggage.js", "luggage-schema.js", "luggage.css", "question.css", "pwa.js", "pwa.css", "themes.js", "themes.css", "app-icon.svg", "icon-192.png", "icon-512.png", "icon-maskable-512.png", "apple-touch-icon.png"};
+    const std::set<std::string> pages = {"index.html", "reaction.html", "reaction-online.html", "password-online.html", "puzzle-online.html", "word-online.html", "harmony-online.html", "land-online.html", "wheel.html", "card.html", "question.html", "fun.html", "truth.html", "pet.html", "planet.html", "book.html", "doodle.html", "smash.html", "tug.html", "tug-online.html", "achievements.html", "luggage.html", "offline.html"};
+    const std::set<std::string> assets = {"style.css", "main.js", "reaction.js", "reaction-online.js", "reaction-online.css", "password-online.js", "password-online.css", "puzzle-online.js", "puzzle-online.css", "word-online.js", "word-online.css", "harmony-online.js", "harmony-online.css", "land-online.js", "land-online.css", "wheel.js", "wheel-presets.js", "wheel.css", "random.js", "truth.js", "pet.js", "pet.css", "planet.js", "planet.css", "fun.js", "fun.css", "book.js", "book.css", "achievements.js", "achievements.css", "cards.js", "cards.css", "doodle.js", "doodle-presets.js", "doodle-toy.js", "doodle-shelf.js", "doodle.css", "smash.js", "smash.css", "tug.js", "tug.css", "tug-online.js", "tug-online.css", "luggage.js", "luggage-schema.js", "luggage.css", "question.css", "pwa.js", "pwa.css", "themes.js", "themes.css", "app-icon.svg", "icon-192.png", "icon-512.png", "icon-maskable-512.png", "apple-touch-icon.png"};
     CROW_ROUTE(app, "/api/tug/rooms").methods(crow::HTTPMethod::Post)([&] {
         auto result = tugRooms.create();
         crow::json::wvalue data;
@@ -428,7 +430,48 @@ int main(int argc, char* argv[]) try {
         .onclose([&](crow::websocket::connection& connection, const std::string&) {
             harmonyRooms.close(connection);
         });
-    app.tick(std::chrono::milliseconds(100), [&] { tugRooms.tick(); reactionRooms.tick(); passwordRooms.tick(); puzzleRooms.tick(); wordRooms.tick(); harmonyRooms.tick(); });
+    CROW_ROUTE(app, "/api/land/rooms").methods(crow::HTTPMethod::Post)([&] {
+        auto result = landRooms.create();
+        crow::json::wvalue data;
+        if (result.error.empty()) { data["room"] = result.code; data["token"] = result.token; data["side"] = result.side; }
+        else data["error"] = result.error;
+        crow::response response(data);
+        response.code = result.error.empty() ? 201 : 503;
+        response.set_header("Cache-Control", "no-store");
+        return response;
+    });
+    CROW_ROUTE(app, "/api/land/join").methods(crow::HTTPMethod::Post)([&](const crow::request& request) {
+        crow::json::wvalue data;
+        auto body = crow::json::load(request.body);
+        std::string code;
+        if (body && body.t() == crow::json::type::Object && body.has("room") && body["room"].t() == crow::json::type::String)
+            code = body["room"].s();
+        if (code.size() != 6 || code.find_first_not_of("ABCDEFGHJKLMNPQRSTUVWXYZ23456789") != std::string::npos) {
+            data["error"] = "请输入六位房间码。";
+            crow::response response(data); response.code = 400; return response;
+        }
+        auto result = landRooms.join(code);
+        if (result.error.empty()) { data["room"] = result.code; data["token"] = result.token; data["side"] = result.side; }
+        else data["error"] = result.error;
+        crow::response response(data);
+        response.code = result.error.empty() ? 200 : 409;
+        response.set_header("Cache-Control", "no-store");
+        return response;
+    });
+    CROW_WEBSOCKET_ROUTE(app, "/ws/land").max_payload(512)
+        .onaccept([](const crow::request& request, void**) {
+            const std::string origin = request.get_header_value("Origin"), host = request.get_header_value("Host");
+            if (origin.empty()) return true;
+            const auto schemeEnd = origin.find("://");
+            return schemeEnd != std::string::npos && origin.substr(schemeEnd + 3) == host;
+        })
+        .onmessage([&](crow::websocket::connection& connection, const std::string& text, bool binary) {
+            landRooms.message(connection, text, binary);
+        })
+        .onclose([&](crow::websocket::connection& connection, const std::string&) {
+            landRooms.close(connection);
+        });
+    app.tick(std::chrono::milliseconds(100), [&] { tugRooms.tick(); reactionRooms.tick(); passwordRooms.tick(); puzzleRooms.tick(); wordRooms.tick(); harmonyRooms.tick(); landRooms.tick(); });
     CROW_ROUTE(app, "/manifest.json")([&] { return serve_file(root / "static/manifest.json"); });
     CROW_ROUTE(app, "/sw.js")([&] {
         auto response = serve_file(root / "static/sw.js");

@@ -47,6 +47,8 @@
     "password-online",
     "puzzle-online",
     "word-online",
+    "harmony-online",
+    "land-online",
   ];
   const kinds = ["report", "notice", "wanted", "patch", "ad", "invention"];
   const achievementIds = [
@@ -279,6 +281,14 @@
       plain: true,
       valid: (s) => ["lime", "cream", "violet", "ocean"].includes(s),
       describe: (s) => ({ lime: "青柠夜游", cream: "奶油午后", violet: "紫电游戏厅", ocean: "深海电台" })[s],
+    },
+    {
+      key: "boring-lab-land-sound",
+      name: "圈地大战声音",
+      max: 10,
+      plain: true,
+      valid: (s) => s === "on" || s === "off",
+      describe: (s) => s === "on" ? "声音开启" : "声音关闭",
     },
   ];
   function check(key, raw) {

@@ -31,7 +31,7 @@ jobs:
           python -m pip install 'websockets==15.0.1'
           npm install --prefix tools --no-audit --no-fund
           ./tools/node_modules/.bin/playwright install --with-deps chromium
-      - name: Check PWA, six online games and unconnected guest expiry
+      - name: Check PWA, seven online games and unconnected guest expiry
         shell: bash
         run: |
           set -euo pipefail
@@ -40,6 +40,8 @@ jobs:
           export CHROME_PATH="$(node -p "require('./tools/node_modules/playwright').chromium.executablePath()")"
           node tools/check-themes.cjs
           node tools/check-pwa.cjs
+          node tools/check-land-online.cjs
+          python tools/check-land-online.py "$BASE_URL"
           node tools/check-tug-online.cjs
           python tools/check-reaction-online.py "$BASE_URL"
           python tools/check-password-online.py "$BASE_URL"
