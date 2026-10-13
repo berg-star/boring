@@ -89,6 +89,16 @@ async function main() {
         }
       }
     }
+    await page.evaluate(({ key }) => localStorage.setItem(key, 'cream'), { key });
+    await page.goto(base + '/tug.html');
+    await page.locator('#tug-fullscreen').click();
+    await page.waitForFunction(() => document.fullscreenElement || document.querySelector('#tug-status').textContent.includes('暂不支持全屏'));
+    if (await page.evaluate(() => !!document.fullscreenElement)) {
+      assert.equal(await page.locator('.tug-room').evaluate(e => getComputedStyle(e).backgroundColor), 'rgb(246, 241, 231)');
+      await page.evaluate(() => document.exitFullscreen());
+    } else {
+      assert.match(await page.locator('#tug-status').textContent(), /横着放也能正常玩/);
+    }
     await page.goto(base + '/reaction.html');
     await page.evaluate(() => document.querySelector('.reaction-pad').classList.add('ready'));
     assert.equal(await page.locator('.reaction-pad').evaluate(e => getComputedStyle(e).backgroundColor), 'rgb(185, 248, 121)');
