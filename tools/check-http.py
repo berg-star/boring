@@ -18,7 +18,7 @@ def get(path, content_type):
 
 assert json.loads(get("/healthz", "application/json")) == {"status": "ok"}
 assert json.loads(get("/api/hello", "application/json")) == {"message": "Hello from C++"}
-for page in ("/", "/reaction.html", "/reaction-online.html", "/password-online.html", "/puzzle-online.html", "/word-online.html", "/harmony-online.html", "/wheel.html", "/card.html", "/question.html", "/fun.html", "/truth.html", "/pet.html", "/planet.html", "/book.html", "/doodle.html", "/smash.html", "/tug.html", "/tug-online.html", "/achievements.html", "/luggage.html"):
+for page in ("/", "/reaction.html", "/reaction-online.html", "/password-online.html", "/puzzle-online.html", "/word-online.html", "/harmony-online.html", "/wheel.html", "/card.html", "/question.html", "/fun.html", "/truth.html", "/pet.html", "/planet.html", "/book.html", "/doodle.html", "/smash.html", "/tug.html", "/tug-online.html", "/achievements.html", "/luggage.html", "/offline.html"):
     assert "无聊研究所" in get(page, "text/html")
 get("/static/style.css", "text/css")
 get("/static/pet.css", "text/css")
@@ -65,10 +65,18 @@ for path in ("/missing", "/data/cards.json", "/static/main.cpp"):
         raise AssertionError("Expected 404: " + path)
     except HTTPError as error:
         assert error.code == 404, path
-print("PASS: health, pages, assets, JSON APIs and 404 responses at " + base)
 
 get("/static/doodle.css", "text/css")
 
 get("/static/smash.css", "text/css")
 
 get("/static/luggage.css", "text/css")
+
+manifest = json.loads(get("/manifest.json", "application/manifest+json"))
+assert manifest["display"] == "standalone" and manifest["start_url"] == "/"
+get("/sw.js", "text/javascript")
+get("/static/pwa.js", "text/javascript")
+get("/static/pwa.css", "text/css")
+get("/static/app-icon.svg", "image/svg+xml")
+
+print("PASS: health, pages, assets, JSON APIs, PWA resources and 404 responses at " + base)

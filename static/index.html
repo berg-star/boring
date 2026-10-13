@@ -2,7 +2,10 @@
 <html lang="zh-CN">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="theme-color" content="#121414" />
+    <link rel="manifest" href="/manifest.json" />
+    <link rel="apple-touch-icon" href="/static/apple-touch-icon.png" />
     <meta name="description" content="玩几分钟小游戏，抽一张卡，让无聊暂时下班。" />
     <title>无聊研究所 · 随便找点事做</title>
     <link
@@ -13,6 +16,8 @@
     <link rel="stylesheet" href="/static/achievements.css" />
     <script defer src="/static/achievements.js"></script>
     <script defer src="/static/main.js"></script>
+    <link rel="stylesheet" href="/static/pwa.css" />
+    <script defer src="/static/pwa.js"></script>
   </head>
   <body>
     <div class="site-shell">
@@ -48,6 +53,15 @@
               <span>↗</span>
             </button>
             <p class="micro">无需登录 · 没有任务 · 开心就好</p>
+            <div class="pwa-install-row">
+              <button id="pwa-install" class="secondary" type="button" hidden>添加到主屏幕</button>
+              <details class="pwa-install-help">
+                <summary>像 App 一样打开</summary>
+                <p>用手机浏览器打开本站，在菜单里选择“安装应用”或“添加到主屏幕”。微信里请先选择“在浏览器打开”。</p>
+                <p>微信和外部浏览器各自保存进度；有存档的话，先用“我的行李箱”搬家，再安装。</p>
+              </details>
+            </div>
+            <p id="pwa-install-feedback" class="help" role="status" hidden></p>
           </div>
           <div class="hero-ticket">
             <div class="ticket-top">

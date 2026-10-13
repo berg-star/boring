@@ -98,6 +98,9 @@ crow::response serve_file(const fs::path& path) {
         if (extension == ".html") response.set_header("Content-Type", "text/html; charset=utf-8");
         else if (extension == ".css") response.set_header("Content-Type", "text/css; charset=utf-8");
         else if (extension == ".js") response.set_header("Content-Type", "text/javascript; charset=utf-8");
+        else if (extension == ".json") response.set_header("Content-Type", "application/manifest+json; charset=utf-8");
+        else if (extension == ".png") response.set_header("Content-Type", "image/png");
+        else if (extension == ".svg") response.set_header("Content-Type", "image/svg+xml");
         response.set_header("X-Content-Type-Options", "nosniff");
         response.set_header("Cache-Control", "no-cache");
         return response;
@@ -177,8 +180,8 @@ int main(int argc, char* argv[]) try {
         return response;
     });
     // 只公开列出的网页和资源，不把任意用户路径拼到磁盘路径里。
-    const std::set<std::string> pages = {"index.html", "reaction.html", "reaction-online.html", "password-online.html", "puzzle-online.html", "word-online.html", "harmony-online.html", "wheel.html", "card.html", "question.html", "fun.html", "truth.html", "pet.html", "planet.html", "book.html", "doodle.html", "smash.html", "tug.html", "tug-online.html", "achievements.html", "luggage.html"};
-    const std::set<std::string> assets = {"style.css", "main.js", "reaction.js", "reaction-online.js", "reaction-online.css", "password-online.js", "password-online.css", "puzzle-online.js", "puzzle-online.css", "word-online.js", "word-online.css", "harmony-online.js", "harmony-online.css", "wheel.js", "wheel-presets.js", "wheel.css", "random.js", "truth.js", "pet.js", "pet.css", "planet.js", "planet.css", "fun.js", "fun.css", "book.js", "book.css", "achievements.js", "achievements.css", "cards.js", "cards.css", "doodle.js", "doodle-presets.js", "doodle-toy.js", "doodle-shelf.js", "doodle.css", "smash.js", "smash.css", "tug.js", "tug.css", "tug-online.js", "tug-online.css", "luggage.js", "luggage-schema.js", "luggage.css", "question.css"};
+    const std::set<std::string> pages = {"index.html", "reaction.html", "reaction-online.html", "password-online.html", "puzzle-online.html", "word-online.html", "harmony-online.html", "wheel.html", "card.html", "question.html", "fun.html", "truth.html", "pet.html", "planet.html", "book.html", "doodle.html", "smash.html", "tug.html", "tug-online.html", "achievements.html", "luggage.html", "offline.html"};
+    const std::set<std::string> assets = {"style.css", "main.js", "reaction.js", "reaction-online.js", "reaction-online.css", "password-online.js", "password-online.css", "puzzle-online.js", "puzzle-online.css", "word-online.js", "word-online.css", "harmony-online.js", "harmony-online.css", "wheel.js", "wheel-presets.js", "wheel.css", "random.js", "truth.js", "pet.js", "pet.css", "planet.js", "planet.css", "fun.js", "fun.css", "book.js", "book.css", "achievements.js", "achievements.css", "cards.js", "cards.css", "doodle.js", "doodle-presets.js", "doodle-toy.js", "doodle-shelf.js", "doodle.css", "smash.js", "smash.css", "tug.js", "tug.css", "tug-online.js", "tug-online.css", "luggage.js", "luggage-schema.js", "luggage.css", "question.css", "pwa.js", "pwa.css", "app-icon.svg", "icon-192.png", "icon-512.png", "icon-maskable-512.png", "apple-touch-icon.png"};
     CROW_ROUTE(app, "/api/tug/rooms").methods(crow::HTTPMethod::Post)([&] {
         auto result = tugRooms.create();
         crow::json::wvalue data;
@@ -426,6 +429,12 @@ int main(int argc, char* argv[]) try {
             harmonyRooms.close(connection);
         });
     app.tick(std::chrono::milliseconds(100), [&] { tugRooms.tick(); reactionRooms.tick(); passwordRooms.tick(); puzzleRooms.tick(); wordRooms.tick(); harmonyRooms.tick(); });
+    CROW_ROUTE(app, "/manifest.json")([&] { return serve_file(root / "static/manifest.json"); });
+    CROW_ROUTE(app, "/sw.js")([&] {
+        auto response = serve_file(root / "static/sw.js");
+        response.set_header("Service-Worker-Allowed", "/");
+        return response;
+    });
     CROW_ROUTE(app, "/")([&] { return serve_file(root / "static/index.html"); });
     CROW_ROUTE(app, "/<string>")([&](const std::string& name) {
         if (!pages.count(name)) return crow::response(404, "Page not found");

@@ -1,0 +1,101 @@
+/* Independent PWA presentation; game canvas gestures keep their own touch-action. */
+body {
+  padding-top: env(safe-area-inset-top, 0px);
+  padding-right: env(safe-area-inset-right, 0px);
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+  padding-left: env(safe-area-inset-left, 0px);
+}
+.pwa-install-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 14px;
+  margin-top: 18px;
+}
+.pwa-install-help {
+  max-width: 440px;
+  font-size: 13px;
+  color: var(--muted);
+}
+.pwa-install-help summary {
+  cursor: pointer;
+  color: var(--lime);
+}
+.pwa-install-help p {
+  margin: 8px 0;
+  line-height: 1.7;
+}
+.pwa-network-note {
+  margin: 16px 0;
+  padding: 12px 16px;
+  border: 1px solid #ffbc8b66;
+  border-radius: 12px;
+  background: #30261d;
+  color: var(--peach);
+  font-size: 14px;
+}
+.pwa-offline-main {
+  padding: 45px 0 80px;
+  max-width: 650px;
+  margin: auto;
+}
+.pwa-offline-main h1 {
+  font-size: 36px;
+}
+.pwa-offline-main p {
+  color: var(--muted);
+}
+.pwa-offline-main .game-actions a {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+}
+@media (pointer: coarse), (max-width: 600px) {
+  button,
+  summary {
+    min-height: 44px;
+    min-width: 44px;
+  }
+  summary {
+    padding-top: 8px;
+    padding-bottom: 8px;
+    touch-action: manipulation;
+  }
+  .header-link,
+  .back,
+  .achievement-link {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+  }
+  input:not([type="checkbox"]):not([type="radio"]):not([type="range"]),
+  select,
+  textarea {
+    font-size: 16px;
+    min-height: 44px;
+  }
+  .book-toolbar .secondary,
+  .planet-top .secondary,
+  .option-chip button,
+  .harmony-order-controls button,
+  .achievement-toast button {
+    min-height: 44px;
+    min-width: 44px;
+  }
+  .doodle-tools #palette {
+    flex-wrap: wrap;
+  }
+  .doodle-tools fieldset {
+    min-width: 0;
+    max-width: 100%;
+  }
+  .achievement-toast {
+    bottom: calc(16px + env(safe-area-inset-bottom, 0px));
+  }
+}
+@media (display-mode: standalone) {
+  .pwa-install-row {
+    display: none;
+  }
+}
