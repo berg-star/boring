@@ -49,7 +49,8 @@ const pages = fs.readdirSync("static").filter((name) => name.endsWith(".html"));
     assert.equal(manifest.scope, "/");
     assert.equal(manifest.display, "standalone");
     assert.equal(manifest.prefer_related_applications, false);
-    assert.equal(manifest.theme_color, "#121414");
+    assert.equal(manifest.theme_color, "#faf5f2");
+    assert.equal(manifest.background_color, "#faf5f2");
     for (const size of [192, 512])
       assert.ok(manifest.icons.some((i) => i.sizes === `${size}x${size}` && i.purpose === "any"));
     assert.ok(manifest.icons.some((i) => i.purpose === "maskable"));

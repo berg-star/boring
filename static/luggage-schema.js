@@ -280,8 +280,8 @@
       name: "界面主题",
       max: 16,
       plain: true,
-      valid: (s) => ["lime", "cream", "violet", "ocean"].includes(s),
-      describe: (s) => ({ lime: "青柠夜游", cream: "奶油午后", violet: "紫电游戏厅", ocean: "深海电台" })[s],
+      valid: (s) => ["lime", "cream", "violet", "ocean", "aurora", "sunset", "berry", "lagoon", "cloud"].includes(s),
+      describe: (s) => ({ lime: "青柠夜游", cream: "奶油午后", violet: "紫电游戏厅", ocean: "深海电台", aurora: "极光漫游", sunset: "落日汽水", berry: "莓果霓虹", lagoon: "薄荷海岸", cloud: "云朵糖纸" })[s],
     },
     {
       key: "boring-lab-light-sound",

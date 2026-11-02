@@ -11,7 +11,7 @@
   --accent-hover: #cbff9c;
   --on-accent: #172111;
 }
-:root[data-theme="cream"] {
+:root:is([data-theme="cream"], [data-theme="cloud"]) {
   color-scheme: light;
   --bg: #f6f1e7;
   --surface: #fffdf7;
@@ -70,7 +70,7 @@
   --accent-hover: #b2f1e6;
   --on-accent: #173934;
 }
-:root[data-theme="cream"] body {
+:root:is([data-theme="cream"], [data-theme="cloud"]) body {
   background-image: radial-gradient(#bbad8b22 .8px, transparent .8px);
   background-size: 14px 14px;
 }
@@ -80,7 +80,7 @@
 :root[data-theme="ocean"] body {
   background-image: radial-gradient(ellipse at 10% 0%, #3786a52b, transparent 55%);
 }
-:root[data-theme="cream"] :is(.panel, .game-card) { box-shadow: 0 5px 18px #6b58300a; }
+:root:is([data-theme="cream"], [data-theme="cloud"]) :is(.panel, .game-card) { box-shadow: 0 5px 18px #6b58300a; }
 :root[data-theme="violet"] :is(.panel, .game-card) { box-shadow: 0 0 24px #b070ef09; }
 :root[data-theme="ocean"] :is(.panel, .game-card) { border-radius: 24px; }
 .primary { color: var(--on-accent); }
@@ -106,24 +106,24 @@
 }
 /* Green still means go; a theme never changes the reaction test's cue. */
 :is(.reaction-pad.ready, .reaction-online-pad.go) { background: #b9f879; color: #1c2a13; }
-:root[data-theme="cream"] :is(.online-room, .tug-room, .reaction-room, .puzzle-room, .word-room, .harmony-room, .land-room, .light-room) {
+:root:is([data-theme="cream"], [data-theme="cloud"]) :is(.online-room, .tug-room, .reaction-room, .puzzle-room, .word-room, .harmony-room, .land-room, .light-room) {
   --left: #42622a;
   --right: #355f9e;
 }
-:root[data-theme="cream"] .tug-arena { --left: #b9f879; --right: #93b9ff; }
-:root[data-theme="cream"] :is(.doodle-top, .doodle-tools legend, .doodle-tools label, .doodle-stamp, .smash-caption, .doodle-options summary, #pet-speech) { color: var(--text); }
-:root[data-theme="cream"] .pet-room { background: radial-gradient(ellipse at 50% 75%, #e0e9cd, transparent 65%), var(--surface); }
-:root[data-theme="cream"] :is(.error, .luggage-item[data-state="invalid"] small) { color: #a63c32; }
-:root[data-theme="cream"] .pwa-network-note { background: #f7e6cf; }
-:root[data-theme="cream"] .achievement-card { background: var(--surface); }
-:root[data-theme="cream"] .achievement-card.unlocked { background: var(--soft); border-color: var(--accent); }
-:root[data-theme="cream"] .achievement-toast { background: var(--soft); border-color: var(--accent); }
-:root[data-theme="cream"] .achievement-toast p { color: var(--muted); }
-:root[data-theme="cream"] .result-card { background: #f0e8f5; }
-:root[data-theme="cream"] .meter { background: #332f2815; }
-:root[data-theme="cream"] .doodle-stages button[aria-pressed="true"],
-:root[data-theme="cream"] .doodle-shelf summary,
-:root[data-theme="cream"] .wheel-controls details summary { color: var(--accent); }
+:root:is([data-theme="cream"], [data-theme="cloud"]) .tug-arena { --left: #b9f879; --right: #93b9ff; }
+:root:is([data-theme="cream"], [data-theme="cloud"]) :is(.doodle-top, .doodle-tools legend, .doodle-tools label, .doodle-stamp, .smash-caption, .doodle-options summary, #pet-speech) { color: var(--text); }
+:root:is([data-theme="cream"], [data-theme="cloud"]) .pet-room { background: radial-gradient(ellipse at 50% 75%, #e0e9cd, transparent 65%), var(--surface); }
+:root:is([data-theme="cream"], [data-theme="cloud"]) :is(.error, .luggage-item[data-state="invalid"] small) { color: #a63c32; }
+:root:is([data-theme="cream"], [data-theme="cloud"]) .pwa-network-note { background: #f7e6cf; }
+:root:is([data-theme="cream"], [data-theme="cloud"]) .achievement-card { background: var(--surface); }
+:root:is([data-theme="cream"], [data-theme="cloud"]) .achievement-card.unlocked { background: var(--soft); border-color: var(--accent); }
+:root:is([data-theme="cream"], [data-theme="cloud"]) .achievement-toast { background: var(--soft); border-color: var(--accent); }
+:root:is([data-theme="cream"], [data-theme="cloud"]) .achievement-toast p { color: var(--muted); }
+:root:is([data-theme="cream"], [data-theme="cloud"]) .result-card { background: #f0e8f5; }
+:root:is([data-theme="cream"], [data-theme="cloud"]) .meter { background: #332f2815; }
+:root:is([data-theme="cream"], [data-theme="cloud"]) .doodle-stages button[aria-pressed="true"],
+:root:is([data-theme="cream"], [data-theme="cloud"]) .doodle-shelf summary,
+:root:is([data-theme="cream"], [data-theme="cloud"]) .wheel-controls details summary { color: var(--accent); }
 .theme-trigger {
   display: inline-flex;
   align-items: center;
@@ -183,11 +183,126 @@
   .header .header-link { font-size: 11px; padding: 8px 6px; }
 }
 
-:root[data-theme="cream"] .collection-card.owned { color: var(--text); }
-:root[data-theme="cream"] .word-history li.negative b { color: #a63c32; }
+:root:is([data-theme="cream"], [data-theme="cloud"]) .collection-card.owned { color: var(--text); }
+:root:is([data-theme="cream"], [data-theme="cloud"]) .word-history li.negative b { color: #a63c32; }
 
 .achievement-link, .luggage-link { border-color: var(--border); }
 button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible { outline-color: var(--accent); }
 
-:root[data-theme="cream"] .tug-room:fullscreen { background: var(--bg); }
-:root[data-theme="cream"] .tug-modes button[aria-pressed="true"] { background: var(--soft); }
+:root:is([data-theme="cream"], [data-theme="cloud"]) .tug-room:fullscreen { background: var(--bg); }
+:root:is([data-theme="cream"], [data-theme="cloud"]) .tug-modes button[aria-pressed="true"] { background: var(--soft); }
+
+
+/* Shared static-gradient chrome; game props and cue colors stay independent. */
+:root[data-gradient] {
+  --gradient-a: #a8e9d5; --gradient-b: #c6baff; --gradient-c: #ffd1cd;
+  --gradient-hover-a: #c4f5e5; --gradient-hover-b: #d5cbff; --gradient-hover-c: #ffddd9;
+  --gradient-glow-a: #47d8bd33; --gradient-glow-b: #a184fa40;
+  --gradient-bg-a: #101e2b; --gradient-bg-b: #19182f;
+  --gradient-card-a: #96e7cf0b; --gradient-card-b: #ba9ffc09; --gradient-card-c: #efacc50b;
+  --gradient-text-a: var(--gradient-a); --gradient-text-b: var(--gradient-b); --gradient-text-c: var(--gradient-c);
+  --gradient-card-border: #8697cf55; --gradient-ticket-border: #eefbff77;
+  --gradient-shadow: #080c1b22; --gradient-shadow-color: #9183ed22;
+  --gradient-icon-end: #e1d9ff; --gradient-on: #182839;
+  --gradient-picker-a: #253d46; --gradient-picker-b: #29253f; --gradient-picker-c: #342738;
+}
+:root[data-theme="aurora"] {
+  color-scheme: dark;
+  --bg: #101626; --surface: #1b2339; --border: #414c6a; --text: #f3f4ff; --muted: #b0bbd0;
+  --lime: #a8e9d5; --accent: #a8e9d5; --peach: #ffd1b8; --lavender: #c6baff; --blue: #a5d6ff; --pink: #ffc4da;
+  --raised: #2b3550; --inset: #141c30; --soft: #263747; --accent-hover: #c4f5e5; --on-accent: #182839;
+}
+:root[data-theme="sunset"] {
+  color-scheme: dark;
+  --bg: #24171f; --surface: #36252e; --border: #6d4b58; --text: #fff3ec; --muted: #d5b9be;
+  --lime: #ffcf8e; --accent: #ffcf8e; --peach: #ffc4a0; --lavender: #e8b3e5; --blue: #bfcfff; --pink: #ffb7ce;
+  --raised: #4a303b; --inset: #291d26; --soft: #50323c; --accent-hover: #ffe0b6; --on-accent: #442534;
+  --gradient-a: #ffcf8e; --gradient-b: #ffadab; --gradient-c: #e8b3e5;
+  --gradient-hover-a: #ffe0b6; --gradient-hover-b: #ffc9c5; --gradient-hover-c: #f3d1f1;
+  --gradient-glow-a: #ff9a4a4d; --gradient-glow-b: #f1749c38;
+  --gradient-bg-a: #322222; --gradient-bg-b: #301e31;
+  --gradient-card-a: #ffbf800e; --gradient-card-b: #f5a6b20b; --gradient-card-c: #e6a8ee0b;
+  --gradient-card-border: #b77f8b66; --gradient-on: #442534; --gradient-icon-end: #f8c5d1;
+  --gradient-picker-a: #503832; --gradient-picker-b: #462c3c; --gradient-picker-c: #42283e;
+  --gradient-shadow-color: #e0879222;
+}
+:root[data-theme="berry"] {
+  color-scheme: dark;
+  --bg: #201329; --surface: #32203e; --border: #624576; --text: #fff0ff; --muted: #cdb4d9;
+  --lime: #ffacd9; --accent: #ffacd9; --peach: #ffd1ae; --lavender: #c6adff; --blue: #a6d8ff; --pink: #ffacd9;
+  --raised: #492957; --inset: #281a34; --soft: #492b53; --accent-hover: #ffc7e7; --on-accent: #3d1d47;
+  --gradient-a: #ffacd9; --gradient-b: #c6adff; --gradient-c: #a6d8ff;
+  --gradient-hover-a: #ffc7e7; --gradient-hover-b: #daccff; --gradient-hover-c: #c7e7ff;
+  --gradient-glow-a: #f14ac64a; --gradient-glow-b: #8968ff52;
+  --gradient-bg-a: #361a35; --gradient-bg-b: #241736;
+  --gradient-card-a: #ff8bdf12; --gradient-card-b: #b397ff0c; --gradient-card-c: #84cfff08;
+  --gradient-card-border: #c08ac766; --gradient-on: #3d1d47; --gradient-icon-end: #dac6fa;
+  --gradient-picker-a: #512b50; --gradient-picker-b: #3b2851; --gradient-picker-c: #28344e;
+  --gradient-shadow-color: #b665dc22;
+}
+:root[data-theme="lagoon"] {
+  color-scheme: dark;
+  --bg: #102424; --surface: #1c3437; --border: #3c6666; --text: #effdf7; --muted: #accdc7;
+  --lime: #abedd0; --accent: #abedd0; --peach: #eed9a9; --lavender: #c1d4f5; --blue: #9edfff; --pink: #edc7d2;
+  --raised: #2c494b; --inset: #142b2e; --soft: #25483f; --accent-hover: #cef9e4; --on-accent: #193c3b;
+  --gradient-a: #abedd0; --gradient-b: #9edfff; --gradient-c: #e5eca6;
+  --gradient-hover-a: #cef9e4; --gradient-hover-b: #c5eeff; --gradient-hover-c: #f1f4c8;
+  --gradient-glow-a: #30c89d45; --gradient-glow-b: #4ba9de40;
+  --gradient-bg-a: #15312c; --gradient-bg-b: #102831;
+  --gradient-card-a: #87e7bf0d; --gradient-card-b: #91d4fb0a; --gradient-card-c: #d7e8880a;
+  --gradient-card-border: #6bb3a466; --gradient-on: #193c3b; --gradient-icon-end: #cdece6;
+  --gradient-picker-a: #224b40; --gradient-picker-b: #203c49; --gradient-picker-c: #354532;
+  --gradient-shadow-color: #46c8af22;
+}
+:root[data-theme="cloud"] {
+  color-scheme: light;
+  --bg: #faf5f2; --surface: #fffcfa; --border: #cfc2cc; --text: #3b3048; --muted: #75647e;
+  --lime: #d5e7be; --accent: #5a457a; --peach: #f5c9b3; --peach-ink: #8b4d35;
+  --lavender: #dfd4ff; --lavender-ink: #6e4787; --blue: #c4dfe8; --blue-ink: #365c78; --pink: #f1cada; --pink-ink: #89455f;
+  --raised: #ede5ed; --inset: #f6eff5; --soft: #f0e7f5; --accent-hover: #e2d3f4; --on-accent: #41334d;
+  --gradient-a: #ffd7c3; --gradient-b: #dfd4ff; --gradient-c: #c6e8df;
+  --gradient-hover-a: #ffe5d8; --gradient-hover-b: #ece4ff; --gradient-hover-c: #def3ed;
+  --gradient-glow-a: #ffb8b266; --gradient-glow-b: #b4a2ed4d;
+  --gradient-bg-a: #fff4ed; --gradient-bg-b: #f2edf9;
+  --gradient-card-a: #ffc5a717; --gradient-card-b: #b8a3f50e; --gradient-card-c: #a5d5c714;
+  --gradient-text-a: #a65040; --gradient-text-b: #7050a2; --gradient-text-c: #356b61;
+  --gradient-card-border: #c4b5ca; --gradient-ticket-border: #ffffffbb; --gradient-on: #41334d;
+  --gradient-shadow: #8d6e8b12; --gradient-shadow-color: #9d79a41c; --gradient-icon-end: #e9e0fc;
+  --gradient-picker-a: #fff2e9; --gradient-picker-b: #f1eafb; --gradient-picker-c: #eaf5ee;
+}
+:root[data-gradient] body {
+  background-color: var(--bg);
+  background-image: radial-gradient(ellipse at 0% 10%, var(--gradient-glow-a), transparent 58%),
+    radial-gradient(ellipse at 100% 20%, var(--gradient-glow-b), transparent 62%),
+    linear-gradient(165deg, var(--gradient-bg-a), var(--gradient-bg-b) 52%, var(--bg));
+  background-size: 100% 1100px, 100% 1500px, 100% 100%; background-repeat: no-repeat;
+}
+:root[data-gradient] .brand-mark, :root[data-gradient] .primary {
+  background: linear-gradient(115deg, var(--gradient-a), var(--gradient-b) 65%, var(--gradient-c)); color: var(--gradient-on);
+}
+:root[data-gradient] .primary:hover {
+  background: linear-gradient(115deg, var(--gradient-hover-a), var(--gradient-hover-b) 65%, var(--gradient-hover-c));
+}
+:root[data-gradient] .hero-ticket {
+  background: linear-gradient(135deg, var(--gradient-a), var(--gradient-b) 58%, var(--gradient-c)); color: var(--gradient-on);
+  border: 1px solid var(--gradient-ticket-border);
+  box-shadow: 10px 12px 0 var(--gradient-shadow-color), 0 20px 70px var(--gradient-shadow-color);
+}
+:root[data-gradient] .ticket-bottom { border-color: #43577888; }
+:root[data-gradient] .game-card {
+  background: linear-gradient(135deg, var(--gradient-card-a), var(--gradient-card-b) 55%, var(--gradient-card-c)), var(--surface);
+  border-color: var(--gradient-card-border); box-shadow: inset 0 1px 0 #e2ddff0a, 0 8px 26px var(--gradient-shadow);
+}
+:root[data-gradient] .game-card:hover { border-color: var(--tint); }
+:root[data-gradient] .game-icon { background: linear-gradient(140deg, var(--tint), var(--gradient-icon-end)); color: var(--gradient-on); }
+:root[data-gradient] .theme-picker { background: linear-gradient(145deg, var(--gradient-picker-a), var(--gradient-picker-b) 70%, var(--gradient-picker-c)); }
+:root[data-gradient] .theme-option[aria-pressed="true"] { background: var(--soft); }
+:root[data-gradient] .filters button.active { background: linear-gradient(110deg, var(--gradient-a), var(--gradient-b)); border-color: var(--gradient-b); color: var(--gradient-on); }
+@supports ((background-clip: text) or (-webkit-background-clip: text)) {
+  :root[data-gradient] .hero h1 .accent {
+    background: linear-gradient(100deg, var(--gradient-text-a), var(--gradient-text-b) 58%, var(--gradient-text-c));
+    -webkit-background-clip: text; background-clip: text; color: transparent;
+  }
+}
+.theme-swatches-gradient { width: 93px; height: 27px; border-radius: 14px; border: 1px solid #80808044; }
+.theme-swatches-gradient i { display: none; }

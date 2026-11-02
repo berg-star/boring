@@ -3,7 +3,7 @@ const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const base = (process.env.BASE_URL || 'http://127.0.0.1:18080').replace(/\/$/, '');
 const key = 'boring-lab-theme-v1';
-const palettes = { lime: '#121414', cream: '#f6f1e7', violet: '#191326', ocean: '#101e2c' };
+const palettes = { lime: '#121414', cream: '#f6f1e7', violet: '#191326', ocean: '#101e2c', aurora: '#101626', sunset: '#24171f', berry: '#201329', lagoon: '#102424', cloud: '#faf5f2' };
 const pages = ['/', ...fs.readdirSync('static').filter(p => p.endsWith('.html') && p !== 'index.html').map(p => '/' + p)];
 async function main() {
   fs.mkdirSync('.qa', { recursive: true });
@@ -25,6 +25,20 @@ async function main() {
       assert.equal(await page.evaluate(() => document.activeElement.classList.contains('theme-trigger')), true);
     }
     await page.goto(base);
+    assert.equal(await palette(), 'cloud', 'first visit uses cloud');
+    assert.equal(await page.locator('[data-theme-choice]').count(), 9);
+    assert.equal(await page.evaluate(key => localStorage.getItem(key), key), null);
+    await page.evaluate(key => localStorage.setItem(key, 'invalid-theme'), key);
+    await page.reload();
+    assert.equal(await palette(), 'cloud', 'invalid saved theme uses cloud');
+    await pick('lime');
+    await page.reload();
+    assert.equal(await palette(), 'lime', 'existing explicit choice is retained');
+    await page.goto(base + '/?preview-theme=sunset');
+    assert.equal(await palette(), 'sunset');
+    assert.equal(await page.evaluate(key => localStorage.getItem(key), key), 'lime');
+    await page.goto(base);
+    assert.equal(await palette(), 'lime', 'temporary previews do not overwrite saved choices');
     await page.evaluate(() => localStorage.setItem('theme-game-sentinel', 'unchanged'));
     await page.evaluate(() => { window.themeRuntimeSentinel = 'no-refresh'; });
     for (const id of Object.keys(palettes)) {
@@ -37,7 +51,7 @@ async function main() {
     }
     const other = await context.newPage();
     await other.goto(base + '/wheel.html');
-    assert.equal(await other.locator('html').getAttribute('data-theme'), 'ocean');
+    assert.equal(await other.locator('html').getAttribute('data-theme'), 'cloud');
     await pick('cream');
     await other.waitForFunction(() => document.documentElement.dataset.theme === 'cream');
     await page.goto(base + '/luggage.html');
@@ -45,6 +59,8 @@ async function main() {
     await page.waitForFunction(() => document.querySelector('#export-text-value').value.length > 0);
     const backupText = await page.locator('#export-text-value').inputValue();
     assert.ok(JSON.parse(backupText).records.some(r => r.key === key && r.value === 'cream'));
+    for (const id of Object.keys(palettes)) assert.equal(await page.evaluate(id => BoringLuggage.check('boring-lab-theme-v1', id).name, id), '界面主题');
+    assert.equal(await page.evaluate(() => BoringLuggage.check('boring-lab-theme-v1', 'aurora').description), '极光漫游');
     await pick('violet');
     await page.locator('#import-file').setInputFiles({ name: 'themes.json', mimeType: 'application/json', buffer: Buffer.from(backupText) });
     await page.locator('#restore-items').getByText('界面主题', { exact: true }).waitFor();
@@ -126,13 +142,13 @@ async function main() {
     });
     const blocked = await restricted.newPage();
     await blocked.goto(base);
-    assert.equal(await blocked.locator('html').getAttribute('data-theme'), 'lime');
+    assert.equal(await blocked.locator('html').getAttribute('data-theme'), 'cloud');
     await blocked.locator('.theme-trigger').click();
     await blocked.locator('[data-theme-choice="cream"]').click();
     assert.equal(await blocked.locator('html').getAttribute('data-theme'), 'cream');
     assert.match(await blocked.locator('.theme-status').textContent(), /不能保存/);
     await restricted.close();
   } finally { await browser.close(); }
-  console.log('PASS: four themes, all-page mobile/desktop layout, persistence, cross-tab sync, luggage roundtrip, offline cache and blocked storage at ' + base);
+  console.log('PASS: nine themes, all-page mobile/desktop layout, persistence, cross-tab sync, luggage roundtrip, offline cache and blocked storage at ' + base);
 }
 main().catch(error => { console.error(error); process.exit(1); });
